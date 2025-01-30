@@ -1,0 +1,233 @@
+from flask import Flask, request, jsonify, send_file, render_template
+import pandas as pd
+import math
+from pptx import Presentation
+from pptx.util import Pt, Inches
+from pptx.enum.text import PP_ALIGN
+from pptx.dml.color import RGBColor
+from PIL import Image
+import os
+import comtypes.client
+from flask_cors import CORS
+import pythoncom
+from comtypes.client import CreateObject
+
+
+
+app = Flask(__name__)
+CORS(app)
+
+# 텍스트 프레임 양식 설정 함수
+def TextFrame(ss, font_name='맑은 고딕', font_size=Pt(15), font_bold=True, ft_color=True, font_color=RGBColor(68, 84, 116)):
+    for line in range(len(ss.text_frame.paragraphs)):
+        ss.text_frame.paragraphs[line].font.name = font_name
+        ss.text_frame.paragraphs[line].font.size = font_size
+        ss.text_frame.paragraphs[line].font.bold = font_bold
+        ss.text_frame.paragraphs[line].alignment = PP_ALIGN.CENTER
+        if ft_color:
+            ss.text_frame.paragraphs[line].font.color.rgb = font_color
+    return ss
+
+def convert_ppt_to_pdf(input_ppt, output_pdf):
+    """
+    PowerPoint 파일을 PDF로 변환하는 함수
+    :param input_ppt: 변환할 PPTX 파일의 절대 경로
+    :param output_pdf: 변환된 PDF 파일이 저장될 절대 경로
+    """
+    pythoncom.CoInitialize()  # 🔥 COM 객체 초기화 (Flask 같은 멀티스레드 환경에서 필수)
+
+    try:
+        # PowerPoint 애플리케이션 객체 생성
+        powerpoint = comtypes.client.CreateObject("Powerpoint.Application")
+        powerpoint.Visible = 1  # 1 = 표시, 0 = 백그라운드 실행 가능
+
+        # 절대 경로 변환 (PowerPoint가 상대 경로를 잘 인식하지 못할 수 있음)
+        input_ppt = os.path.abspath(input_ppt)
+        output_pdf = os.path.abspath(output_pdf)
+
+        print(f"📂 변환 시작: {input_ppt} -> {output_pdf}")
+
+        # PPT 파일 열기
+        presentation = powerpoint.Presentations.Open(input_ppt, WithWindow=False)
+
+        # PDF로 저장 (32: msoSaveAsPDF)
+        presentation.SaveAs(output_pdf, 32)
+        presentation.Close()
+
+        # PowerPoint 종료
+        powerpoint.Quit()
+
+        # 변환 성공 여부 확인
+        if os.path.exists(output_pdf):
+            print(f"✅ PDF 변환 성공: {output_pdf}")
+        else:
+            raise FileNotFoundError(f"🚨 PDF 변환 실패: {output_pdf} 파일이 생성되지 않음")
+
+    except Exception as e:
+        print(f"❌ PDF 변환 중 오류 발생: {e}")
+    finally:
+        pythoncom.CoUninitialize()  # 🚀 COM 객체 해제
+
+# 🔹 1️⃣ 프론트엔드 (HTML) 서빙
+@app.route('/')
+def home():
+    return render_template('index1.html')  # templates/index.html 제공
+# PPT 작성 엔드포인트
+@app.route('/dash_board', methods=['POST'])
+def create_ppt():
+    try:
+        # ㅍ스트 요청이 아닌 경우 405 에러 반환
+        if request.method != 'POST':
+            return jsonify({"error": "Only POST requests are allowed."}), 405
+        
+        # 요청 데이터 받기
+        if 'id_photo' not in request.files or 'excel_data' not in request.files:
+            return jsonify({"error": "Both 'id_photo' and 'excel_data' files are required."}), 400
+
+        # 파일 저장
+        id_photo = request.files['id_photo']
+        excel_file = request.files['excel_data']
+        file_type = request.form.get('file_type', 'pdf') #기본값은 pdf
+
+        id_photo_path = os.path.join(os.getcwd(), 'temp_id_photo.jpg')
+        excel_file_path = os.path.join(os.getcwd(), 'temp_excel_data.xlsx')
+
+
+        id_photo.save(id_photo_path)
+        excel_file.save(excel_file_path)
+
+        # 파일 존재 여부 확인
+        if not os.path.exists(id_photo_path):
+            return jsonify({"error": f"File not found: {id_photo_path}"}), 400
+        if not os.path.exists(excel_file_path):
+            return jsonify({"error": f"File not found: {excel_file_path}"}), 400
+
+        # 엑셀 데이터 로드
+        df_raw = pd.read_excel(excel_file_path)
+        df = df_raw.iloc[7:]
+
+        # PPT 템플릿 로드
+        # 현재 디렉터리에서 파일 경로를 생성
+        ppt_template_path = os.path.join(os.getcwd(), 'koco_frame.pptx')
+
+        # PPT 템플릿 로드
+        prs = Presentation(ppt_template_path)
+        
+        temp_slide = prs.slides[0]
+        shape_s = temp_slide.shapes
+
+        #ppt table에 ceph 데이터 넣기
+        for i in range(df.shape[0]):
+            shape_s[7].table.cell(row_idx=i,col_idx =1).text = str(df.iloc[i,3])
+            TextFrame(shape_s[7].table.cell(row_idx=i,col_idx =1),font_size=Pt(7),font_bold=False,ft_color=False)
+
+        # Ceph 데이터 정리
+        df['Unnamed: 0'] = df['Unnamed: 0'].str.rstrip()
+        ceph = {key: value for key, value in zip(df['Unnamed: 0'], df['Unnamed: 3'])}
+
+        # 수식 계산
+        cosvalue = math.cos(math.radians(ceph['- AB<LOP']))
+        a = 3.5 / 4.4 * cosvalue
+        if ceph['APDI'] >= 81:
+            if ceph['PMA'] < 27.5:
+                IAPDI = 95 - 0.5 * ceph['PMA']
+            else:
+                IAPDI = 81
+        else:
+            IAPDI = 81 - a * (ceph['PMA'] - 27.5)
+
+        IAPDI = round(IAPDI, 2)
+        HGI = round(0.2 * ((ceph['MBL'] - ceph['ACBL']) * 2 + (ceph['UGA'] - 50) + 0.5 * (ceph['PCBA'] - 64)), 2)
+        VGI = round(0.2 * ((ceph['FHR'] - 60) * 2 - (ceph['LGA'] - 75) + 0.5 * (ceph['ACBA'] - 7)), 2)
+        APDL = round(0.4 * (ceph['APDI'] - IAPDI), 2)
+        IODI = round(((80 - 0.3 * ceph['PMA'] - (0.776 - 0.008 * ceph['FMA']) * (ceph['FABA'] - 80))), 2)
+        VDL = round(0.4849 * (ceph['ODI'] - IODI), 2)
+        CFD = round(ceph['APDI'] + ceph['ODI'] - IAPDI - IODI, 2)
+
+        # 고정 변수 설정
+        fixed_var_dict = {
+            8: 'C/C & Main problem',
+            9: 'MPH:',
+            11: f'HGI:{HGI}',
+            13: f'VGI:{VGI}',
+            17: f'IAPDI:{IAPDI}',
+            19: f'2APDL:{APDL * 2}',
+            20: f'IODI:{IODI}',
+            22: f'VDL:{VDL}',
+            24: 'CEPH RESULT',
+            25: f'CFD:{CFD}',
+            26: 'Extraction:'
+        }
+
+        for k, v in fixed_var_dict.items():
+            shape_s[k].text = v
+            TextFrame(shape_s[k], font_size=Pt(13), font_bold=True, ft_color=False)
+
+        # 이름, 나이 등 정보 설정
+        name = df_raw.iloc[3, 1]
+        age = df_raw.iloc[3, 3]
+        birth = df_raw.iloc[2, 3]
+        gender = f'({df_raw.iloc[4, 1][0]})'
+
+        soft_profile = 'S3' if ceph['FA`B`'] >= 83 else 'S1' if ceph['FA`B`'] >= 79 else 'S2'
+        bony_profile = 'B3' if ceph['FABA'] >= 83 else 'B1' if ceph['FABA'] >= 79 else 'B2'
+        denture_profile = 'D3' if 2 * APDL >= 2 else 'D1' if -1 <= 2 * APDL < 2 else 'D2'
+
+        if ceph['Overbite'] > 3:
+            nbt = 'dbt'
+        elif -2 < ceph['Overbite'] <= 3:
+            nbt = 'nbt'
+        else:
+            nbt = 'obt'
+
+        if VDL > 1:
+            skeletal_nbt = 'dbt'
+        elif -4 < VDL <= 1:
+            skeletal_nbt = 'nbt'
+        else:
+            skeletal_nbt = 'obt'
+
+        shape_s[4].text = f"{gender} {name} {age} {birth}\n {soft_profile}.{bony_profile}.{denture_profile}.C1-{nbt}({skeletal_nbt})-RM(Rt)-Fx:Ex-Fx/1-Type IV"
+        TextFrame(shape_s[4])
+
+       # 이미지 처리
+        with Image.open(id_photo_path) as img:
+            width, height = img.size
+            wpercent = 1.6 / float(width)
+            new_height = round(float(height) * wpercent, 1)
+
+            left = Inches(2.7)
+            top = Inches(0.55)
+            width = Inches(1.6)
+            height = Inches(new_height)
+            temp_slide.shapes.add_picture(id_photo_path, left, top, width, height)
+
+        # PPT 저장
+        output_pptx = 'output_ppt.pptx'
+        prs.save(output_pptx)
+
+        
+        # 임시 파일 삭제
+        try:
+            if os.path.exists(id_photo_path):
+                os.remove(id_photo_path)
+            if os.path.exists(excel_file_path):
+                os.remove(excel_file_path)
+        except PermissionError as e:
+            print(f"PermissionError: {e}")
+
+        if file_type == 'pdf':
+            output_pdf = 'output_ppt.pdf'
+            convert_ppt_to_pdf(output_pptx, output_pdf)  # PDF 변환 로직 (구현 필요)
+
+            return send_file(output_pdf, as_attachment=True, mimetype='application/pdf')
+
+        # PPTX 파일 전송
+        return send_file(output_pptx, as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation')
+
+
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)

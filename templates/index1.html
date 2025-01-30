@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>파일 업로드 예시</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+      padding: 0;
+    }
+    h1 {
+      color: #333;
+    }
+    .upload-section {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="file"], select {
+      margin-bottom: 10px;
+    }
+    .btn-submit {
+      padding: 8px 15px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    #pdfViewer {
+      width: 100%;
+      height: 600px;
+      border: 1px solid #ccc;
+      margin-top: 20px;
+      display: none;
+    }
+    /* 이미지 및 파일 미리보기 스타일 */
+    .file-preview {
+      width: 200px;
+      height: 200px;
+      border: 2px dashed #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      margin-bottom: 10px;
+      background-size: cover;
+      background-position: center;
+      cursor: pointer;
+      text-align: center;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .drag-over {
+      border-color: #4CAF50 !important;
+      background-color: #f8fff8;
+    }
+  </style>
+</head>
+<body>
+  <h1>사진 + 엑셀 파일 업로드</h1>
+  
+  <form id="uploadForm" method="POST" enctype="multipart/form-data">
+    <!-- ID 사진 업로드 -->
+    <div class="upload-section">
+      <label for="id_photo">1) ID 사진 선택</label>
+      <div id="imagePreview" class="file-preview" style="background-image: url('/static/sample_id_photo.jpg');">
+        📂 사진을 선택하거나 여기에 드래그하세요
+      </div>
+      <input type="file" id="id_photo" name="id_photo" accept="image/*" required hidden />
+    </div>
+
+    <!-- 엑셀 파일 업로드 -->
+    <div class="upload-section">
+      <label for="excel_data">2) Excel 파일 선택</label>
+      <div id="excelPreview" class="file-preview" style="background-image: url('/static/sample_excel.png');">
+        📂 엑셀 파일을 선택하거나 드래그하세요
+      </div>
+      <input type="file" id="excel_data" name="excel_data" accept=".xlsx, .xls" required hidden />
+    </div>
+
+    <!-- 파일 반환 형식 선택 (드롭다운) -->
+    <div class="upload-section">
+      <label for="file_type">3) 반환 파일 형식 선택</label>
+      <select id="file_type" name="file_type">
+        <option value="pdf" selected>📄 PDF로 반환받기</option>
+        <option value="pptx">📊 PPTX로 반환받기</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn-submit">파일 생성하기</button>
+  </form>
+
+  <!-- PDF를 표시할 iframe -->
+  <iframe id="pdfViewer"></iframe>
+
+  <script>
+    function setupDragAndDrop(fileInputId, previewDivId, sampleImage) {
+      const fileInput = document.getElementById(fileInputId);
+      const previewDiv = document.getElementById(previewDivId);
+
+      // 기본 이미지 설정
+      previewDiv.style.backgroundImage = `url(${sampleImage})`;
+
+      // 파일 선택 시 미리보기 변경
+      fileInput.addEventListener("change", function () {
+        const file = this.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            if (fileInputId === "id_photo") {
+              previewDiv.style.backgroundImage = `url(${e.target.result})`;
+            } else {
+              previewDiv.textContent = `📂 ${file.name}`; // 엑셀 파일 이름 표시
+              previewDiv.style.backgroundImage = "none";
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // 클릭 시 파일 선택 창 열기
+      previewDiv.addEventListener("click", function () {
+        fileInput.click();
+      });
+
+      // 드래그 앤 드롭 기능 추가
+      previewDiv.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        previewDiv.classList.add("drag-over");
+      });
+
+      previewDiv.addEventListener("dragleave", function () {
+        previewDiv.classList.remove("drag-over");
+      });
+
+      previewDiv.addEventListener("drop", function (e) {
+        e.preventDefault();
+        previewDiv.classList.remove("drag-over");
+
+        const file = e.dataTransfer.files[0];
+        if (file) {
+          fileInput.files = e.dataTransfer.files;
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            if (fileInputId === "id_photo") {
+              previewDiv.style.backgroundImage = `url(${e.target.result})`;
+            } else {
+              previewDiv.textContent = `📂 ${file.name}`; // 엑셀 파일 이름 표시
+              previewDiv.style.backgroundImage = "none";
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    // 사진 및 엑셀 파일에 드래그앤드롭 기능 적용
+    setupDragAndDrop("id_photo", "imagePreview", "/static/sample_id_photo.jpg");
+    setupDragAndDrop("excel_data", "excelPreview", "/static/sample_excel.png");
+
+    // 폼 제출 이벤트
+    document.getElementById("uploadForm").addEventListener("submit", async (e) => {
+      e.preventDefault(); // 기본 제출 방지
+
+      const formData = new FormData(e.target);
+
+      try {
+        const response = await fetch("http://127.0.0.1:5000/dash_board", {
+          method: "POST",
+          body: formData
+        });
+
+        // 응답의 Content-Type 확인
+        const contentType = response.headers.get("Content-Type");
+
+        if (!response.ok) {
+          throw new Error("서버 오류 발생");
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        const selectedFileType = document.getElementById("file_type").value;
+
+        if (selectedFileType === "pdf" && contentType.includes("application/pdf")) {
+          // PDF 파일이면 iframe에서 표시
+          const pdfViewer = document.getElementById("pdfViewer");
+          pdfViewer.src = url;
+          pdfViewer.style.display = "block";
+        } else if (selectedFileType === "pptx" && contentType.includes("application/vnd.openxmlformats-officedocument.presentationml.presentation")) {
+          // PPTX 파일이면 다운로드
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "output_ppt.pptx";
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        } else {
+          alert("지원되지 않는 파일 형식입니다.");
+        }
+
+      } catch (error) {
+        alert("업로드 중 오류가 발생했습니다: " + error.message);
+      }
+    });
+  </script>
+</body>
+</html>
