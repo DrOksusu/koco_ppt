@@ -42,25 +42,35 @@
     }
     /* 이미지 및 파일 미리보기 스타일 */
     .file-preview {
-      width: 200px;
-      height: 200px;
-      border: 2px dashed #ccc;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      margin-bottom: 10px;
-      background-size: cover;
-      background-position: center;
-      cursor: pointer;
-      text-align: center;
-      font-size: 14px;
-      font-weight: bold;
+        width: 200px;
+        height: 200px;
+        border: 2px dashed #ccc;
+        padding: 0; /* ✅ 드래그 영역이 정확히 인식되도록 변경 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        margin-bottom: 10px;
+        background-size: cover;
+        background-position: center;
+        cursor: pointer;
+        text-align: center;
+        font-size: 14px;
+        font-weight: bold;
+        position: relative; /* ✅ 이벤트 감지를 위해 상대 위치 설정 */
     }
-    .drag-over {
-      border-color: #4CAF50 !important;
-      background-color: #f8fff8;
+
+    /* ✅ 드래그 중인 파일이 영역 근처에 왔을 때 */
+    .file-preview.drag-near {
+        border-color: red !important;  /* 빨간색 테두리 적용 */
     }
+
+    /* ✅ 드래그 앤 드롭 가능 상태 */
+    .file-preview.drag-over {
+        border-color: #4CAF50 !important;
+        background-color: #f8fff8;
+    }
+
   </style>
 </head>
 <body>
@@ -100,116 +110,140 @@
   <!-- PDF를 표시할 iframe -->
   <iframe id="pdfViewer"></iframe>
 
-  <script>
-    function setupDragAndDrop(fileInputId, previewDivId, sampleImage) {
-      const fileInput = document.getElementById(fileInputId);
-      const previewDiv = document.getElementById(previewDivId);
-
-      // 기본 이미지 설정
-      previewDiv.style.backgroundImage = `url(${sampleImage})`;
-
-      // 파일 선택 시 미리보기 변경
-      fileInput.addEventListener("change", function () {
-        const file = this.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            if (fileInputId === "id_photo") {
-              previewDiv.style.backgroundImage = `url(${e.target.result})`;
-            } else {
-              previewDiv.textContent = `📂 ${file.name}`; // 엑셀 파일 이름 표시
-              previewDiv.style.backgroundImage = "none";
-            }
-          };
-          reader.readAsDataURL(file);
+   <script>
+        function logInfo(message, data) {
+            console.log(`[INFO] ${message}`, data || '');
         }
-      });
-
-      // 클릭 시 파일 선택 창 열기
-      previewDiv.addEventListener("click", function () {
-        fileInput.click();
-      });
-
-      // 드래그 앤 드롭 기능 추가
-      previewDiv.addEventListener("dragover", function (e) {
-        e.preventDefault();
-        previewDiv.classList.add("drag-over");
-      });
-
-      previewDiv.addEventListener("dragleave", function () {
-        previewDiv.classList.remove("drag-over");
-      });
-
-      previewDiv.addEventListener("drop", function (e) {
-        e.preventDefault();
-        previewDiv.classList.remove("drag-over");
-
-        const file = e.dataTransfer.files[0];
-        if (file) {
-          fileInput.files = e.dataTransfer.files;
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            if (fileInputId === "id_photo") {
-              previewDiv.style.backgroundImage = `url(${e.target.result})`;
-            } else {
-              previewDiv.textContent = `📂 ${file.name}`; // 엑셀 파일 이름 표시
-              previewDiv.style.backgroundImage = "none";
-            }
-          };
-          reader.readAsDataURL(file);
+        function logError(message, error) {
+            console.error(`[ERROR] ${message}`, error || '');
         }
-      });
-    }
+        function setupDragAndDrop(fileInputId, previewDivId, sampleImage) {
+          const fileInput = document.getElementById(fileInputId);
+          const previewDiv = document.getElementById(previewDivId);
 
-    // 사진 및 엑셀 파일에 드래그앤드롭 기능 적용
-    setupDragAndDrop("id_photo", "imagePreview", "/static/sample_id_photo.jpg");
-    setupDragAndDrop("excel_data", "excelPreview", "/static/sample_excel.png");
+          logInfo(`${fileInputId} 드래그 앤 드롭 기능 초기화 완료`);
+          previewDiv.style.backgroundImage = `url(${sampleImage})`;
 
-    // 폼 제출 이벤트
-    document.getElementById("uploadForm").addEventListener("submit", async (e) => {
-      e.preventDefault(); // 기본 제출 방지
+          // ✅ 파일 선택 (클릭)
+          fileInput.addEventListener("change", function () {
+              handleFilePreview(fileInput, previewDiv);
+          });
 
-      const formData = new FormData(e.target);
+          previewDiv.addEventListener("click", function () {
+              logInfo(`${fileInputId} 클릭됨 -> 파일 선택 창 열림`);
+              fileInput.click();
+          });
 
-      try {
-        const response = await fetch("http://127.0.0.1:5000/dash_board", {
-          method: "POST",
-          body: formData
-        });
+          // ✅ window에서 dragover 감지 → 크롬에서 드래그 감지 안 되는 문제 해결
+          window.addEventListener("dragover", function (e) {
+              e.preventDefault();
+          });
 
-        // 응답의 Content-Type 확인
-        const contentType = response.headers.get("Content-Type");
+          // ✅ 드래그가 preview 영역에 들어왔을 때만 감지 (내부 요소 감지 문제 해결)
+          previewDiv.addEventListener("dragenter", function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              if (e.currentTarget !== previewDiv) return;  // ✅ 내부 요소에서 이벤트 발생 방지
+              previewDiv.classList.add("drag-near");
+          });
 
-        if (!response.ok) {
-          throw new Error("서버 오류 발생");
-        }
+          previewDiv.addEventListener("dragover", function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              if (e.currentTarget !== previewDiv) return;  // ✅ 내부 요소에서 이벤트 발생 방지
+              previewDiv.classList.add("drag-over");
+          });
 
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
+          previewDiv.addEventListener("dragleave", function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              if (e.currentTarget !== previewDiv) return;  // ✅ 내부 요소에서 이벤트 발생 방지
+              previewDiv.classList.remove("drag-over");
+              previewDiv.classList.remove("drag-near");
+          });
 
-        const selectedFileType = document.getElementById("file_type").value;
+          previewDiv.addEventListener("drop", function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              if (e.currentTarget !== previewDiv) return;  // ✅ 내부 요소에서 이벤트 발생 방지
+              previewDiv.classList.remove("drag-over");
+              previewDiv.classList.remove("drag-near");
 
-        if (selectedFileType === "pdf" && contentType.includes("application/pdf")) {
-          // PDF 파일이면 iframe에서 표시
-          const pdfViewer = document.getElementById("pdfViewer");
-          pdfViewer.src = url;
-          pdfViewer.style.display = "block";
-        } else if (selectedFileType === "pptx" && contentType.includes("application/vnd.openxmlformats-officedocument.presentationml.presentation")) {
-          // PPTX 파일이면 다운로드
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = "output_ppt.pptx";
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
-        } else {
-          alert("지원되지 않는 파일 형식입니다.");
-        }
+              // ✅ 크롬에서도 확실하게 `dataTransfer.files` 사용
+              const files = e.dataTransfer.files;
+              if (files.length > 0) {
+                  logInfo(`${fileInputId} 드래그앤드롭 파일 선택됨:`, files[0]);
 
-      } catch (error) {
-        alert("업로드 중 오류가 발생했습니다: " + error.message);
+                  // ✅ 크롬에서는 `DataTransfer` 객체를 직접 생성해서 `input.files`을 업데이트해야 함
+                  const dataTransfer = new DataTransfer();
+                  for (let i = 0; i < files.length; i++) {
+                      dataTransfer.items.add(files[i]);
+                  }
+                  fileInput.files = dataTransfer.files;
+
+                  handleFilePreview(fileInput, previewDiv);
+              } else {
+                  logError("크롬에서 파일을 인식하지 못함");
+              }
+          });
       }
-    });
-  </script>
+
+
+      // 파일 미리보기 업데이트 함수
+      function handleFilePreview(fileInput, previewDiv) {
+          const file = fileInput.files[0];
+          if (file) {
+              const reader = new FileReader();
+              reader.onload = function (e) {
+                  if (fileInput.id === "id_photo") {
+                      previewDiv.style.backgroundImage = `url(${e.target.result})`;
+                  } else {
+                      previewDiv.textContent = `📂 ${file.name}`;
+                      previewDiv.style.backgroundImage = "none";
+                  }
+              };
+              reader.readAsDataURL(file);
+          }
+      }
+
+
+        setupDragAndDrop("id_photo", "imagePreview", "/static/sample_id_photo.jpg");
+        setupDragAndDrop("excel_data", "excelPreview", "/static/sample_excel.png");
+
+        document.getElementById("uploadForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            logInfo("FormData 생성 완료:", Object.fromEntries(formData.entries()));
+            try {
+                const response = await fetch("http://127.0.0.1:5000/dash_board", {
+                    method: "POST",
+                    body: formData
+                });
+                logInfo("서버 응답 상태 코드:", response.status);
+                if (!response.ok) {
+                    throw new Error(`서버 오류 발생: ${response.status}`);
+                }
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                logInfo("Blob 객체 생성 완료:", url);
+                const selectedFileType = document.getElementById("file_type").value;
+                const pdfViewer = document.getElementById("pdfViewer");
+                if (selectedFileType === "pdf") {
+                    pdfViewer.src = url;
+                    pdfViewer.style.display = "block";
+                } else {
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = "output_ppt.pptx";
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                }
+            } catch (error) {
+                logError("업로드 중 오류 발생:", error);
+                alert("업로드 중 오류가 발생했습니다: " + error.message);
+            }
+        });
+    </script>
 </body>
 </html>
