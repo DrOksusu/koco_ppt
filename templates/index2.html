@@ -1,144 +1,279 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>이미지 업로드</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-        .image-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            width: 80%;
-        }
-        .image-grid.bottom {
-            grid-template-columns: repeat(3, 1fr);
-        }
-        .drop-zone {
-            width: 100%;
-            height: 150px;
-            border: 2px dashed #ccc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            font-size: 14px;
-            color: #aaa;
-            cursor: pointer;
-            position: relative;
-        }
-        .drop-zone input {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-        .preview {
-            width: 100%;
-            height: auto;
-            display: none;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>파일 업로드 예시</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+      padding: 0;
+    }
+    h1 {
+      color: #333;
+    }
+    .upload-section {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .btn-submit {
+      padding: 8px 15px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    /* 엑스레이 선택 - 가로 배치 */
+    .xray-preview-container {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-start;  /* ✅ 왼쪽 정렬 */
+      flex-wrap: wrap;  /* ✅ 화면이 작아질 경우 줄바꿈 */
+    }
+    /* 구외포토 선택 - 가로 배치 */
+    .photo-preview-container {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-start;  /* ✅ 왼쪽 정렬 */
+      flex-wrap: wrap;  /* ✅ 화면이 작아질 경우 줄바꿈 */
+    }
+
+    .file-preview {
+      width: 150px;
+      height: 150px;
+      border: 2px dashed #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background-size: cover;
+      background-position: center;
+      cursor: pointer;
+      text-align: center;
+      font-size: 14px;
+      font-weight: bold;
+      position: relative;
+    }
+    .file-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .file-preview.drag-over {
+        border-color: #4CAF50 !important;
+        background-color: #f8fff8;
+    }
+    .delete-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: red;
+      color: white;
+      border: none;
+      padding: 3px 6px;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 50%;
+    }
+  </style>
 </head>
 <body>
-
-    <div class="container">
-        <h2>이미지 업로드</h2>
-        <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
-            <div class="image-grid">
-                <div class="drop-zone" data-index="0">
-                    <span>이미지를 드래그하거나 클릭하여 업로드</span>
-                    <input type="file" name="image1" accept="image/*">
-                    <img class="preview" alt="미리보기">
-                </div>
-                <div class="drop-zone" data-index="1">
-                    <span>이미지를 드래그하거나 클릭하여 업로드</span>
-                    <input type="file" name="image2" accept="image/*">
-                    <img class="preview" alt="미리보기">
-                </div>
-            </div>
-            <div class="image-grid bottom">
-                <div class="drop-zone" data-index="2">
-                    <span>이미지를 드래그하거나 클릭하여 업로드</span>
-                    <input type="file" name="image3" accept="image/*">
-                    <img class="preview" alt="미리보기">
-                </div>
-                <div class="drop-zone" data-index="3">
-                    <span>이미지를 드래그하거나 클릭하여 업로드</span>
-                    <input type="file" name="image4" accept="image/*">
-                    <img class="preview" alt="미리보기">
-                </div>
-                <div class="drop-zone" data-index="4">
-                    <span>이미지를 드래그하거나 클릭하여 업로드</span>
-                    <input type="file" name="image5" accept="image/*">
-                    <img class="preview" alt="미리보기">
-                </div>
-            </div>
-            <button type="submit">업로드</button>
-        </form>
+  <h1>엑스레이 + 엑셀 파일 업로드</h1>
+  
+  <form id="uploadForm" method="POST" enctype="multipart/form-data">
+    <!-- 엑스레이 선택 (4개의 Drop Zone) -->
+    <div class="upload-section">
+      <label>엑스레이 입력</label>
+      <div class="xray-preview-container">
+        <div class="file-preview" id="xrayPreview1" style="background-image: url('/static/sample_pano.jpg');">📂 PANORAMA</div>
+        <div class="file-preview" id="xrayPreview2" style="background-image: url('/static/sample_lateral.jpg');">📂 Laterl_ceph </div>
+        <div class="file-preview" id="xrayPreview3" style="background-image: url('/static/sample_frontal.jpg');">📂 Frontal_ceph</div>
+        <div class="file-preview" id="xrayPreview4" style="background-image: url('/static/sample_psa.jpg');">📂 PSA</div>
+      </div>
+      <input type="file" id="pano" name="pano" accept="image/*" required hidden />
+      <input type="file" id="lateral_ceph" name="lateral_ceph" accept="image/*" required hidden />
+      <input type="file" id="frontal_ceph" name="frontal_ceph" accept="image/*" required hidden />
+      <input type="file" id="psa" name="psa" accept="image/*" required hidden />
     </div>
 
-    <script>
-        document.querySelectorAll('.drop-zone').forEach(dropZone => {
-            const input = dropZone.querySelector('input');
-            const preview = dropZone.querySelector('.preview');
-            const span = dropZone.querySelector('span');
+    <!-- 구외포토 입력 (8개의 Drop Zone) -->
+    <div class="upload-section">
+      <label>구외포토 입력 (최대 8개)</label>
+      <div class="photo-preview-container">
+        <div class="file-preview" id="photoPreview1" style="background-image: url('/static/sample_photo1.jpg');">📂 정면(편하게)</div>
+        <div class="file-preview" id="photoPreview2" style="background-image: url('/static/sample_photo2.jpg');">📂 정면(자세정렬)</div>
+        <div class="file-preview" id="photoPreview3" style="background-image: url('/static/sample_photo3.jpg');">📂 45도 안모</div>
+        <div class="file-preview" id="photoPreview4" style="background-image: url('/static/sample_photo4.jpg');">📂 90도 안모</div>
+        <div class="file-preview" id="photoPreview5" style="background-image: url('/static/sample_photo5.jpg');">📂 정면스마일</div>
+        <div class="file-preview" id="photoPreview6" style="background-image: url('/static/sample_photo6.jpg');">📂 정면스마일(자세정렬)</div>
+        <div class="file-preview" id="photoPreview7" style="background-image: url('/static/sample_photo7.jpg');">📂 45도 스마일</div>
+        <div class="file-preview" id="photoPreview8" style="background-image: url('/static/sample_photo8.jpg');">📂 90도 스마일</div>
+      </div>
+      <input type="file" id="photo1" name="photo1" accept="image/*" required hidden />
+      <input type="file" id="photo2" name="photo2" accept="image/*" required hidden />
+      <input type="file" id="photo3" name="photo3" accept="image/*" required hidden />
+      <input type="file" id="photo4" name="photo4" accept="image/*" required hidden />
+      <input type="file" id="photo5" name="photo5" accept="image/*" required hidden />
+      <input type="file" id="photo6" name="photo6" accept="image/*" required hidden />
+      <input type="file" id="photo7" name="photo7" accept="image/*" required hidden />
+      <input type="file" id="photo8" name="photo8" accept="image/*" required hidden />
+    </div>
+  
+    <div class="upload-section">
+      <label>구내포토 입력 (최대 5개)</label>
+      <div class="photo-preview-container">
+        <div class="file-preview" id="oralPhotoPreview1" style="background-image: url('/static/sample_oral1.jpg');">📂 상악 교합면</div>
+        <div class="file-preview" id="oralPhotoPreview2" style="background-image: url('/static/sample_oral2.jpg');">📂 하악 교합면</div>
+        <div class="file-preview" id="oralPhotoPreview3" style="background-image: url('/static/sample_oral3.jpg');">📂 우측 측면</div>
+        <div class="file-preview" id="oralPhotoPreview4" style="background-image: url('/static/sample_oral4.jpg');">📂 좌측 측면</div>
+        <div class="file-preview" id="oralPhotoPreview5" style="background-image: url('/static/sample_oral5.jpg');">📂 정면 구강</div>
+      </div>
+      <input type="file" id="oralPhoto1" name="oralPhoto1" accept="image/*" required hidden />
+      <input type="file" id="oralPhoto2" name="oralPhoto2" accept="image/*" required hidden />
+      <input type="file" id="oralPhoto3" name="oralPhoto3" accept="image/*" required hidden />
+      <input type="file" id="oralPhoto4" name="oralPhoto4" accept="image/*" required hidden />
+      <input type="file" id="oralPhoto5" name="oralPhoto5" accept="image/*" required hidden />
+    </div>
+    <!-- 엑셀 파일 업로드 -->
+    <div class="upload-section">
+      <label for="excel_data">Excel 파일 선택</label>
+      <div id="excelPreview" class="file-preview" style="background-image: url('/static/sample_excel.png');">
+        📂 엑셀 파일을 선택하거나 드래그하세요
+      </div>
+      <input type="file" id="excel_data" name="excel_data" accept=".xlsx, .xls" required hidden />
+    </div>
 
-            input.addEventListener('change', function () {
-                if (this.files.length > 0) {
-                    const file = this.files[0];
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        preview.src = e.target.result;
-                        preview.style.display = 'block';
-                        span.style.display = 'none';
-                    };
-                    reader.readAsDataURL(file);
+    <!-- 파일 반환 형식 선택 -->
+    <div class="upload-section">
+      <label for="file_type">반환 파일 형식 선택</label>
+      <select id="file_type" name="file_type">
+        <option value="pdf" selected>📄 PDF로 반환받기</option>
+        <option value="pptx">📊 PPTX로 반환받기</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn-submit">파일 생성하기</button>
+  </form>
+
+  <script>
+    function setupDropZone(dropZoneId, fileInputId) {
+      const dropZone = document.getElementById(dropZoneId);
+      const fileInput = document.getElementById(fileInputId);
+
+      // Drop Zone 클릭 시 파일 선택 창 열기
+      dropZone.addEventListener("click", function () {
+        fileInput.click();
+      });
+
+      // 파일 선택 시 미리보기 표시
+      fileInput.addEventListener("change", function () {
+        handleFilePreview(fileInput, dropZone);
+      });
+
+      // 드래그 앤 드롭 이벤트 처리
+      dropZone.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        dropZone.classList.add("drag-over");
+      });
+
+      dropZone.addEventListener("dragleave", function () {
+        dropZone.classList.remove("drag-over");
+      });
+
+      dropZone.addEventListener("drop", function (e) {
+        e.preventDefault();
+        dropZone.classList.remove("drag-over");
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          fileInput.files = files;
+          handleFilePreview(fileInput, dropZone);
+        }
+      });
+    }
+
+    function handleFilePreview(fileInput, dropZone) {
+      const file = fileInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+          dropZone.innerHTML = `<img src="${e.target.result}" alt="엑스레이 미리보기">
+                                <button class="delete-btn">X</button>`;
+
+          // 삭제 버튼 기능 추가
+          dropZone.querySelector(".delete-btn").addEventListener("click", function (event) {
+            event.stopPropagation();
+            fileInput.value = ""; // 파일 선택 초기화
+            dropZone.innerHTML = "📂 X-ray 선택"; // 초기 상태로 변경
+          });
+        };
+
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // 4개의 Drop Zone 설정
+    setupDropZone("xrayPreview1", "pano");
+    setupDropZone("xrayPreview2", "lateral_ceph");
+    setupDropZone("xrayPreview3", "frontal_ceph");
+    setupDropZone("xrayPreview4", "psa");
+    setupDropZone("excelPreview", "excel_data");
+
+    // 8개의 구외포토 Drop Zone 설정 (✅ 추가된 코드)
+    for (let i = 1; i <= 8; i++) {
+      setupDropZone(`photoPreview${i}`, `photo${i}`);
+    }
+    // 5개의 구내포토 Drop Zone 설정 (✅ 추가된 코드)
+    for (let i = 1; i <= 5; i++) {
+      setupDropZone(`oralPhotoPreview${i}`, `oralPhoto${i}`);
+    }
+
+    document.getElementById("uploadForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            logInfo("FormData 생성 완료:", Object.fromEntries(formData.entries()));
+            try {
+                const response = await fetch("http://127.0.0.1:5000/dash_board", {
+                    method: "POST",
+                    body: formData
+                });
+                logInfo("서버 응답 상태 코드:", response.status);
+                if (!response.ok) {
+                    throw new Error(`서버 오류 발생: ${response.status}`);
                 }
-            });
-
-            dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropZone.style.borderColor = "#333";
-            });
-
-            dropZone.addEventListener('dragleave', () => {
-                dropZone.style.borderColor = "#ccc";
-            });
-
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone.style.borderColor = "#ccc";
-                const file = e.dataTransfer.files[0];
-                if (file && file.type.startsWith("image/")) {
-                    const reader = new FileReader();
-                    reader.onload = function (event) {
-                        preview.src = event.target.result;
-                        preview.style.display = 'block';
-                        span.style.display = 'none';
-                    };
-                    reader.readAsDataURL(file);
-                    input.files = e.dataTransfer.files;
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                logInfo("Blob 객체 생성 완료:", url);
+                const selectedFileType = document.getElementById("file_type").value;
+                const pdfViewer = document.getElementById("pdfViewer");
+                if (selectedFileType === "pdf") {
+                    pdfViewer.src = url;
+                    pdfViewer.style.display = "block";
+                } else {
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = "output_ppt.pptx";
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
                 }
-            });
+            } catch (error) {
+                logError("업로드 중 오류 발생:", error);
+                alert("업로드 중 오류가 발생했습니다: " + error.message);
+            }
         });
-    </script>
-
+  </script>
 </body>
 </html>
-
-
-
-
-

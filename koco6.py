@@ -81,11 +81,11 @@ def create_ppt():
             return jsonify({"error": "Only POST requests are allowed."}), 405
         
         # 요청 데이터 받기
-        if 'id_photo' not in request.files or 'excel_data' not in request.files:
+        if 'photo4' not in request.files or 'excel_data' not in request.files:
             return jsonify({"error": "Both 'id_photo' and 'excel_data' files are required."}), 400
 
         # 파일 저장
-        id_photo = request.files['id_photo']
+        id_photo = request.files['photo4']
         excel_file = request.files['excel_data']
         file_type = request.form.get('file_type', 'pdf') #기본값은 pdf
 
