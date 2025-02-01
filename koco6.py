@@ -72,6 +72,18 @@ def convert_ppt_to_pdf(input_ppt, output_pdf):
 @app.route('/')
 def home():
     return render_template('index1.html')  # templates/index.html 제공
+
+# 파일 저장 디렉토리 지정
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# 파일 저장 함수
+def save_uploaded_file(uploaded_file, filename):
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    uploaded_file.save(file_path)
+    return file_path
+
 # PPT 작성 엔드포인트
 @app.route('/dash_board', methods=['POST'])
 def create_ppt():
@@ -83,24 +95,89 @@ def create_ppt():
         # 요청 데이터 받기
         if 'photo4' not in request.files or 'excel_data' not in request.files:
             return jsonify({"error": "Both 'id_photo' and 'excel_data' files are required."}), 400
+        
+        
+        triangle = '화살표.png'
+
+        # 구외사진 저장하기
+        eofrontal_rest = '정면편하게.jpg'
+        eofrontal = '정면똑바로.jpg'
+        eofrontal45 = '측모45.jpg'
+        eolateral = '측모.jpg'
+        eofrontal_smile = '정면편하게스마일.jpg'
+        eofrontal_upright = '정면똑바로스마일.jpg'
+        eofrontal45_smile = '측모45스마일.jpg'
+        eolateral_smile = '측모스마일.jpg'
+
+        # 구내사진 저장하기
+        ioupper = '상악사진.jpg'
+        iolower = '하악사진.jpg'
+        iofrontal = '교합정면.jpg'
+        ioright = '교합우측.jpg'
+        ioleft = '교합좌측.jpg'
 
         # 파일 저장
+        pano = request.files['pano']
+        lateral_ceph_image = request.files['lateral_ceph']
+        frontal_ceph_image = request.files['frontal_ceph']
+        psa_name = request.files['psa']
+
+        eofrontal_rest = request.files['photo1']
+        eofrontal = request.files['photo2']
+        eofrontal45 = request.files['photo3']
         id_photo = request.files['photo4']
+        eofrontal_smile = request.files['photo5']
+        eofrontal_upright = request.files['photo6']
+        eofrontal45_smile = request.files['photo7']
+        eolateral = request.files['photo8']
+
+        ioupper = request.files['oralPhoto1']
+        iolower = request.files['oralPhoto2']
+        iofrontal = request.files['oralPhoto3']
+        ioright = request.files['oralPhoto4']
+        ioleft = request.files['oralPhoto5']
+
+
+
         excel_file = request.files['excel_data']
         file_type = request.form.get('file_type', 'pdf') #기본값은 pdf
 
-        id_photo_path = os.path.join(os.getcwd(), 'temp_id_photo.jpg')
-        excel_file_path = os.path.join(os.getcwd(), 'temp_excel_data.xlsx')
+        # 파일 저장
+
+        pano_path = save_uploaded_file(pano, 'pano.jpg')
+        lateral_ceph_image_path = save_uploaded_file(lateral_ceph_image, 'lateral_ceph_image.jpg')
+        frontal_ceph_image_path = save_uploaded_file(frontal_ceph_image, 'frontal_ceph_image.jpg')
+        psa_name_path = save_uploaded_file(psa_name, 'psa_name.jpg')
+        eofrontal_rest_path = save_uploaded_file(eofrontal_rest, 'eofrontal_rest.jpg')
+        eofrontal_path = save_uploaded_file(eofrontal, 'eofrontal.jpg')
+        eofrontal45_path = save_uploaded_file(eofrontal45, 'eofrontal45.jpg')
+        id_photo_path = save_uploaded_file(id_photo, 'id_photo.jpg')
+        eofrontal_smile_path = save_uploaded_file(eofrontal_smile, 'eofrontal_smile.jpg')
+        eofrontal_upright_path = save_uploaded_file(eofrontal_upright, 'eofrontal_upright.jpg')
+        eofrontal45_smile_path = save_uploaded_file(eofrontal45_smile, 'eofrontal45_smile.jpg')
+        eolateral_path = save_uploaded_file(eolateral, 'eolateral.jpg')
+        ioupper_path = save_uploaded_file(ioupper, 'ioupper.jpg')
+        iolower_path = save_uploaded_file(iolower, 'iolower.jpg')
+        iofrontal_path = save_uploaded_file(iofrontal, 'iofrontal.jpg')
+        ioright_path = save_uploaded_file(ioright, 'ioright.jpg')
+        ioleft_path = save_uploaded_file(ioleft, 'ioleft.jpg')
+        excel_file_path = save_uploaded_file(excel_file, 'excel_data.xlsx')
+
+        
 
 
-        id_photo.save(id_photo_path)
-        excel_file.save(excel_file_path)
+        # id_photo_path = os.path.join(os.getcwd(), 'temp_id_photo.jpg')
+        # excel_file_path = os.path.join(os.getcwd(), 'temp_excel_data.xlsx')
 
-        # 파일 존재 여부 확인
-        if not os.path.exists(id_photo_path):
-            return jsonify({"error": f"File not found: {id_photo_path}"}), 400
-        if not os.path.exists(excel_file_path):
-            return jsonify({"error": f"File not found: {excel_file_path}"}), 400
+
+        # id_photo.save(id_photo_path)
+        # excel_file.save(excel_file_path)
+
+        # # 파일 존재 여부 확인
+        # if not os.path.exists(id_photo):
+        #     return jsonify({"error": f"File not found: {id_photo_path}"}), 400
+        # if not os.path.exists(excel_file):
+        #     return jsonify({"error": f"File not found: {excel_file_path}"}), 400
 
         # 엑셀 데이터 로드
         df_raw = pd.read_excel(excel_file_path)
@@ -191,7 +268,7 @@ def create_ppt():
         TextFrame(shape_s[4])
 
        # 이미지 처리
-        with Image.open(id_photo_path) as img:
+        with Image.open(id_photo) as img:
             width, height = img.size
             wpercent = 1.6 / float(width)
             new_height = round(float(height) * wpercent, 1)
@@ -200,7 +277,7 @@ def create_ppt():
             top = Inches(0.55)
             width = Inches(1.6)
             height = Inches(new_height)
-            temp_slide.shapes.add_picture(id_photo_path, left, top, width, height)
+            temp_slide.shapes.add_picture(id_photo, left, top, width, height)
 
         # PPT 저장
         output_pptx = 'output_ppt.pptx'
