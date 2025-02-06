@@ -7,14 +7,15 @@ from pptx.enum.text import PP_ALIGN
 from pptx.dml.color import RGBColor
 from PIL import Image
 import os
-import comtypes.client
 from flask_cors import CORS
-import pythoncom
-from comtypes.client import CreateObject
 import cv2
 import numpy as np
-
-
+import subprocess
+import sys
+if sys.platform == "win32":
+    import comtypes.client
+    import pythoncom
+    from comtypes.client import CreateObject
 
 app = Flask(__name__)
 CORS(app)
@@ -32,44 +33,62 @@ def TextFrame(ss, font_name='맑은 고딕', font_size=Pt(15), font_bold=True, f
 
 def convert_ppt_to_pdf(input_ppt, output_pdf):
     """
-    PowerPoint 파일을 PDF로 변환하는 함수
+    PowerPoint 파일을 PDF로 변환하는 함수 (Windows: pythoncom, Linux: LibreOffice 사용)
     :param input_ppt: 변환할 PPTX 파일의 절대 경로
     :param output_pdf: 변환된 PDF 파일이 저장될 절대 경로
     """
-    pythoncom.CoInitialize()  # 🔥 COM 객체 초기화 (Flask 같은 멀티스레드 환경에서 필수)
+    if sys.platform == "win32":
+        # Windows 환경: pythoncom 사용
+        import comtypes.client
+        import pythoncom
 
-    try:
-        # PowerPoint 애플리케이션 객체 생성
-        powerpoint = comtypes.client.CreateObject("Powerpoint.Application")
-        powerpoint.Visible = 1  # 1 = 표시, 0 = 백그라운드 실행 가능
+        pythoncom.CoInitialize()  # COM 객체 초기화
 
-        # 절대 경로 변환 (PowerPoint가 상대 경로를 잘 인식하지 못할 수 있음)
-        input_ppt = os.path.abspath(input_ppt)
-        output_pdf = os.path.abspath(output_pdf)
+        try:
+            powerpoint = comtypes.client.CreateObject("Powerpoint.Application")
+            powerpoint.Visible = 1
 
-        print(f"📂 변환 시작: {input_ppt} -> {output_pdf}")
+            input_ppt = os.path.abspath(input_ppt)
+            output_pdf = os.path.abspath(output_pdf)
 
-        # PPT 파일 열기
-        presentation = powerpoint.Presentations.Open(input_ppt, WithWindow=False)
+            print(f"📂 변환 시작: {input_ppt} -> {output_pdf}")
 
-        # PDF로 저장 (32: msoSaveAsPDF)
-        presentation.SaveAs(output_pdf, 32)
-        presentation.Close()
+            presentation = powerpoint.Presentations.Open(input_ppt, WithWindow=False)
+            presentation.SaveAs(output_pdf, 32)
+            presentation.Close()
 
-        # PowerPoint 종료
-        powerpoint.Quit()
+            powerpoint.Quit()
 
-        # 변환 성공 여부 확인
-        if os.path.exists(output_pdf):
-            print(f"✅ PDF 변환 성공: {output_pdf}")
-        else:
-            raise FileNotFoundError(f"🚨 PDF 변환 실패: {output_pdf} 파일이 생성되지 않음")
+            if os.path.exists(output_pdf):
+                print(f"✅ PDF 변환 성공: {output_pdf}")
+            else:
+                raise FileNotFoundError(f"🚨 PDF 변환 실패: {output_pdf} 파일이 생성되지 않음")
 
-    except Exception as e:
-        print(f"❌ PDF 변환 중 오류 발생: {e}")
-    finally:
-        pythoncom.CoUninitialize()  # 🚀 COM 객체 해제
+        except Exception as e:
+            print(f"❌ PDF 변환 중 오류 발생: {e}")
+        finally:
+            pythoncom.CoUninitialize()
 
+    else:
+        # Linux 환경: LibreOffice 사용
+        try:
+            input_ppt = os.path.abspath(input_ppt)
+            output_dir = os.path.dirname(output_pdf)
+
+            # LibreOffice로 변환 실행
+            command = ["libreoffice", "--headless", "--convert-to", "pdf", "--outdir", output_dir, input_ppt]
+            subprocess.run(command, check=True)
+
+            # 변환된 PDF 파일 경로 확인
+            converted_pdf = input_ppt.replace(".pptx", ".pdf")
+            if os.path.exists(converted_pdf):
+                os.rename(converted_pdf, output_pdf)  # 파일명 변경
+                print(f"✅ PDF 변환 성공: {output_pdf}")
+            else:
+                raise FileNotFoundError(f"🚨 PDF 변환 실패: {output_pdf} 파일이 생성되지 않음")
+
+        except Exception as e:
+            print(f"❌ PDF 변환 중 오류 발생: {e}")
 # 🔹 1️⃣ 프론트엔드 (HTML) 서빙
 @app.route('/')
 def home():
