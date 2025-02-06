@@ -77,13 +77,21 @@ def home():
 
 # 파일 저장 디렉토리 지정
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
+print(f"📂 파일 업로드 디렉토리: {UPLOAD_FOLDER}")
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 # 파일 저장 함수
 def save_uploaded_file(uploaded_file, filename):
     file_path = os.path.join(UPLOAD_FOLDER, filename)
+    file_path = os.path.normpath(file_path)  # Windows에서 발생하는 \\ 이슈 방지
+    uploaded_file.seek(0)  #스트림 위치 초기화
     uploaded_file.save(file_path)
+    
+    if os.path.exists(file_path):
+        file_size = os.path.getsize(file_path)
+        print(f"✅ {file_path} 파일 저장 완료 ({file_size} bytes)")
+        
     return file_path
 
 def create_first_slide(prs, df, df_raw, id_photo_path):
@@ -308,7 +316,178 @@ def create_second_slide(prs, HGI, VGI, psa_name_path):
         top = Inches(0)
     shape_s_1.add_picture(f"{exp}_result.png",left, top, width, height)
 
+# def create_third_slide(prs, photo_paths):
+#     """
+#     구외사진 8장을 3번째 슬라이드에 추가하는 함수
 
+#     :param prs: 프레젠테이션 객체
+#     :param photo_paths: 사진 경로 리스트 (총 8장)
+#     """
+
+#     # 3번째 슬라이드 가져오기
+#     temp_slide_2 = prs.slides[2]
+#     shape_s_2 = temp_slide_2.shapes
+
+#     # 이미지 배치 설정 (2행 x 4열)
+#     num_cols = 4  # 한 행에 4개씩 배치
+#     num_rows = 2  # 두 개의 행으로 배치
+
+#     # 슬라이드 크기에 맞게 이미지 크기 설정
+#     slide_width = 10  # 슬라이드 너비 (인치 단위)
+#     slide_height = 19.05 / 2.54  # 슬라이드 높이 (cm를 인치로 변환)
+#     img_height = slide_height / num_rows  # 한 행에 배치할 이미지 높이
+
+#     # 첫 번째 이미지를 불러와 비율 계산
+#     img_sample = Image.open(photo_paths[0])
+#     aspect_ratio = img_sample.size[0] / img_sample.size[1]  # 가로/세로 비율
+#     img_width = img_height * aspect_ratio  # 이미지 가로 크기
+
+#     # 중앙 정렬을 위한 시작 좌표 계산
+#     total_width = img_width * num_cols  # 전체 이미지 영역의 너비
+#     left_start = (slide_width - total_width) / 2  # 좌측 여백 계산
+
+#     # 이미지 삽입
+#     for idx, img_path in enumerate(photo_paths):
+#         row = idx // num_cols  # 행 계산 (0 or 1)
+#         col = idx % num_cols  # 열 계산 (0 ~ 3)
+
+#         left = Inches(left_start + col * img_width)  # 가로 위치
+#         top = Inches(row * img_height)  # 세로 위치
+
+#         shape_s_2.add_picture(img_path, left, top, width=Inches(img_width), height=Inches(img_height))
+
+#     print("✅ 3번째 슬라이드에 구외사진 8장 추가 완료!")
+
+# 3번째 슬라이드 생성 함수 (구외사진)
+def create_third_slide(prs, default_img):
+    """
+    구외사진 8장을 3번째 슬라이드에 추가하는 함수.
+    빈 사진이 있으면 기본 이미지('./static/default_image.jpg')로 대체.
+
+    :param prs: 프레젠테이션 객체
+    :param default_img: 기본 이미지 파일 경로
+    """
+
+    # 파일 저장 후 경로 리스트 만들기
+    photo_paths = []
+    for idx in range(8):  # 총 8개의 사진이 필요
+        uploaded_file = request.files.get(f'photo{idx+1}')  # Flask에서 안전하게 파일 가져오기
+        print(f"📂 업로드된 파일 목록: {list(request.files.keys())}")
+
+
+        if uploaded_file and uploaded_file.filename:  # 파일이 존재하는 경우
+            saved_path = save_uploaded_file(uploaded_file, f'photo_{idx+1}.jpg')  # 파일 저장
+
+            if os.path.exists(saved_path) and os.path.getsize(saved_path) > 0:
+                photo_paths.append(saved_path)  # 정상적으로 저장된 파일만 추가
+                print(f"✅ {saved_path} 파일 저장 완료")
+            else:
+                print(f"🚨 {saved_path} 파일이 비어있음 -> 기본 이미지({default_img})로 대체")
+                photo_paths.append(default_img)
+        else:
+            print(f"🚨 업로드되지 않은 파일 {idx+1}번 -> 기본 이미지({default_img})로 대체")
+            photo_paths.append(default_img)
+
+    print(f"🔍 최종 photo_paths: {photo_paths}")  # 디버깅용 출력
+
+    # 3번째 슬라이드 가져오기
+    temp_slide_2 = prs.slides[2]
+    shape_s_2 = temp_slide_2.shapes
+
+    # 이미지 배치 설정 (2행 x 4열)
+    num_cols = 4  # 한 행에 4개씩 배치
+    num_rows = 2  # 두 개의 행으로 배치
+
+    # 슬라이드 크기에 맞게 이미지 크기 설정
+    slide_width = 10  # 슬라이드 너비 (인치 단위)
+    slide_height = 19.05 / 2.54  # 슬라이드 높이 (cm를 인치로 변환)
+    img_height = slide_height / num_rows  # 한 행에 배치할 이미지 높이
+
+    # 첫 번째 이미지를 불러와 비율 계산
+    img_sample = Image.open(photo_paths[0])
+    aspect_ratio = img_sample.size[0] / img_sample.size[1]  # 가로/세로 비율
+    img_width = img_height * aspect_ratio  # 이미지 가로 크기
+
+    # 중앙 정렬을 위한 시작 좌표 계산
+    total_width = img_width * num_cols  # 전체 이미지 영역의 너비
+    left_start = (slide_width - total_width) / 2  # 좌측 여백 계산
+
+    # 이미지 삽입
+    for idx, img_path in enumerate(photo_paths[:8]):  # 첫 8개만 사용
+        row = idx // num_cols  # 행 계산 (0 or 1)
+        col = idx % num_cols  # 열 계산 (0 ~ 3)
+
+        left = Inches(left_start + col * img_width)  # 가로 위치
+        top = Inches(row * img_height)  # 세로 위치
+
+        shape_s_2.add_picture(img_path, left, top, width=Inches(img_width), height=Inches(img_height))
+
+    print("✅ 3번째 슬라이드에 구외사진 추가 완료!")
+
+def create_fourth_slide(prs, oral_default_img):
+    """
+    구내사진 5장을 4번째 슬라이드에 추가하는 함수.
+    빈 사진이 있으면 기본 이미지로 대체.
+
+    :param prs: 프레젠테이션 객체
+    :param default_img: 기본 이미지 파일 경로
+    """
+    # 파일 저장 후 경로 리스트 만들기
+    photo_paths = []
+    for idx in range(5):  # 총 5개의 사진이 필요
+        uploaded_file = request.files.get(f'oralPhoto{idx+1}')  # Flask에서 안전하게 파일 가져오기
+        print(f"📂 업로드된 파일 목록: {list(request.files.keys())}")
+
+        if uploaded_file and uploaded_file.filename:  # 파일이 존재하는 경우
+            saved_path = save_uploaded_file(uploaded_file, f'oralPhoto_{idx+1}.jpg')  # 파일 저장
+
+            if os.path.exists(saved_path) and os.path.getsize(saved_path) > 0:
+                photo_paths.append(saved_path)  # 정상적으로 저장된 파일만 추가
+                print(f"✅ {saved_path} 파일 저장 완료")
+            else:
+                print(f"🚨 {saved_path} 파일이 비어있음 -> 기본 이미지({oral_default_img})로 대체")
+                photo_paths.append(oral_default_img)
+        else:
+            print(f"🚨 업로드되지 않은 파일 {idx+1}번 -> 기본 이미지({oral_default_img})로 대체")
+            photo_paths.append(oral_default_img)
+
+    print(f"🔍 최종 photo_paths: {photo_paths}")  # 디버깅용 출력
+
+    # 4번째 슬라이드 가져오기
+    temp_slide_3 = prs.slides[3]
+    shape_s_3 = temp_slide_3.shapes
+
+    # 이미지 크기 및 위치 설정
+    h = 2.2  # 높이 설정 (인치 단위)
+    height = Inches(h)
+    w = h * Image.open(photo_paths[0]).size[0] / Image.open(photo_paths[0]).size[1]
+    width = Inches(w)
+
+    # 상악사진
+    left = Inches((10 - 2 * w) / 2)
+    top = Inches(1)
+    shape_s_3.add_picture(photo_paths[0], left, top, width, height)
+
+    # 하악사진
+    left = Inches((10 - 2 * w) / 2 + w)
+    shape_s_3.add_picture(photo_paths[1], left, top, width, height)
+
+    # 교합 좌측
+    left = Inches((10 - 3 * w) / 2)
+    top = Inches(1 + h)
+    shape_s_3.add_picture(photo_paths[2], left, top, width, height)
+
+    # 교합 정면
+    left = Inches((10 - 3 * w) / 2 + w)
+    shape_s_3.add_picture(photo_paths[3], left, top, width, height)
+
+    # 교합 우측
+    left = Inches((10 - 3 * w) / 2 + 2 * w)
+    shape_s_3.add_picture(photo_paths[4], left, top, width, height)
+
+    print("✅ 4번째 슬라이드에 모든 이미지 추가 완료!")
+
+    # 슬라이드
 # PPT 작성 엔드포인트
 @app.route('/dash_board', methods=['POST'])
 def create_ppt():
@@ -324,22 +503,7 @@ def create_ppt():
         
         triangle = '화살표.png'
 
-        # 구외사진 저장하기
-        eofrontal_rest = '정면편하게.jpg'
-        eofrontal = '정면똑바로.jpg'
-        eofrontal45 = '측모45.jpg'
-        eolateral = '측모.jpg'
-        eofrontal_smile = '정면편하게스마일.jpg'
-        eofrontal_upright = '정면똑바로스마일.jpg'
-        eofrontal45_smile = '측모45스마일.jpg'
-        eolateral_smile = '측모스마일.jpg'
-
-        # 구내사진 저장하기
-        ioupper = '상악사진.jpg'
-        iolower = '하악사진.jpg'
-        iofrontal = '교합정면.jpg'
-        ioright = '교합우측.jpg'
-        ioleft = '교합좌측.jpg'
+        
 
         # 파일 저장
         pano = request.files['pano']
@@ -355,6 +519,8 @@ def create_ppt():
         eofrontal_upright = request.files['photo6']
         eofrontal45_smile = request.files['photo7']
         eolateral = request.files['photo8']
+        photo_paths = [eofrontal_rest, eofrontal, eofrontal45, id_photo, eofrontal_smile, eofrontal_upright, eofrontal45_smile, eolateral]
+        print("photo_paths:",photo_paths)
 
         ioupper = request.files['oralPhoto1']
         iolower = request.files['oralPhoto2']
@@ -407,7 +573,12 @@ def create_ppt():
         ####2번째 슬라이드 만들기(PSA)
         create_second_slide(prs, HGI, VGI, psa_name_path)
 
-        
+        ####3번째 슬라이드 만들기(구외사진)
+        create_third_slide(prs, default_img="./static/default_image.jpg")
+
+        ####4번째 슬라이드 만들기(구내사진)
+        create_fourth_slide(prs, oral_default_img="./static/oral_default_image.jpg")
+    
 
         # PPT 저장
         output_pptx = 'output_ppt.pptx'
