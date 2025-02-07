@@ -3,7 +3,7 @@ name: Deploy KOCO Flask App
 on:
   push:
     branches:
-      - dev  # 🚀 main 브랜치에 push될 때 자동 실행
+      - dev  # 🚀 dev 브랜치에 push될 때 자동 실행
 
 jobs:
   deploy:
@@ -15,20 +15,21 @@ jobs:
       uses: actions/checkout@v3
 
     # 2️⃣ Docker 로그인 (GitHub Container Registry 또는 Docker Hub 사용 가능)
-    -- name: Log in to Docker Hub
-       run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+    - name: Log in to Docker Hub
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
     # 3️⃣ Docker 이미지 빌드 및 푸시
     - name: Build and push Docker image
-      run: docker build . -t oksusu2020/koco_final:$(date +%Y%m%d)
-           docker push oksusu2020/koco_final:$(date +%Y%m%d)
+      run: |
+        docker build . -t oksusu2020/koco_final:$(date +%Y%m%d)
+        docker push oksusu2020/koco_final:$(date +%Y%m%d)
 
     # 4️⃣ AWS 서버에 Docker 이미지 배포
-    - name : AWS login
-      run : 
-        echo "${{ secrets.AWS_KEY}}" > aws_key.pem
-        chmod 400 aws_key.pem 
-        ssh -o StrictHostKeyChecking=no -i aws_key.pem ubuntu@${{secrets.AWS_HOST_IP}} << EOF
+    - name: AWS login
+      run: |
+        echo "${{ secrets.AWS_KEY }}" > aws_key.pem
+        chmod 400 aws_key.pem
+        ssh -o StrictHostKeyChecking=no -i aws_key.pem ubuntu@${{ secrets.AWS_HOST_IP }} << EOF
           echo "AWS login"
           sudo docker pull oksusu2020/koco_final:$(date +%Y%m%d)
           sudo docker stop django_container || true
@@ -36,11 +37,7 @@ jobs:
           sudo docker run -d --name django_container -p 8000:8000 oksusu2020/koco_final:$(date +%Y%m%d)
           exit
         EOF
-      
-      - name : Clean up
-      run : |       
-        rm -rf aws_key.pem
-    
 
-
-    
+    # 5️⃣ AWS 키 파일 삭제
+    - name: Clean up
+      run: rm -rf aws_key.pem
