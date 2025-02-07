@@ -33,9 +33,9 @@ jobs:
           echo "AWS login"
           docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
           sudo docker pull oksusu2020/koco_final:$(date +%Y%m%d)
-          sudo docker stop django_container || true
-          sudo docker rm django_container || true
-          sudo docker run -d --name django_container -p 8000:8000 oksusu2020/koco_final:$(date +%Y%m%d)
+          sudo docker stop koco_container || true
+          sudo docker rm koco_container || true
+          sudo docker run -d --name koco_container -p 8000:8000 oksusu2020/koco_final:$(date +%Y%m%d)
           exit
         EOF
 
