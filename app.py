@@ -128,8 +128,10 @@ def create_first_slide(prs, df, df_raw, id_photo_path):
         TextFrame(shape_s[7].table.cell(row_idx=i,col_idx =1),font_size=Pt(7),font_bold=False,ft_color=False)
 
     # Ceph 데이터 정리
+    df = df.copy()
     df['Unnamed: 0'] = df['Unnamed: 0'].str.rstrip()
     ceph = {key: value for key, value in zip(df['Unnamed: 0'], df['Unnamed: 3'])}
+    print("ceph:",ceph)
 
     # 수식 계산
     cosvalue = math.cos(math.radians(ceph['- AB<LOP']))
@@ -209,6 +211,8 @@ def create_first_slide(prs, df, df_raw, id_photo_path):
         temp_slide.shapes.add_picture(id_photo_path, left, top, width, height)
     
     # HGI, VGI 값을 반환
+    print(f"HGI: {HGI}, VGI: {VGI}")
+    print("첫번째 슬라이드 완료")
     return HGI, VGI
 
 def create_second_slide(prs, HGI, VGI, psa_name_path):
@@ -632,4 +636,4 @@ def create_ppt():
         return jsonify({"error": str(e)})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(host='0.0.0.0', port=9500, debug=True)
