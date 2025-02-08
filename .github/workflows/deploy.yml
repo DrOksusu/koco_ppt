@@ -35,7 +35,7 @@ jobs:
           sudo docker pull oksusu2020/koco_final:$(date +%Y%m%d)
           sudo docker stop koco_container || true
           sudo docker rm koco_container || true
-          sudo docker run -d --name koco_container -p 8000:8000 oksusu2020/koco_final:$(date +%Y%m%d)
+          sudo docker run -d --name koco_container -p 9500:9500 oksusu2020/koco_final:$(date +%Y%m%d)
           exit
         EOF
 
