@@ -521,6 +521,7 @@ def create_fourth_slide(prs, oral_default_img):
 def create_ppt():
     try:
         # ㅍ스트 요청이 아닌 경우 405 에러 반환
+        print("request.method:",request.method)
         if request.method != 'POST':
             return jsonify({"error": "Only POST requests are allowed."}), 405
         
@@ -530,6 +531,8 @@ def create_ppt():
         
         
         triangle = '화살표.png'
+        print("용주야 사랑해")
+
 
         
 
@@ -634,6 +637,11 @@ def create_ppt():
 
     except Exception as e:
         return jsonify({"error": str(e)})
+
+# 🔹 테스트페이지
+@app.route('/koco')
+def koco_page():
+    return "순응교합연구회 만세!"  # templates/index.html 제공
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=9500, debug=True)
