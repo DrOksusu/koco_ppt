@@ -520,8 +520,11 @@ def create_fourth_slide(prs, oral_default_img):
 @app.route('/dash_board', methods=['POST'])
 def create_ppt():
     try:
-        # ㅍ스트 요청이 아닌 경우 405 에러 반환
+        # 포스트 요청이 아닌 경우 405 에러 반환
         print("request.method:", request.method, flush=True, file=sys.stderr)
+        print("request.files.keys():", list(request.files.keys()), flush=True, file=sys.stderr)
+        print("request.form.keys():", list(request.form.keys()), flush=True, file=sys.stderr)
+        
         if request.method != 'POST':
             return jsonify({"error": "Only POST requests are allowed."}), 405
         
