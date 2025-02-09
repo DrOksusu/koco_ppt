@@ -55,15 +55,16 @@ def convert_ppt_to_pdf(input_ppt, output_pdf):
         import comtypes.client
         import pythoncom
 
-        pythoncom.CoInitialize()  # COM 객체 초기화
+        pythoncom.CoInitializeEx(0)  # 멀티스레드 방식으로 COM 객체 초기화
 
         try:
             powerpoint = comtypes.client.CreateObject("Powerpoint.Application")
-            powerpoint.Visible = 0  # PowerPoint 창 숨김
+            powerpoint.Visible = 1  # PowerPoint 창을 보이도록 설정 (숨김 옵션 제거)
 
             print("🔄 PowerPoint PDF 변환 실행 중...", flush=True)
 
-            presentation = powerpoint.Presentations.Open(input_ppt, WithWindow=False)
+            # WithWindow=False 옵션 제거
+            presentation = powerpoint.Presentations.Open(input_ppt, WithWindow=True)
             presentation.SaveAs(output_pdf, 32)  # 32 = PDF 변환 코드
             presentation.Close()
 

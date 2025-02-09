@@ -257,7 +257,7 @@
             const formData = new FormData(e.target);
             logInfo("FormData 생성 완료:", Object.fromEntries(formData.entries()));
             try {
-                const response = await fetch("http://54.180.188.8:9500/dash_board", {
+                const response = await fetch("http://127.0.0.1:9500/dash_board", {
                     method: "POST",
                     body: formData
                 });
