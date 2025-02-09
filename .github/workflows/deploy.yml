@@ -35,7 +35,13 @@ jobs:
           sudo docker pull oksusu2020/koco_final:$(date +%Y%m%d)
           sudo docker stop koco_container || true
           sudo docker rm koco_container || true
-          sudo docker run -d --name koco_container -p 9500:9500 oksusu2020/koco_final:$(date +%Y%m%d)
+          sudo docker run -d -p 9500:9500 --name koco_container \
+            --ulimit nofile=65535:65535 \
+            --ulimit nproc=65535:65535 \
+            --security-opt seccomp=unconfined \
+            --security-opt apparmor=unconfined \
+            -e OPENBLAS_NUM_THREADS=1 \
+            oksusu2020/koco_final:$(date +%Y%m%d)
           exit
         EOF
 
