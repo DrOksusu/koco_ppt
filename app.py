@@ -517,22 +517,22 @@ def create_ppt():
         frontal_ceph_image = request.files['frontal_ceph']
         psa_name = request.files['psa']
 
-        eofrontal_rest = request.files['photo1']
-        eofrontal = request.files['photo2']
-        eofrontal45 = request.files['photo3']
+        # eofrontal_rest = request.files['photo1']
+        # eofrontal = request.files['photo2']
+        # eofrontal45 = request.files['photo3']
         id_photo = request.files['photo4']
-        eofrontal_smile = request.files['photo5']
-        eofrontal_upright = request.files['photo6']
-        eofrontal45_smile = request.files['photo7']
-        eolateral = request.files['photo8']
-        photo_paths = [eofrontal_rest, eofrontal, eofrontal45, id_photo, eofrontal_smile, eofrontal_upright, eofrontal45_smile, eolateral]
+        # eofrontal_smile = request.files['photo5']
+        # eofrontal_upright = request.files['photo6']
+        # eofrontal45_smile = request.files['photo7']
+        # eolateral = request.files['photo8']
+        # photo_paths = [eofrontal_rest, eofrontal, eofrontal45, id_photo, eofrontal_smile, eofrontal_upright, eofrontal45_smile, eolateral]
         
 
-        ioupper = request.files['oralPhoto1']
-        iolower = request.files['oralPhoto2']
-        iofrontal = request.files['oralPhoto3']
-        ioright = request.files['oralPhoto4']
-        ioleft = request.files['oralPhoto5']
+        # ioupper = request.files['oralPhoto1']
+        # iolower = request.files['oralPhoto2']
+        # iofrontal = request.files['oralPhoto3']
+        # ioright = request.files['oralPhoto4']
+        # ioleft = request.files['oralPhoto5']
 
 
 
@@ -544,40 +544,55 @@ def create_ppt():
         pano_path = save_uploaded_file(pano, 'pano.jpg')
         lateral_ceph_image_path = save_uploaded_file(lateral_ceph_image, 'lateral_ceph_image.jpg')
         frontal_ceph_image_path = save_uploaded_file(frontal_ceph_image, 'frontal_ceph_image.jpg')
-        psa_name_path = save_uploaded_file(psa_name, 'psa_name.jpg')
-        eofrontal_rest_path = save_uploaded_file(eofrontal_rest, 'eofrontal_rest.jpg')
-        eofrontal_path = save_uploaded_file(eofrontal, 'eofrontal.jpg')
-        eofrontal45_path = save_uploaded_file(eofrontal45, 'eofrontal45.jpg')
+        #psa_name_path = save_uploaded_file(psa_name, 'psa_name.jpg')
+        # eofrontal_rest_path = save_uploaded_file(eofrontal_rest, 'eofrontal_rest.jpg')
+        # eofrontal_path = save_uploaded_file(eofrontal, 'eofrontal.jpg')
+        # eofrontal45_path = save_uploaded_file(eofrontal45, 'eofrontal45.jpg')
         id_photo_path = save_uploaded_file(id_photo, 'id_photo.jpg')
-        eofrontal_smile_path = save_uploaded_file(eofrontal_smile, 'eofrontal_smile.jpg')
-        eofrontal_upright_path = save_uploaded_file(eofrontal_upright, 'eofrontal_upright.jpg')
-        eofrontal45_smile_path = save_uploaded_file(eofrontal45_smile, 'eofrontal45_smile.jpg')
-        eolateral_path = save_uploaded_file(eolateral, 'eolateral.jpg')
-        ioupper_path = save_uploaded_file(ioupper, 'ioupper.jpg')
-        iolower_path = save_uploaded_file(iolower, 'iolower.jpg')
-        iofrontal_path = save_uploaded_file(iofrontal, 'iofrontal.jpg')
-        ioright_path = save_uploaded_file(ioright, 'ioright.jpg')
-        ioleft_path = save_uploaded_file(ioleft, 'ioleft.jpg')
+        # eofrontal_smile_path = save_uploaded_file(eofrontal_smile, 'eofrontal_smile.jpg')
+        # eofrontal_upright_path = save_uploaded_file(eofrontal_upright, 'eofrontal_upright.jpg')
+        # eofrontal45_smile_path = save_uploaded_file(eofrontal45_smile, 'eofrontal45_smile.jpg')
+        # eolateral_path = save_uploaded_file(eolateral, 'eolateral.jpg')
+        # ioupper_path = save_uploaded_file(ioupper, 'ioupper.jpg')
+        # iolower_path = save_uploaded_file(iolower, 'iolower.jpg')
+        # iofrontal_path = save_uploaded_file(iofrontal, 'iofrontal.jpg')
+        # ioright_path = save_uploaded_file(ioright, 'ioright.jpg')
+        # ioleft_path = save_uploaded_file(ioleft, 'ioleft.jpg')
         excel_file_path = save_uploaded_file(excel_file, 'excel_data.xlsx')      
 
 
         
-        # 엑셀 데이터 로드
-        df_raw = pd.read_excel(excel_file_path)
-        df = df_raw.iloc[7:]
+        # 엑셀 파일이 비어있는지 확인
+        if excel_file and excel_file.filename != '':
+            excel_file_path = save_uploaded_file(excel_file, 'excel_data.xlsx')
+            df_raw = pd.read_excel(excel_file_path)
+            df = df_raw.iloc[7:]  # 7번째 행 이후의 데이터 사용
+        else:
+            df_raw, df, excel_file_path = None, None, None
 
-        # PPT 템플릿 로드
+        # PSA 파일이 비어있는지 확인
+        if psa_name and psa_name.filename != '':
+            psa_name_path = save_uploaded_file(psa_name, 'psa_name.jpg')
+        else:
+            psa_name_path = None
+
+        # PPT 템
         # 현재 디렉터리에서 파일 경로를 생성
         ppt_template_path = os.path.join(os.getcwd(), 'koco_frame.pptx')
 
         # PPT 템플릿 로드
         prs = Presentation(ppt_template_path)
         
-        # 첫 번째 슬라이드 만들기
-        HGI, VGI = create_first_slide(prs, df, df_raw, id_photo_path)
+        # 첫 번째 슬라이드 만들기 (엑셀 파일이 있을 경우만)
+        if df is not None and df_raw is not None:
+            HGI, VGI = create_first_slide(prs, df, df_raw, id_photo_path)
+        else:
+            HGI, VGI = None, None  # 값이 없으면 이후 슬라이드에서 참고하지 않도록
+        
+         # 두 번째 슬라이드 만들기 (PSA 파일이 있을 경우만)
+        if psa_name_path is not None and HGI is not None and VGI is not None:
+            create_second_slide(prs, HGI, VGI, psa_name_path)
 
-        ####2번째 슬라이드 만들기(PSA)
-        create_second_slide(prs, HGI, VGI, psa_name_path)
 
         ####3번째 슬라이드 만들기(구외사진)
         create_third_slide(prs, default_img="./static/default_image.jpg")
