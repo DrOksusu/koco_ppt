@@ -464,6 +464,7 @@ def create_fourth_slide(prs, oral_default_img):
     photo_paths = []
     for idx in range(5):  # 총 5개의 사진이 필요
         uploaded_file = request.files.get(f'oralPhoto{idx+1}')  # Flask에서 안전하게 파일 가져오기
+        print("uploaded_file:",uploaded_file)
         print(f"📂 업로드된 파일 목록: {list(request.files.keys())}")
 
         if uploaded_file and uploaded_file.filename:  # 파일이 존재하는 경우
@@ -475,6 +476,7 @@ def create_fourth_slide(prs, oral_default_img):
             else:
                 print(f"🚨 {saved_path} 파일이 비어있음 -> 기본 이미지({oral_default_img})로 대체")
                 photo_paths.append(oral_default_img)
+                print(f"✅ {oral_default_img} 파일 저장 완료")
         else:
             print(f"🚨 업로드되지 않은 파일 {idx+1}번 -> 기본 이미지({oral_default_img})로 대체")
             photo_paths.append(oral_default_img)
@@ -524,7 +526,7 @@ def create_ppt():
         print("request.method:", request.method, flush=True, file=sys.stderr)
         print("request.files.keys():", list(request.files.keys()), flush=True, file=sys.stderr)
         print("request.form.keys():", list(request.form.keys()), flush=True, file=sys.stderr)
-        
+
         if request.method != 'POST':
             return jsonify({"error": "Only POST requests are allowed."}), 405
         
@@ -534,7 +536,7 @@ def create_ppt():
         
         
         triangle = '화살표.png'
-        print("용주야 사랑해")
+        print("용주야 사랑해",flush=True, file=sys.stderr)
 
 
         
@@ -554,7 +556,7 @@ def create_ppt():
         eofrontal45_smile = request.files['photo7']
         eolateral = request.files['photo8']
         photo_paths = [eofrontal_rest, eofrontal, eofrontal45, id_photo, eofrontal_smile, eofrontal_upright, eofrontal45_smile, eolateral]
-        print("photo_paths:",photo_paths)
+        
 
         ioupper = request.files['oralPhoto1']
         iolower = request.files['oralPhoto2']
