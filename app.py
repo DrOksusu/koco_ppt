@@ -521,13 +521,13 @@ def create_fourth_slide(prs, oral_default_img):
 def create_ppt():
     try:
         # ㅍ스트 요청이 아닌 경우 405 에러 반환
-        print("request.method:",request.method)
+        print("request.method:", request.method, flush=True, file=sys.stderr)
         if request.method != 'POST':
             return jsonify({"error": "Only POST requests are allowed."}), 405
         
         # 요청 데이터 받기
         if 'photo4' not in request.files or 'excel_data' not in request.files:
-            return jsonify({"error": "Both 'id_photo' and 'excel_data' files are required."}), 400
+            return jsonify({"error": "Both 'photo4' and 'excel_data' files are required."}), 400
         
         
         triangle = '화살표.png'
