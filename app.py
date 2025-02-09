@@ -32,6 +32,11 @@ def TextFrame(ss, font_name='맑은 고딕', font_size=Pt(15), font_bold=True, f
             ss.text_frame.paragraphs[line].font.color.rgb = font_color
     return ss
 
+import os
+import sys
+import shutil
+import subprocess
+
 def convert_ppt_to_pdf(input_ppt, output_pdf):
     """
     PowerPoint 파일을 PDF로 변환하는 함수
@@ -43,8 +48,10 @@ def convert_ppt_to_pdf(input_ppt, output_pdf):
     input_ppt = os.path.abspath(input_ppt)
     output_pdf = os.path.abspath(output_pdf)
 
+    print(f"📂 변환 시작: {input_ppt} -> {output_pdf}", flush=True)
+
     if sys.platform.startswith("win"):
-        # Windows 환경: pythoncom 활용
+        # Windows 환경: PowerPoint COM 객체 활용
         import comtypes.client
         import pythoncom
 
@@ -54,45 +61,48 @@ def convert_ppt_to_pdf(input_ppt, output_pdf):
             powerpoint = comtypes.client.CreateObject("Powerpoint.Application")
             powerpoint.Visible = 0  # PowerPoint 창 숨김
 
-            print(f"📂 변환 시작: {input_ppt} -> {output_pdf}")
+            print("🔄 PowerPoint PDF 변환 실행 중...", flush=True)
 
             presentation = powerpoint.Presentations.Open(input_ppt, WithWindow=False)
             presentation.SaveAs(output_pdf, 32)  # 32 = PDF 변환 코드
             presentation.Close()
 
-            powerpoint.Quit()
-            pythoncom.CoUninitialize()
-
             if os.path.exists(output_pdf):
-                print(f"✅ PDF 변환 성공: {output_pdf}")
+                print(f"✅ PDF 변환 성공: {output_pdf}", flush=True)
             else:
                 raise FileNotFoundError(f"🚨 PDF 변환 실패: {output_pdf} 파일이 생성되지 않음")
 
         except Exception as e:
-            print(f"❌ PDF 변환 중 오류 발생: {e}")
+            print(f"❌ PDF 변환 중 오류 발생: {e}", flush=True)
+        finally:
+            powerpoint.Quit()
             pythoncom.CoUninitialize()
 
     else:
         # Linux 환경: LibreOffice 사용
         try:
             output_dir = os.path.dirname(output_pdf)
-
-            # LibreOffice로 변환 실행
-            command = ["libreoffice", "--headless", "--convert-to", "pdf", "--outdir", output_dir, input_ppt]
-            subprocess.run(command, check=True)
-
-            # 변환된 PDF 파일 찾기
             base_name = os.path.splitext(os.path.basename(input_ppt))[0]  # 파일명 추출
             converted_pdf = os.path.join(output_dir, f"{base_name}.pdf")
 
+            command = ["libreoffice", "--headless", "--convert-to", "pdf", "--outdir", output_dir, input_ppt]
+            print(f"🔄 LibreOffice 실행: {' '.join(command)}", flush=True)
+
+            # LibreOffice 실행 (30초 타임아웃 추가)
+            subprocess.run(command, check=True, timeout=30)
+
+            # 변환된 파일 확인 후 이동
             if os.path.exists(converted_pdf):
-                shutil.move(converted_pdf, output_pdf)  # 파일 이동 및 이름 변경
-                print(f"✅ PDF 변환 성공: {output_pdf}")
+                shutil.move(converted_pdf, output_pdf)
+                print(f"✅ PDF 변환 성공: {output_pdf}", flush=True)
             else:
                 raise FileNotFoundError(f"🚨 PDF 변환 실패: {output_pdf} 파일이 생성되지 않음")
 
+        except subprocess.TimeoutExpired:
+            print("⏳ PDF 변환이 너무 오래 걸려서 강제 종료됨!", flush=True)
         except Exception as e:
-            print(f"❌ PDF 변환 중 오류 발생: {e}")
+            print(f"❌ PDF 변환 중 오류 발생: {e}", flush=True)
+
 
 # 🔹 1️⃣ 프론트엔드 (HTML) 서빙
 @app.route('/')
@@ -344,48 +354,6 @@ def create_second_slide(prs, HGI, VGI, psa_name_path):
         top = Inches(0)
     shape_s_1.add_picture(f"{exp}_result.png",left, top, width, height)
 
-# def create_third_slide(prs, photo_paths):
-#     """
-#     구외사진 8장을 3번째 슬라이드에 추가하는 함수
-
-#     :param prs: 프레젠테이션 객체
-#     :param photo_paths: 사진 경로 리스트 (총 8장)
-#     """
-
-#     # 3번째 슬라이드 가져오기
-#     temp_slide_2 = prs.slides[2]
-#     shape_s_2 = temp_slide_2.shapes
-
-#     # 이미지 배치 설정 (2행 x 4열)
-#     num_cols = 4  # 한 행에 4개씩 배치
-#     num_rows = 2  # 두 개의 행으로 배치
-
-#     # 슬라이드 크기에 맞게 이미지 크기 설정
-#     slide_width = 10  # 슬라이드 너비 (인치 단위)
-#     slide_height = 19.05 / 2.54  # 슬라이드 높이 (cm를 인치로 변환)
-#     img_height = slide_height / num_rows  # 한 행에 배치할 이미지 높이
-
-#     # 첫 번째 이미지를 불러와 비율 계산
-#     img_sample = Image.open(photo_paths[0])
-#     aspect_ratio = img_sample.size[0] / img_sample.size[1]  # 가로/세로 비율
-#     img_width = img_height * aspect_ratio  # 이미지 가로 크기
-
-#     # 중앙 정렬을 위한 시작 좌표 계산
-#     total_width = img_width * num_cols  # 전체 이미지 영역의 너비
-#     left_start = (slide_width - total_width) / 2  # 좌측 여백 계산
-
-#     # 이미지 삽입
-#     for idx, img_path in enumerate(photo_paths):
-#         row = idx // num_cols  # 행 계산 (0 or 1)
-#         col = idx % num_cols  # 열 계산 (0 ~ 3)
-
-#         left = Inches(left_start + col * img_width)  # 가로 위치
-#         top = Inches(row * img_height)  # 세로 위치
-
-#         shape_s_2.add_picture(img_path, left, top, width=Inches(img_width), height=Inches(img_height))
-
-#     print("✅ 3번째 슬라이드에 구외사진 8장 추가 완료!")
-
 # 3번째 슬라이드 생성 함수 (구외사진)
 def create_third_slide(prs, default_img):
     """
@@ -480,6 +448,7 @@ def create_fourth_slide(prs, oral_default_img):
         else:
             print(f"🚨 업로드되지 않은 파일 {idx+1}번 -> 기본 이미지({oral_default_img})로 대체")
             photo_paths.append(oral_default_img)
+            print(f"✅ {oral_default_img} 파일 저장 완료")
 
     print(f"🔍 최종 photo_paths: {photo_paths}")  # 디버깅용 출력
 
