@@ -37,7 +37,7 @@ ENV FLASK_ENV=production
 CMD ["python", "app.py"]
 
 # 리눅스 기반으로 도커이미지 빌드
-# docker build --no-cache --platform linux/amd64 -t oksusu2020/koco_final:20250208 .
+# docker build --no-cache --platform linux/amd64 -t oksusu2020/koco_final:20250209 .
 
 
 # 9500 포트로 컨테이너 실행

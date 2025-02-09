@@ -21,7 +21,7 @@ jobs:
     # 3️⃣ Docker 이미지 빌드 및 푸시
     - name: Build and push Docker image
       run: |
-        docker build . -t oksusu2020/koco_final:$(date +%Y%m%d)
+        docker build --no-cache --platform linux/amd64 -t oksusu2020/koco_final:$(date +%Y%m%d) .
         docker push oksusu2020/koco_final:$(date +%Y%m%d)
 
     # 4️⃣ AWS 서버에 Docker 이미지 배포
