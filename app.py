@@ -1225,16 +1225,14 @@ def create_ppt():
         create_fourth_slide(prs, oral_default_img="./static/oral_default_image.jpg")
 
         #### 5번째 슬라이드 만들기 (Pano 이미지)
-        create_fifth_slide(prs, default_img="./static/default_pano.jpg")
+        create_fifth_slide(prs, default_img="./static/default_image.jpg")
 
     
         ####6번째 슬라이드 만들기 (Lateral Ceph)
-        if lateral_ceph_image_path is not None:
-            create_sixth_slide(prs, lateral_ceph_image_path)
+        create_sixth_slide(prs, default_img="./static/default_image.jpg")
        
         ####7번째 슬라이드 만들기 (Frontal Ceph)
-        if frontal_ceph_image_path is not None:
-            create_seventh_slide(prs, frontal_ceph_image_path)
+        create_seventh_slide(prs, default_img="./static/default_image.jpg")
 
         # PPT 저장
         output_pptx = 'output_ppt.pptx'
@@ -1263,13 +1261,6 @@ def create_ppt():
     except Exception as e:
         return jsonify({"error": str(e)})
 
-# 🔹 테스트페이지
-@app.route('/koco')
-def koco_page():
-    return "순응교합연구회 만세!"  # templates/index.html 제공
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=9500, debug=True)
 
 
     # 슬라이드
