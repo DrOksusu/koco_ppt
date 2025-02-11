@@ -116,18 +116,28 @@ print(f"📂 파일 업로드 디렉토리: {UPLOAD_FOLDER}")
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-# 파일 저장 함수
-def save_uploaded_file(uploaded_file, filename):
+def save_uploaded_file(uploaded_file, filename, default_img="./static/default_image.jpg"):
+    if not uploaded_file or uploaded_file.filename == '':
+        print(f"🚨 업로드된 파일이 없음, 기본 이미지 사용: {default_img}")
+        return default_img  # 기본 이미지 반환
+
     file_path = os.path.join(UPLOAD_FOLDER, filename)
     file_path = os.path.normpath(file_path)  # Windows에서 발생하는 \\ 이슈 방지
-    uploaded_file.seek(0)  #스트림 위치 초기화
-    uploaded_file.save(file_path)
-    
-    if os.path.exists(file_path):
-        file_size = os.path.getsize(file_path)
-        print(f"✅ {file_path} 파일 저장 완료 ({file_size} bytes)")
+
+    try:
+        uploaded_file.seek(0)  # 스트림 위치 초기화
+        uploaded_file.save(file_path)
         
-    return file_path
+        if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
+            print(f"✅ {file_path} 파일 저장 완료 ({os.path.getsize(file_path)} bytes)")
+            return file_path
+        else:
+            print(f"🚨 {file_path} 파일이 저장되지 않음, 기본 이미지 사용")
+            return default_img  # 기본 이미지 반환
+    except Exception as e:
+        print(f"❌ 파일 저장 중 오류 발생: {e}, 기본 이미지 사용")
+        return default_img  # 기본 이미지 반환
+
 
 def create_first_slide(prs, df, df_raw, id_photo_path):
     temp_slide = prs.slides[0]
@@ -1201,11 +1211,12 @@ def create_ppt():
         psa_name = request.files['psa']
         id_photo = request.files['photo4']
 
-        pano_path = save_uploaded_file(pano, 'pano.jpg')
-        lateral_ceph_path = save_uploaded_file(lateral_ceph_image, 'lateral_ceph.jpg')
-        frontal_ceph_path = save_uploaded_file(frontal_ceph_image, 'frontal_ceph.jpg')
-        psa_name_path = save_uploaded_file(psa_name, 'psa_name.jpg')
-        id_photo_path = save_uploaded_file(id_photo, 'id_photo.jpg')                      
+        # 파일 저장 (None이 되지 않도록 기본 이미지 적용)
+        pano_path = save_uploaded_file(request.files.get('pano'), 'pano.jpg', default_img="./static/default_image.jpg")
+        lateral_ceph_path = save_uploaded_file(request.files.get('lateral_ceph'), 'lateral_ceph.jpg', default_img="./static/default_image.jpg")
+        frontal_ceph_path = save_uploaded_file(request.files.get('frontal_ceph'), 'frontal_ceph.jpg', default_img="./static/default_image.jpg")
+        psa_name_path = save_uploaded_file(request.files.get('psa'), 'psa_name.jpg', default_img="./static/default_image.jpg")
+        id_photo_path = save_uploaded_file(request.files.get('photo4'), 'id_photo.jpg', default_img="./static/oral_default_image.jpg")
 
         # ID 사진 저장 및 확인
         if 'photo4' in request.files:
@@ -1239,7 +1250,7 @@ def create_ppt():
 
         
         # 엑셀 파일이 비어있는지 확인
-        if excel_file and excel_file.filename != '':
+        if excel_file and excel_file.filename != '': 
             excel_file_path = save_uploaded_file(excel_file, 'excel_data.xlsx')
             df_raw = pd.read_excel(excel_file_path)
             df = df_raw.iloc[7:]  # 7번째 행 이후의 데이터 사용
