@@ -821,7 +821,7 @@ def create_ppt():
         else:
             df_raw, df, excel_file_path = None, None, None
 
-       
+        print("df_raw:",df_raw, flush=True, file=sys.stderr)
 
         # PPT 템
         # 현재 디렉터리에서 파일 경로를 생성
@@ -851,10 +851,9 @@ def create_ppt():
             HGI, VGI = None, None  # 값이 없으면 이후 슬라이드에서 참고하지 않도록
                 
          # 두 번째 슬라이드 만들기 (PSA 파일이 있을 경우만)
-        if psa_name_path is not None and HGI is not None and VGI is not None:
-            create_second_slide(prs, HGI, VGI, psa_name_path)
-        else:
-            print("PSA 파일이 없어서 두 번째 슬라이드를 생성하지 않습니다.")
+
+        create_second_slide(prs, HGI, VGI, psa_name_path)
+        
 
 
         ####3번째 슬라이드 만들기(구외사진)
