@@ -811,27 +811,7 @@ def create_ppt():
         excel_file = request.files['excel_data']
         file_type = request.form.get('file_type', 'pdf') #기본값은 pdf
 
-        # ID 사진 확인
-        if not id_photo_path or not isinstance(id_photo_path, str) or not os.path.exists(id_photo_path) or os.path.getsize(id_photo_path) == 0:
-            print(f"🚨 ID 사진이 없거나 손상됨: {id_photo_path}, 기본 이미지 사용")
-            id_photo_path = "./static/default_image.jpg"
-
-        # Pano 이미지 확인
-        if not pano_path or not isinstance(pano_path, str) or not os.path.exists(pano_path) or os.path.getsize(pano_path) == 0:
-            print(f"🚨 Pano 이미지가 없거나 손상됨: {pano_path}, 기본 이미지 사용")
-            pano_path = "./static/default_pano.jpg"
-
-        # Lateral Ceph 확인
-        if not lateral_ceph_path or not isinstance(lateral_ceph_path, str) or not os.path.exists(lateral_ceph_path) or os.path.getsize(lateral_ceph_path) == 0:
-            print(f"🚨 Lateral Ceph 이미지가 없거나 손상됨: {lateral_ceph_path}, 기본 이미지 사용")
-            lateral_ceph_path = "./static/default_image.jpg"
-
-        # Frontal Ceph 확인
-        if not frontal_ceph_path or not isinstance(frontal_ceph_path, str) or not os.path.exists(frontal_ceph_path) or os.path.getsize(frontal_ceph_path) == 0:
-            print(f"🚨 Frontal Ceph 이미지가 없거나 손상됨: {frontal_ceph_path}, 기본 이미지 사용")
-            frontal_ceph_path = "./static/default_image.jpg"            
-
-
+        print("file_type:",file_type, flush=True, file=sys.stderr)
         
         # 엑셀 파일이 비어있는지 확인
         if excel_file and excel_file.filename != '': 
@@ -841,11 +821,7 @@ def create_ppt():
         else:
             df_raw, df, excel_file_path = None, None, None
 
-        # PSA 파일이 비어있는지 확인
-        if psa_name and psa_name.filename != '':
-            psa_name_path = save_uploaded_file(psa_name, 'psa_name.jpg')
-        else:
-            psa_name_path = None
+       
 
         # PPT 템
         # 현재 디렉터리에서 파일 경로를 생성
