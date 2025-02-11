@@ -1190,25 +1190,28 @@ def create_ppt():
         if request.method != 'POST':
             return jsonify({"error": "Only POST requests are allowed."}), 405
         
-        # # 요청 데이터 받기
-        # if 'photo4' not in request.files or 'excel_data' not in request.files:
-        #     return jsonify({"error": "Both 'photo4' and 'excel_data' files are required."}), 400
-        
         
         triangle = '화살표.png'
-        print("용주야 사랑해",flush=True, file=sys.stderr)
-
-
-        
+        print("용주야 사랑해",flush=True, file=sys.stderr)        
 
         # 파일 저장
         pano = request.files['pano']
         lateral_ceph_image = request.files['lateral_ceph']
         frontal_ceph_image = request.files['frontal_ceph']
         psa_name = request.files['psa']
-               
         id_photo = request.files['photo4']
 
+        pano_path = save_uploaded_file(pano, 'pano.jpg')
+        lateral_ceph_path = save_uploaded_file(lateral_ceph_image, 'lateral_ceph.jpg')
+        frontal_ceph_path = save_uploaded_file(frontal_ceph_image, 'frontal_ceph.jpg')
+        psa_name_path = save_uploaded_file(psa_name, 'psa_name.jpg')
+        id_photo_path = save_uploaded_file(id_photo, 'id_photo.jpg')                      
+
+        # ID 사진 저장 및 확인
+        if 'photo4' in request.files:
+            id_photo = request.files['photo4']
+            if id_photo and id_photo.filename != '':
+                id_photo_path = save_uploaded_file(id_photo, 'id_photo.jpg')
 
         excel_file = request.files['excel_data']
         file_type = request.form.get('file_type', 'pdf') #기본값은 pdf
@@ -1231,10 +1234,7 @@ def create_ppt():
         # Frontal Ceph 확인
         if not frontal_ceph_path or not isinstance(frontal_ceph_path, str) or not os.path.exists(frontal_ceph_path) or os.path.getsize(frontal_ceph_path) == 0:
             print(f"🚨 Frontal Ceph 이미지가 없거나 손상됨: {frontal_ceph_path}, 기본 이미지 사용")
-            frontal_ceph_path = "./static/default_image.jpg"
-
-
-        excel_file_path = save_uploaded_file(excel_file, 'excel_data.xlsx')      
+            frontal_ceph_path = "./static/default_image.jpg"            
 
 
         
