@@ -627,6 +627,8 @@ def create_ppt():
         
         # 첫 번째 슬라이드 만들기 (엑셀 파일이 있을 경우만)
         if df is not None and df_raw is not None:
+            # id_photo_path가 없으면 기본 이미지 사용
+            id_photo_path = id_photo_path if id_photo_path else "./static/default_image.jpg"
             HGI, VGI = create_first_slide(prs, df, df_raw, id_photo_path)
         else:
             HGI, VGI = None, None  # 값이 없으면 이후 슬라이드에서 참고하지 않도록
@@ -634,6 +636,8 @@ def create_ppt():
          # 두 번째 슬라이드 만들기 (PSA 파일이 있을 경우만)
         if psa_name_path is not None and HGI is not None and VGI is not None:
             create_second_slide(prs, HGI, VGI, psa_name_path)
+        else:
+            print("PSA 파일이 없어서 두 번째 슬라이드를 생성하지 않습니다.")
 
 
         ####3번째 슬라이드 만들기(구외사진)
