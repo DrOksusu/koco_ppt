@@ -804,6 +804,7 @@ def create_ppt():
         frontal_ceph_path = save_uploaded_file(request.files.get('frontal_ceph'), 'frontal_ceph.jpg', default_img="./static/default_image.jpg")
         psa_name_path = save_uploaded_file(request.files.get('psa'), 'psa_name.jpg', default_img="./static/default_image.jpg")
         id_photo_path = save_uploaded_file(request.files.get('photo4'), 'id_photo.jpg', default_img="./static/oral_default_image.jpg")
+        print("id_photo_path:",id_photo_path)
 
         # ID 사진 저장 및 확인
         if 'photo4' in request.files:
