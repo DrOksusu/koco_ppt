@@ -487,6 +487,48 @@ def create_fourth_slide(prs, oral_default_img):
 
     print("✅ 4번째 슬라이드에 모든 이미지 추가 완료!")
 
+def create_fifth_slide(prs, pano_path):
+    """
+    Pano 이미지를 5번째 슬라이드에 추가하는 함수.
+    크기를 자동 조정하여 중앙에 배치.
+
+    :param prs: 프레젠테이션 객체
+    :param pano_path: Pano 이미지 파일 경로
+    """
+
+    # 5번째 슬라이드 가져오기
+    temp_slide_4 = prs.slides[4]  # 슬라이드 인덱스는 0부터 시작하므로 5번째는 인덱스 4
+    shape_s_4 = temp_slide_4.shapes
+
+    # 이미지 열기
+    img_pano = Image.open(pano_path)
+
+    # 슬라이드 크기 (인치 단위)
+    slide_width = 10
+    slide_height = 19.05 / 2.54  # cm를 inch로 변환
+
+    # 이미지 비율에 따라 크기 조정
+    if img_pano.size[1] / img_pano.size[0] < slide_height / slide_width:
+        w = slide_width
+        width = Inches(w)
+        h = w * img_pano.size[1] / img_pano.size[0]
+        height = Inches(h)
+        left = Inches(0)
+        top = Inches((slide_height - h) / 2)  # 중앙 정렬
+    else:
+        h = slide_height
+        height = Inches(h)
+        w = h * img_pano.size[0] / img_pano.size[1]
+        width = Inches(w)
+        left = Inches((slide_width - w) / 2)  # 중앙 정렬
+        top = Inches(0)
+
+    # 이미지 추가
+    shape_s_4.add_picture(pano_path, left, top, width, height)
+
+    print("✅ 5번째 슬라이드에 Pano 이미지 추가 완료!")
+
+
     # 슬라이드
 # PPT 작성 엔드포인트
 @app.route('/dash_board', methods=['POST'])
@@ -599,6 +641,10 @@ def create_ppt():
 
         ####4번째 슬라이드 만들기(구내사진)
         create_fourth_slide(prs, oral_default_img="./static/oral_default_image.jpg")
+
+        ####5번째 슬라이드 만들기 (Pano 이미지가 있는 경우)
+        if pano_path is not None:
+            create_fifth_slide(prs, pano_path)
     
 
         # PPT 저장
@@ -635,3 +681,4 @@ def koco_page():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=9500, debug=True)
+
