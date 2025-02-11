@@ -116,10 +116,18 @@ print(f"📂 파일 업로드 디렉토리: {UPLOAD_FOLDER}")
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-def save_uploaded_file(uploaded_file, filename, default_img="./static/default_image.jpg"):
+def save_uploaded_file(uploaded_file, filename, default_img=None):
+    """
+    파일을 저장하고, 저장되지 않으면 기본 이미지를 반환하는 함수.
+
+    :param uploaded_file: Flask의 request.files에서 전달된 파일 객체
+    :param filename: 저장할 파일 이름
+    :param default_img: 기본 이미지 경로 (선택 사항)
+    :return: 저장된 파일 경로 또는 기본 이미지 경로
+    """
     if not uploaded_file or uploaded_file.filename == '':
         print(f"🚨 업로드된 파일이 없음, 기본 이미지 사용: {default_img}")
-        return default_img  # 기본 이미지 반환
+        return default_img if default_img else None  # 기본 이미지가 없으면 None 반환
 
     file_path = os.path.join(UPLOAD_FOLDER, filename)
     file_path = os.path.normpath(file_path)  # Windows에서 발생하는 \\ 이슈 방지
@@ -133,11 +141,11 @@ def save_uploaded_file(uploaded_file, filename, default_img="./static/default_im
             return file_path
         else:
             print(f"🚨 {file_path} 파일이 저장되지 않음, 기본 이미지 사용")
-            return default_img  # 기본 이미지 반환
+            return default_img if default_img else None
     except Exception as e:
         print(f"❌ 파일 저장 중 오류 발생: {e}, 기본 이미지 사용")
-        return default_img  # 기본 이미지 반환
-
+        return default_img if default_img else None
+    
 
 def create_first_slide(prs, df, df_raw, id_photo_path):
     temp_slide = prs.slides[0]
