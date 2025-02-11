@@ -373,6 +373,8 @@ def create_second_slide(prs, HGI, VGI, psa_name_path):
         top = Inches(0)
     shape_s_1.add_picture(f"{exp}_result.png",left, top, width, height)
 
+    print("두번째 슬라이드 완료",flush=True, file=sys.stderr)
+
 # 3번째 슬라이드 생성 함수 (구외사진)
 def create_third_slide(prs, default_img):
     """
@@ -847,13 +849,14 @@ def create_ppt():
 
             # 슬라이드 생성
             HGI, VGI = create_first_slide(prs, df, df_raw, id_photo_path)
+            print("HGI:",HGI, flush=True, file=sys.stderr)
         else:
             HGI, VGI = None, None  # 값이 없으면 이후 슬라이드에서 참고하지 않도록
+            print("HGI:",HGI, flush=True, file=sys.stderr)
                 
          # 두 번째 슬라이드 만들기 (PSA 파일이 있을 경우만)
 
-        create_second_slide(prs, HGI, VGI, psa_name_path)
-        
+        create_second_slide(prs, HGI, VGI, psa_name_path)       
 
 
         ####3번째 슬라이드 만들기(구외사진)
