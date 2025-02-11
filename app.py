@@ -807,12 +807,7 @@ def create_ppt():
         id_photo_path = save_uploaded_file(request.files.get('photo4'), 'id_photo.jpg', default_img="./static/oral_default_image.jpg")
         print("id_photo_path:",id_photo_path, flush=True, file=sys.stderr)
 
-        # ID 사진 저장 및 확인
-        if 'photo4' in request.files:
-            id_photo = request.files['photo4']
-            if id_photo and id_photo.filename != '':
-                id_photo_path = save_uploaded_file(id_photo, 'id_photo.jpg')
-
+        
         excel_file = request.files['excel_data']
         file_type = request.form.get('file_type', 'pdf') #기본값은 pdf
 
