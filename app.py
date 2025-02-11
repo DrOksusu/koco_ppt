@@ -831,19 +831,19 @@ def create_ppt():
         prs = Presentation(ppt_template_path)
         
        # 첫 번째 슬라이드 만들기 (엑셀 파일이 있을 경우만)
-        if df is not None and df_raw is not None:
+        if df_raw is not None and not df_raw.empty:
             # ID 사진이 존재하고 정상적인 이미지인지 확인
-            if not id_photo_path or not os.path.exists(id_photo_path) or os.path.getsize(id_photo_path) == 0:
-                print(f"🚨 ID 사진이 없거나 손상됨: {id_photo_path}, 기본 이미지 사용")
-                id_photo_path = "./static/default_image.jpg"
-            else:
-                try:
-                    # 이미지 유효성 검사
-                    with Image.open(id_photo_path) as img:
-                        img.verify()
-                except Exception as e:
-                    print(f"🚨 유효하지 않은 이미지 파일: {id_photo_path}, 기본 이미지 사용")
-                    id_photo_path = "./static/default_image.jpg"
+            # if not id_photo_path or not os.path.exists(id_photo_path) or os.path.getsize(id_photo_path) == 0:
+            #     print(f"🚨 ID 사진이 없거나 손상됨: {id_photo_path}, 기본 이미지 사용")
+            #     id_photo_path = "./static/default_image.jpg"
+            # else:
+            #     try:
+            #         # 이미지 유효성 검사
+            #         with Image.open(id_photo_path) as img:
+            #             img.verify()
+            #     except Exception as e:
+            #         print(f"🚨 유효하지 않은 이미지 파일: {id_photo_path}, 기본 이미지 사용")
+            #         id_photo_path = "./static/default_image.jpg"
 
             # 슬라이드 생성
             HGI, VGI = create_first_slide(prs, df, df_raw, id_photo_path)
