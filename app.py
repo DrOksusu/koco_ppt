@@ -1213,12 +1213,27 @@ def create_ppt():
         excel_file = request.files['excel_data']
         file_type = request.form.get('file_type', 'pdf') #기본값은 pdf
 
-        # 파일 저장
+        # ID 사진 확인
+        if not id_photo_path or not isinstance(id_photo_path, str) or not os.path.exists(id_photo_path) or os.path.getsize(id_photo_path) == 0:
+            print(f"🚨 ID 사진이 없거나 손상됨: {id_photo_path}, 기본 이미지 사용")
+            id_photo_path = "./static/default_image.jpg"
 
-        pano_path = save_uploaded_file(pano, 'pano.jpg')
-        lateral_ceph_image_path = save_uploaded_file(lateral_ceph_image, 'lateral_ceph_image.jpg')
-        frontal_ceph_image_path = save_uploaded_file(frontal_ceph_image, 'frontal_ceph_image.jpg')        
-        id_photo_path = save_uploaded_file(id_photo, 'id_photo.jpg')        
+        # Pano 이미지 확인
+        if not pano_path or not isinstance(pano_path, str) or not os.path.exists(pano_path) or os.path.getsize(pano_path) == 0:
+            print(f"🚨 Pano 이미지가 없거나 손상됨: {pano_path}, 기본 이미지 사용")
+            pano_path = "./static/default_pano.jpg"
+
+        # Lateral Ceph 확인
+        if not lateral_ceph_path or not isinstance(lateral_ceph_path, str) or not os.path.exists(lateral_ceph_path) or os.path.getsize(lateral_ceph_path) == 0:
+            print(f"🚨 Lateral Ceph 이미지가 없거나 손상됨: {lateral_ceph_path}, 기본 이미지 사용")
+            lateral_ceph_path = "./static/default_image.jpg"
+
+        # Frontal Ceph 확인
+        if not frontal_ceph_path or not isinstance(frontal_ceph_path, str) or not os.path.exists(frontal_ceph_path) or os.path.getsize(frontal_ceph_path) == 0:
+            print(f"🚨 Frontal Ceph 이미지가 없거나 손상됨: {frontal_ceph_path}, 기본 이미지 사용")
+            frontal_ceph_path = "./static/default_image.jpg"
+
+
         excel_file_path = save_uploaded_file(excel_file, 'excel_data.xlsx')      
 
 
