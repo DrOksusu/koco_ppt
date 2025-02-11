@@ -1043,88 +1043,141 @@ def create_fifth_slide(prs, default_img):
 
    
 
-def create_sixth_slide(prs, lateral_ceph_image_path):
+def create_sixth_slide(prs, default_img):
     """
-    측면 사진을 6번째 슬라이드에 추가하는 함수.
-    크기를 자동 조정하여 중앙에 배치.
+    Lateral Ceph 이미지를 6번째 슬라이드에 추가하는 함수.
+    만약 업로드된 Lateral Ceph 이미지가 없거나 손상되었을 경우, 기본 이미지 사용.
 
     :param prs: 프레젠테이션 객체
-    :param lateral_ceph_image_path: 측면 사진 파일 경로
+    :param default_img: 기본 이미지 파일 경로
     """
+
+    # Lateral Ceph 이미지 업로드 확인
+    lateral_ceph_file = request.files.get('lateral_ceph')  # Flask에서 request로 직접 가져옴
+
+    if lateral_ceph_file and lateral_ceph_file.filename:
+        # 파일 저장 후 경로 설정
+        lateral_ceph_path = save_uploaded_file(lateral_ceph_file, 'lateral_ceph.jpg')
+
+        # 파일 유효성 검사 (파일이 존재하고 크기가 0보다 커야 함)
+        if not os.path.exists(lateral_ceph_path) or os.path.getsize(lateral_ceph_path) == 0:
+            print(f"🚨 Lateral Ceph 이미지가 없거나 손상됨: {lateral_ceph_path}, 기본 이미지 사용")
+            lateral_ceph_path = default_img  # 기본 이미지로 변경
+        else:
+            try:
+                # 이미지 유효성 검사
+                with Image.open(lateral_ceph_path) as img:
+                    img.verify()
+                print(f"✅ 유효한 Lateral Ceph 이미지 확인: {lateral_ceph_path}")
+            except Exception as e:
+                print(f"🚨 유효하지 않은 Lateral Ceph 이미지 파일: {lateral_ceph_path}, 기본 이미지 사용")
+                lateral_ceph_path = default_img  # 기본 이미지로 변경
+    else:
+        print(f"🚨 Lateral Ceph 이미지가 업로드되지 않음, 기본 이미지 사용")
+        lateral_ceph_path = default_img  # 기본 이미지로 변경
 
     # 6번째 슬라이드 가져오기
     temp_slide_5 = prs.slides[5]  # 슬라이드 인덱스는 0부터 시작하므로 6번째는 인덱스 5
     shape_s_5 = temp_slide_5.shapes
 
-    # 이미지 열기
-    img_lateral_ceph = Image.open(lateral_ceph_image_path)
+   # 이미지 열기
+    img_pano = Image.open(lateral_ceph_path)
 
     # 슬라이드 크기 (인치 단위)
     slide_width = 10
     slide_height = 19.05 / 2.54  # cm를 inch로 변환
 
     # 이미지 비율에 따라 크기 조정
-    if img_lateral_ceph.size[1] / img_lateral_ceph.size[0] < slide_height / slide_width:
+    if img_pano.size[1] / img_pano.size[0] < slide_height / slide_width:
         w = slide_width
         width = Inches(w)
-        h = w * img_lateral_ceph.size[1] / img_lateral_ceph.size[0]
+        h = w * img_pano.size[1] / img_pano.size[0]
         height = Inches(h)
         left = Inches(0)
         top = Inches((slide_height - h) / 2)  # 중앙 정렬
     else:
         h = slide_height
         height = Inches(h)
-        w = h * img_lateral_ceph.size[0] / img_lateral_ceph.size[1]
+        w = h * img_pano.size[0] / img_pano.size[1]
         width = Inches(w)
         left = Inches((slide_width - w) / 2)  # 중앙 정렬
         top = Inches(0)
 
     # 이미지 추가
-    shape_s_5.add_picture(lateral_ceph_image_path, left, top, width, height)
+    shape_s_5.add_picture(lateral_ceph_path, left, top, width, height)
 
-    print("✅ 6번째 슬라이드에 측면 사진 추가 완료!")
+    print("✅ 6번째 슬라이드에 Lateral Ceph 이미지 추가 완료!")
+   
 
-def create_seventh_slide(prs, frontal_ceph_image_path):
+def create_seventh_slide(prs, default_img):
     """
-    정면 사진을 7번째 슬라이드에 추가하는 함수.
-    크기를 자동 조정하여 중앙에 배치.
+    Frontal Ceph 이미지를 7번째 슬라이드에 추가하는 함수.
+    만약 업로드된 Frontal Ceph 이미지가 없거나 손상되었을 경우, 기본 이미지 사용.
 
     :param prs: 프레젠테이션 객체
-    :param frontal_ceph_image_path: 정면 사진 파일 경로
+    :param default_img: 기본 이미지 파일 경로
     """
 
-    # 7번째 슬라이드 가져오기   
+    # Frontal Ceph 이미지 업로드 확인
+    frontal_ceph_file = request.files.get('frontal_ceph')  # Flask에서 request로 직접 가져옴
+
+    if frontal_ceph_file and frontal_ceph_file.filename:
+        # 파일 저장 후 경로 설정
+        frontal_ceph_path = save_uploaded_file(frontal_ceph_file, 'frontal_ceph.jpg')
+
+        # 파일 유효성 검사 (파일이 존재하고 크기가 0보다 커야 함)
+        if not os.path.exists(frontal_ceph_path) or os.path.getsize(frontal_ceph_path) == 0:
+            print(f"🚨 Frontal Ceph 이미지가 없거나 손상됨: {frontal_ceph_path}, 기본 이미지 사용")
+            frontal_ceph_path = default_img  # 기본 이미지로 변경
+        else:
+            try:
+                # 이미지 유효성 검사
+                with Image.open(frontal_ceph_path) as img:
+                    img.verify()
+                print(f"✅ 유효한 Frontal Ceph 이미지 확인: {frontal_ceph_path}")
+            except Exception as e:
+                print(f"🚨 유효하지 않은 Frontal Ceph 이미지 파일: {frontal_ceph_path}, 기본 이미지 사용")
+                frontal_ceph_path = default_img  # 기본 이미지로 변경
+    else:
+        print(f"🚨 Frontal Ceph 이미지가 업로드되지 않음, 기본 이미지 사용")
+        frontal_ceph_path = default_img  # 기본 이미지로 변경
+
+    # 7번째 슬라이드 가져오기
     temp_slide_6 = prs.slides[6]  # 슬라이드 인덱스는 0부터 시작하므로 7번째는 인덱스 6
     shape_s_6 = temp_slide_6.shapes
 
     # 이미지 열기
-    img_frontal_ceph = Image.open(frontal_ceph_image_path)
+    img_pano = Image.open(frontal_ceph_path)
 
     # 슬라이드 크기 (인치 단위)
     slide_width = 10
     slide_height = 19.05 / 2.54  # cm를 inch로 변환
 
     # 이미지 비율에 따라 크기 조정
-    if img_frontal_ceph.size[1] / img_frontal_ceph.size[0] < slide_height / slide_width:
+    if img_pano.size[1] / img_pano.size[0] < slide_height / slide_width:
         w = slide_width
         width = Inches(w)
-        h = w * img_frontal_ceph.size[1] / img_frontal_ceph.size[0]
+        h = w * img_pano.size[1] / img_pano.size[0]
         height = Inches(h)
         left = Inches(0)
         top = Inches((slide_height - h) / 2)  # 중앙 정렬
     else:
         h = slide_height
         height = Inches(h)
-        w = h * img_frontal_ceph.size[0] / img_frontal_ceph.size[1]
+        w = h * img_pano.size[0] / img_pano.size[1]
         width = Inches(w)
         left = Inches((slide_width - w) / 2)  # 중앙 정렬
-        top = Inches(0) 
+        top = Inches(0)
 
     # 이미지 추가
-    shape_s_6.add_picture(frontal_ceph_image_path, left, top, width, height)
+    shape_s_6.add_picture(frontal_ceph_path, left, top, width, height)
 
-    print("✅ 7번째 슬라이드에 정면 사진 추가 완료!")
+    print("✅ 7번째 슬라이드에 Frontal Ceph 이미지 추가 완료!")
 
+
+
+
+   
 # PPT 작성 엔드포인트
 @app.route('/dash_board', methods=['POST'])
 def create_ppt():
@@ -1226,7 +1279,6 @@ def create_ppt():
 
         #### 5번째 슬라이드 만들기 (Pano 이미지)
         create_fifth_slide(prs, default_img="./static/default_image.jpg")
-
     
         ####6번째 슬라이드 만들기 (Lateral Ceph)
         create_sixth_slide(prs, default_img="./static/default_image.jpg")
@@ -1263,226 +1315,7 @@ def create_ppt():
 
 
 
-    # 슬라이드
-
-def create_sixth_slide(prs, lateral_ceph_image_path):
-    """
-    측면 사진을 6번째 슬라이드에 추가하는 함수.
-    크기를 자동 조정하여 중앙에 배치.
-
-    :param prs: 프레젠테이션 객체
-    :param lateral_ceph_image_path: 측면 사진 파일 경로
-    """
-
-    # 6번째 슬라이드 가져오기
-    temp_slide_5 = prs.slides[5]  # 슬라이드 인덱스는 0부터 시작하므로 6번째는 인덱스 5
-    shape_s_5 = temp_slide_5.shapes
-
-    # 이미지 열기
-    img_lateral_ceph = Image.open(lateral_ceph_image_path)
-
-    # 슬라이드 크기 (인치 단위)
-    slide_width = 10
-    slide_height = 19.05 / 2.54  # cm를 inch로 변환
-
-    # 이미지 비율에 따라 크기 조정
-    if img_lateral_ceph.size[1] / img_lateral_ceph.size[0] < slide_height / slide_width:
-        w = slide_width
-        width = Inches(w)
-        h = w * img_lateral_ceph.size[1] / img_lateral_ceph.size[0]
-        height = Inches(h)
-        left = Inches(0)
-        top = Inches((slide_height - h) / 2)  # 중앙 정렬
-    else:
-        h = slide_height
-        height = Inches(h)
-        w = h * img_lateral_ceph.size[0] / img_lateral_ceph.size[1]
-        width = Inches(w)
-        left = Inches((slide_width - w) / 2)  # 중앙 정렬
-        top = Inches(0)
-
-    # 이미지 추가
-    shape_s_5.add_picture(lateral_ceph_image_path, left, top, width, height)
-
-    print("✅ 6번째 슬라이드에 측면 사진 추가 완료!")
-
-def create_seventh_slide(prs, frontal_ceph_image_path):
-    """
-    정면 사진을 7번째 슬라이드에 추가하는 함수.
-    크기를 자동 조정하여 중앙에 배치.
-
-    :param prs: 프레젠테이션 객체
-    :param frontal_ceph_image_path: 정면 사진 파일 경로
-    """
-
-    # 7번째 슬라이드 가져오기   
-    temp_slide_6 = prs.slides[6]  # 슬라이드 인덱스는 0부터 시작하므로 7번째는 인덱스 6
-    shape_s_6 = temp_slide_6.shapes
-
-    # 이미지 열기
-    img_frontal_ceph = Image.open(frontal_ceph_image_path)
-
-    # 슬라이드 크기 (인치 단위)
-    slide_width = 10
-    slide_height = 19.05 / 2.54  # cm를 inch로 변환
-
-    # 이미지 비율에 따라 크기 조정
-    if img_frontal_ceph.size[1] / img_frontal_ceph.size[0] < slide_height / slide_width:
-        w = slide_width
-        width = Inches(w)
-        h = w * img_frontal_ceph.size[1] / img_frontal_ceph.size[0]
-        height = Inches(h)
-        left = Inches(0)
-        top = Inches((slide_height - h) / 2)  # 중앙 정렬
-    else:
-        h = slide_height
-        height = Inches(h)
-        w = h * img_frontal_ceph.size[0] / img_frontal_ceph.size[1]
-        width = Inches(w)
-        left = Inches((slide_width - w) / 2)  # 중앙 정렬
-        top = Inches(0) 
-
-    # 이미지 추가
-    shape_s_6.add_picture(frontal_ceph_image_path, left, top, width, height)
-
-    print("✅ 7번째 슬라이드에 정면 사진 추가 완료!")
-
-# PPT 작성 엔드포인트
-@app.route('/dash_board', methods=['POST'])
-def create_ppt():
-    try:
-        # 포스트 요청이 아닌 경우 405 에러 반환
-        print("request.method:", request.method, flush=True, file=sys.stderr)
-        print("request.files.keys():", list(request.files.keys()), flush=True, file=sys.stderr)
-        print("request.form.keys():", list(request.form.keys()), flush=True, file=sys.stderr)
-
-        if request.method != 'POST':
-            return jsonify({"error": "Only POST requests are allowed."}), 405
-        
-        # # 요청 데이터 받기
-        # if 'photo4' not in request.files or 'excel_data' not in request.files:
-        #     return jsonify({"error": "Both 'photo4' and 'excel_data' files are required."}), 400
-        
-        
-        triangle = '화살표.png'
-        print("용주야 사랑해",flush=True, file=sys.stderr)
-
-
-        
-
-        # 파일 저장
-        pano = request.files['pano']
-        lateral_ceph_image = request.files['lateral_ceph']
-        frontal_ceph_image = request.files['frontal_ceph']
-        psa_name = request.files['psa']       
-        id_photo = request.files['photo4']
-        excel_file = request.files['excel_data']
-        file_type = request.form.get('file_type', 'pdf') #기본값은 pdf
-
-        # 파일 저장
-
-        pano_path = save_uploaded_file(pano, 'pano.jpg')
-        lateral_ceph_image_path = save_uploaded_file(lateral_ceph_image, 'lateral_ceph_image.jpg')
-        frontal_ceph_image_path = save_uploaded_file(frontal_ceph_image, 'frontal_ceph_image.jpg')
-        
-        id_photo_path = save_uploaded_file(id_photo, 'id_photo.jpg')        
-        excel_file_path = save_uploaded_file(excel_file, 'excel_data.xlsx')      
-
-
-        
-        # 엑셀 파일이 비어있는지 확인
-        if excel_file and excel_file.filename != '':
-            excel_file_path = save_uploaded_file(excel_file, 'excel_data.xlsx')
-            df_raw = pd.read_excel(excel_file_path)
-            df = df_raw.iloc[7:]  # 7번째 행 이후의 데이터 사용
-        else:
-            df_raw, df, excel_file_path = None, None, None
-
-        # PSA 파일이 비어있는지 확인
-        if psa_name and psa_name.filename != '':
-            psa_name_path = save_uploaded_file(psa_name, 'psa_name.jpg')
-        else:
-            psa_name_path = None
-
-        # PPT 템
-        # 현재 디렉터리에서 파일 경로를 생성
-        ppt_template_path = os.path.join(os.getcwd(), 'koco_frame.pptx')
-
-        # PPT 템플릿 로드
-        prs = Presentation(ppt_template_path)
-        
-       # 첫 번째 슬라이드 만들기 (엑셀 파일이 있을 경우만)
-        if df is not None and df_raw is not None:
-            # ID 사진이 존재하고 정상적인 이미지인지 확인
-            if not id_photo_path or not os.path.exists(id_photo_path) or os.path.getsize(id_photo_path) == 0:
-                print(f"🚨 ID 사진이 없거나 손상됨: {id_photo_path}, 기본 이미지 사용")
-                id_photo_path = "./static/default_image.jpg"
-            else:
-                try:
-                    # 이미지 유효성 검사
-                    with Image.open(id_photo_path) as img:
-                        img.verify()
-                except Exception as e:
-                    print(f"🚨 유효하지 않은 이미지 파일: {id_photo_path}, 기본 이미지 사용")
-                    id_photo_path = "./static/default_image.jpg"
-
-            # 슬라이드 생성
-            HGI, VGI = create_first_slide(prs, df, df_raw, id_photo_path)
-        else:
-            HGI, VGI = None, None  # 값이 없으면 이후 슬라이드에서 참고하지 않도록
-                
-         # 두 번째 슬라이드 만들기 (PSA 파일이 있을 경우만)
-        if psa_name_path is not None and HGI is not None and VGI is not None:
-            create_second_slide(prs, HGI, VGI, psa_name_path)
-        else:
-            print("PSA 파일이 없어서 두 번째 슬라이드를 생성하지 않습니다.")
-
-
-        ####3번째 슬라이드 만들기(구외사진)
-        create_third_slide(prs, default_img="./static/default_image.jpg")
-
-        ####4번째 슬라이드 만들기(구내사진)
-        create_fourth_slide(prs, oral_default_img="./static/oral_default_image.jpg")
-
-        ####5번째 슬라이드 만들기 (Pano 이미지가 있는 경우)
-        if pano_path is not None:
-            create_fifth_slide(prs, pano_path)
     
-        ####6번째 슬라이드 만들기 (Lateral Ceph)
-        if lateral_ceph_image_path is not None:
-            create_sixth_slide(prs, lateral_ceph_image_path)
-       
-        ####7번째 슬라이드 만들기 (Frontal Ceph)
-        if frontal_ceph_image_path is not None:
-            create_seventh_slide(prs, frontal_ceph_image_path)
-
-        # PPT 저장
-        output_pptx = 'output_ppt.pptx'
-        prs.save(output_pptx)
-
-        
-        # 임시 파일 삭제
-        try:
-            if os.path.exists(id_photo_path):
-                os.remove(id_photo_path)
-            if os.path.exists(excel_file_path):
-                os.remove(excel_file_path)
-        except PermissionError as e:
-            print(f"PermissionError: {e}")
-
-        if file_type == 'pdf':
-            output_pdf = 'output_ppt.pdf'
-            convert_ppt_to_pdf(output_pptx, output_pdf)  # PDF 변환 로직 (구현 필요)
-
-            return send_file(output_pdf, as_attachment=True, mimetype='application/pdf')
-
-        # PPTX 파일 전송
-        return send_file(output_pptx, as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation')
-
-
-    except Exception as e:
-        return jsonify({"error": str(e)})
-
 # 🔹 테스트페이지
 @app.route('/koco')
 def koco_page():
