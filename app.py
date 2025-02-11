@@ -252,7 +252,7 @@ def create_second_slide(prs, HGI, VGI, psa_name_path):
     #psa 를 위해서 이미지 객체 만들기
     psa_image = cv2.imread(psa_name_path, cv2.IMREAD_COLOR)
     psa_height, psa_width, psa_channels = psa_image.shape
-    print("psa_width:", psa_width)
+    print("psa_width:", psa_width, flush=True, file=sys.stderr)
     print("psa_image.shape:", psa_image.shape)
 
     ### 이름 나온 곳 검은색으로 칠해주기
@@ -853,6 +853,7 @@ def create_ppt():
         else:
             HGI, VGI = None, None  # 값이 없으면 이후 슬라이드에서 참고하지 않도록
             print("HGI:",HGI, flush=True, file=sys.stderr)
+            print("VGI:",VGI, flush=True, file=sys.stderr)
                 
          # 두 번째 슬라이드 만들기 (PSA 파일이 있을 경우만)
 
