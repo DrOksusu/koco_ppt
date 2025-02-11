@@ -530,6 +530,89 @@ def create_fifth_slide(prs, pano_path):
 
 
     # 슬라이드
+
+def create_sixth_slide(prs, lateral_ceph_image_path):
+    """
+    측면 사진을 6번째 슬라이드에 추가하는 함수.
+    크기를 자동 조정하여 중앙에 배치.
+
+    :param prs: 프레젠테이션 객체
+    :param lateral_ceph_image_path: 측면 사진 파일 경로
+    """
+
+    # 6번째 슬라이드 가져오기
+    temp_slide_5 = prs.slides[5]  # 슬라이드 인덱스는 0부터 시작하므로 6번째는 인덱스 5
+    shape_s_5 = temp_slide_5.shapes
+
+    # 이미지 열기
+    img_lateral_ceph = Image.open(lateral_ceph_image_path)
+
+    # 슬라이드 크기 (인치 단위)
+    slide_width = 10
+    slide_height = 19.05 / 2.54  # cm를 inch로 변환
+
+    # 이미지 비율에 따라 크기 조정
+    if img_lateral_ceph.size[1] / img_lateral_ceph.size[0] < slide_height / slide_width:
+        w = slide_width
+        width = Inches(w)
+        h = w * img_lateral_ceph.size[1] / img_lateral_ceph.size[0]
+        height = Inches(h)
+        left = Inches(0)
+        top = Inches((slide_height - h) / 2)  # 중앙 정렬
+    else:
+        h = slide_height
+        height = Inches(h)
+        w = h * img_lateral_ceph.size[0] / img_lateral_ceph.size[1]
+        width = Inches(w)
+        left = Inches((slide_width - w) / 2)  # 중앙 정렬
+        top = Inches(0)
+
+    # 이미지 추가
+    shape_s_5.add_picture(lateral_ceph_image_path, left, top, width, height)
+
+    print("✅ 6번째 슬라이드에 측면 사진 추가 완료!")
+
+def create_seventh_slide(prs, frontal_ceph_image_path):
+    """
+    정면 사진을 7번째 슬라이드에 추가하는 함수.
+    크기를 자동 조정하여 중앙에 배치.
+
+    :param prs: 프레젠테이션 객체
+    :param frontal_ceph_image_path: 정면 사진 파일 경로
+    """
+
+    # 7번째 슬라이드 가져오기   
+    temp_slide_6 = prs.slides[6]  # 슬라이드 인덱스는 0부터 시작하므로 7번째는 인덱스 6
+    shape_s_6 = temp_slide_6.shapes
+
+    # 이미지 열기
+    img_frontal_ceph = Image.open(frontal_ceph_image_path)
+
+    # 슬라이드 크기 (인치 단위)
+    slide_width = 10
+    slide_height = 19.05 / 2.54  # cm를 inch로 변환
+
+    # 이미지 비율에 따라 크기 조정
+    if img_frontal_ceph.size[1] / img_frontal_ceph.size[0] < slide_height / slide_width:
+        w = slide_width
+        width = Inches(w)
+        h = w * img_frontal_ceph.size[1] / img_frontal_ceph.size[0]
+        height = Inches(h)
+        left = Inches(0)
+        top = Inches((slide_height - h) / 2)  # 중앙 정렬
+    else:
+        h = slide_height
+        height = Inches(h)
+        w = h * img_frontal_ceph.size[0] / img_frontal_ceph.size[1]
+        width = Inches(w)
+        left = Inches((slide_width - w) / 2)  # 중앙 정렬
+        top = Inches(0) 
+
+    # 이미지 추가
+    shape_s_6.add_picture(frontal_ceph_image_path, left, top, width, height)
+
+    print("✅ 7번째 슬라이드에 정면 사진 추가 완료!")
+
 # PPT 작성 엔드포인트
 @app.route('/dash_board', methods=['POST'])
 def create_ppt():
@@ -663,6 +746,13 @@ def create_ppt():
         if pano_path is not None:
             create_fifth_slide(prs, pano_path)
     
+        ####6번째 슬라이드 만들기 (Lateral Ceph)
+        if lateral_ceph_image_path is not None:
+            create_sixth_slide(prs, lateral_ceph_image_path)
+       
+        ####7번째 슬라이드 만들기 (Frontal Ceph)
+        if frontal_ceph_image_path is not None:
+            create_seventh_slide(prs, frontal_ceph_image_path)
 
         # PPT 저장
         output_pptx = 'output_ppt.pptx'
