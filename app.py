@@ -284,6 +284,7 @@ def create_second_slide(prs, HGI, VGI, psa_name_path):
         return  # 여기서 함수 종료
 
     #psa 를 위해서 이미지 객체 만들기
+    print("psa_name_path:", psa_name_path)
     psa_image = cv2.imread(psa_name_path, cv2.IMREAD_COLOR)
     psa_height, psa_width, psa_channels = psa_image.shape
     print("psa_width:", psa_width, flush=True, file=sys.stderr)
@@ -419,7 +420,7 @@ def create_third_slide(prs, default_img):
     :param prs: 프레젠테이션 객체
     :param default_img: 기본 이미지 파일 경로
     """
-
+    print("📂 3번째 슬라이드 생성 시작...", flush=True)
     # 파일 저장 후 경로 리스트 만들기
     photo_paths = []
     for idx in range(8):  # 총 8개의 사진이 필요
