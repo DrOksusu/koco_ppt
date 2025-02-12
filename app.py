@@ -420,7 +420,7 @@ def create_third_slide(prs, default_img):
     :param prs: 프레젠테이션 객체
     :param default_img: 기본 이미지 파일 경로
     """
-    print("📂 3번째 슬라이드 생성 시작...", flush=True)
+    print("📂 3번째 슬라이드 생성 시작...", flush=True, file=sys.stderr)
     # 파일 저장 후 경로 리스트 만들기
     photo_paths = []
     
