@@ -423,23 +423,12 @@ def create_third_slide(prs, default_img):
     print("📂 3번째 슬라이드 생성 시작...", flush=True)
     # 파일 저장 후 경로 리스트 만들기
     photo_paths = []
+    
     for idx in range(8):  # 총 8개의 사진이 필요
         uploaded_file = request.files.get(f'photo{idx+1}')  # Flask에서 안전하게 파일 가져오기
         print(f"📂 업로드된 파일 목록: {list(request.files.keys())}")
-
-
-        if uploaded_file and uploaded_file.filename:  # 파일이 존재하는 경우
-            saved_path = save_uploaded_file(uploaded_file, f'photo_{idx+1}.jpg')  # 파일 저장
-
-            if os.path.exists(saved_path) and os.path.getsize(saved_path) > 0:
-                photo_paths.append(saved_path)  # 정상적으로 저장된 파일만 추가
-                print(f"✅ {saved_path} 파일 저장 완료")
-            else:
-                print(f"🚨 {saved_path} 파일이 비어있음 -> 기본 이미지({default_img})로 대체")
-                photo_paths.append(default_img)
-        else:
-            print(f"🚨 업로드되지 않은 파일 {idx+1}번 -> 기본 이미지({default_img})로 대체")
-            photo_paths.append(default_img)
+        saved_path = save_uploaded_file(uploaded_file, f'photo_{idx+1}.jpg', default_img="./static/default_image.jpg")
+        photo_paths.append(saved_path)  # 정상적으로 저장된 파일만 추가
 
     print(f"🔍 최종 photo_paths: {photo_paths}")  # 디버깅용 출력
 
@@ -489,25 +478,11 @@ def create_fourth_slide(prs, oral_default_img):
     photo_paths = []
     for idx in range(5):  # 총 5개의 사진이 필요
         uploaded_file = request.files.get(f'oralPhoto{idx+1}')  # Flask에서 안전하게 파일 가져오기
-        print("uploaded_file:",uploaded_file)
-        print(f"📂 업로드된 파일 목록: {list(request.files.keys())}")
+        saved_path = save_uploaded_file(uploaded_file, f'oralPhoto_{idx+1}.jpg',  default_img="./static/oral_default_image.jpg")
+        photo_paths.append(saved_path)  # 정상적으로 저장된 파일만 추가
 
-        if uploaded_file and uploaded_file.filename:  # 파일이 존재하는 경우
-            saved_path = save_uploaded_file(uploaded_file, f'oralPhoto_{idx+1}.jpg')  # 파일 저장
+    print(f"🔍 최종 photo_paths: {photo_paths}")  # 디버깅용 출력      
 
-            if os.path.exists(saved_path) and os.path.getsize(saved_path) > 0:
-                photo_paths.append(saved_path)  # 정상적으로 저장된 파일만 추가
-                print(f"✅ {saved_path} 파일 저장 완료")
-            else:
-                print(f"🚨 {saved_path} 파일이 비어있음 -> 기본 이미지({oral_default_img})로 대체")
-                photo_paths.append(oral_default_img)
-                print(f"✅ {oral_default_img} 파일 저장 완료")
-        else:
-            print(f"🚨 업로드되지 않은 파일 {idx+1}번 -> 기본 이미지({oral_default_img})로 대체")
-            photo_paths.append(oral_default_img)
-            print(f"✅ {oral_default_img} 파일 저장 완료")
-
-    print(f"🔍 최종 photo_paths: {photo_paths}")  # 디버깅용 출력
 
     # 4번째 슬라이드 가져오기
     temp_slide_3 = prs.slides[3]
