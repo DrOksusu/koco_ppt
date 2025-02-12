@@ -248,6 +248,32 @@ def create_second_slide(prs, HGI, VGI, psa_name_path):
     # 두 번째 슬라이드 만들기
     temp_slide_1 = prs.slides[1] #2번째 슬라이드를 KOCO 프레임에서가지고 오기
     shape_s_1= temp_slide_1.shapes
+    
+    # PSA 이미지가 기본 이미지라면 복잡한 연산 생략
+    if psa_name_path == "./static/default_image.jpg":
+        print("🚨 PSA 이미지 없음 -> 기본 이미지로 대체하여 슬라이드 생성", flush=True)
+
+        # 기본 이미지 처리
+        exp = "default_psa_result"
+        img_psa = Image.open(psa_name_path)
+
+        # 이미지 크기 조정 및 삽입
+        if img_psa.size[1] / img_psa.size[0] < 19.05 / 25.4:
+            w = 10
+            width = Inches(w)
+            h = w * img_psa.size[1] / img_psa.size[0]
+            height = Inches(h)
+            left = Inches(0)
+            top = Inches(((19.05 / 2.54) - h) / 2)
+        else:
+            h = 19.05 / 2.54
+            height = Inches(h)
+            w = h * img_psa.size[0] / img_psa.size[1]
+            left = Inches((10 - w) / 2)
+            top = Inches(0)
+
+        shape_s_1.add_picture(psa_name_path, left, top, width, height)
+        return  # 여기서 함수 종료
 
     #psa 를 위해서 이미지 객체 만들기
     psa_image = cv2.imread(psa_name_path, cv2.IMREAD_COLOR)
@@ -856,7 +882,7 @@ def create_ppt():
             print("VGI:",VGI, flush=True, file=sys.stderr)
                 
          # 두 번째 슬라이드 만들기 (PSA 파일이 있을 경우만)
-
+        print("두번째 슬라이드 시작",flush=True, file=sys.stderr)
         create_second_slide(prs, HGI, VGI, psa_name_path)       
 
 
