@@ -261,6 +261,7 @@ def create_second_slide(prs, HGI, VGI, psa_name_path):
         # 이미지 크기 조정 및 삽입
         if img_psa.size[1] / img_psa.size[0] < 19.05 / 25.4:
             w = 10
+            print("w:", w, flush=True, file=sys.stderr)
             width = Inches(w)
             print("w:", w, flush=True, file=sys.stderr)
             h = w * img_psa.size[1] / img_psa.size[0]
