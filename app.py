@@ -254,7 +254,7 @@ def create_second_slide(prs, HGI, VGI, psa_name_path):
         print("🚨 PSA 이미지 없음 -> 기본 이미지로 대체하여 슬라이드 생성", flush=True)
 
         # 기본 이미지 처리
-        exp = "default_psa_result"
+        # exp = "default_psa_result"
         img_psa = Image.open(psa_name_path)
 
         # 이미지 크기 조정 및 삽입
