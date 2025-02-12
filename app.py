@@ -272,6 +272,7 @@ def create_second_slide(prs, HGI, VGI, psa_name_path):
             h = 19.05 / 2.54
             height = Inches(h)
             w = h * img_psa.size[0] / img_psa.size[1]
+            width = Inches(w)
             left = Inches((10 - w) / 2)
             top = Inches(0)
 
@@ -398,6 +399,7 @@ def create_second_slide(prs, HGI, VGI, psa_name_path):
         h = 19.05/2.54
         height = Inches(h)
         w = h * img_psa.size[0]/img_psa.size[1]
+        width = Inches(w)
         left = Inches((10-w)/2)
         top = Inches(0)
     shape_s_1.add_picture(f"{exp}_result.png",left, top, width, height)
