@@ -276,7 +276,11 @@ def create_second_slide(prs, HGI, VGI, psa_name_path):
             left = Inches((10 - w) / 2)
             top = Inches(0)
 
+        print("w:", w, flush=True, file=sys.stderr)
+        print("h:", h, flush=True, file=sys.stderr)
         shape_s_1.add_picture(psa_name_path, left, top, width, height)
+        print("두번째 슬라이드 완료", flush=True, file=sys.stderr)
+    
         return  # 여기서 함수 종료
 
     #psa 를 위해서 이미지 객체 만들기
