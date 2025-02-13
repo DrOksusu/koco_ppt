@@ -478,7 +478,7 @@ def create_fourth_slide(prs, oral_default_img):
     photo_paths = []
     for idx in range(5):  # 총 5개의 사진이 필요
         uploaded_file = request.files.get(f'oralPhoto{idx+1}')  # Flask에서 안전하게 파일 가져오기
-        saved_path = save_uploaded_file(uploaded_file, f'oralPhoto_{idx+1}.jpg',  default_img="./static/oral_default_image.jpg")
+        saved_path = save_uploaded_file(uploaded_file, f'oralPhoto_{idx+1}.jpg',  default_img="./static/oral_default.jpg")
         photo_paths.append(saved_path)  # 정상적으로 저장된 파일만 추가
 
     print(f"🔍 최종 photo_paths: {photo_paths}")  # 디버깅용 출력      
@@ -817,7 +817,7 @@ def create_ppt():
         lateral_ceph_path = save_uploaded_file(request.files.get('lateral_ceph'), 'lateral_ceph.jpg', default_img="./static/default_image.jpg")
         frontal_ceph_path = save_uploaded_file(request.files.get('frontal_ceph'), 'frontal_ceph.jpg', default_img="./static/default_image.jpg")
         psa_name_path = save_uploaded_file(request.files.get('psa'), 'psa_name.jpg', default_img="./static/default_image.jpg")
-        id_photo_path = save_uploaded_file(request.files.get('photo4'), 'id_photo.jpg', default_img="./static/oral_default_image.jpg")
+        id_photo_path = save_uploaded_file(request.files.get('photo4'), 'id_photo.jpg', default_img="./static/oral_default.jpg")
         print("id_photo_path:",id_photo_path, flush=True, file=sys.stderr)
 
         
