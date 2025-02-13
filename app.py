@@ -893,8 +893,6 @@ def create_ppt():
         
         # 임시 파일 삭제
         try:
-            if os.path.exists(id_photo_path):
-                os.remove(id_photo_path)
             if os.path.exists(excel_file_path):
                 os.remove(excel_file_path)
         except PermissionError as e:
