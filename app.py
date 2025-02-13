@@ -875,7 +875,7 @@ def create_ppt():
         create_third_slide(prs, default_img="./static/default_image.jpg")
 
         ####4번째 슬라이드 만들기(구내사진)
-        create_fourth_slide(prs, oral_default_img="./static/oral_default_image.jpg")
+        create_fourth_slide(prs, oral_default_img="./static/oral_default.jpg")
 
         #### 5번째 슬라이드 만들기 (Pano 이미지)
         create_fifth_slide(prs, default_img="./static/default_image.jpg")
