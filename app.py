@@ -104,7 +104,7 @@ def convert_ppt_to_pdf(input_ppt, output_pdf):
         except Exception as e:
             print(f"❌ PDF 변환 중 오류 발생: {e}", flush=True)
 
-
+# 옥수수 화이팅
 # 🔹 1️⃣ 프론트엔드 (HTML) 서빙
 @app.route('/')
 def home():
