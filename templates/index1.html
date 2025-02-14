@@ -93,7 +93,7 @@
   
   <form id="uploadForm" method="POST" enctype="multipart/form-data">
     <!-- 엑스레이 선택 (4개의 Drop Zone) -->
-    <div class="upload-section">
+    <!-- <div class="upload-section">
       <label>엑스레이 입력</label>
       <div class="xray-preview-container">
         <div class="file-preview" id="xrayPreview1" style="background-image: url('/static/sample_pano.jpg');">📂 PANORAMA</div>
@@ -105,8 +105,44 @@
       <input type="file" id="lateral_ceph" name="lateral_ceph" accept="image/*" hidden />
       <input type="file" id="frontal_ceph" name="frontal_ceph" accept="image/*" hidden />
       <input type="file" id="psa" name="psa" accept="image/*" hidden />
-    </div>
+    </div> -->
 
+
+
+
+    <!-- Vceph 사용하기 링크 (psa input 바로 아래) -->
+    <!-- <a href="https://amenities7.notion.site/V-ceph-DBA-17eb70fc6ff641c0af77e62936538e48" 
+    target="_blank" 
+    style="display: block; margin-top: 10px; text-decoration: none; font-weight: bold; color: #007bff;">
+    Vceph 사용하기 →
+    </a> -->
+
+    <div class="upload-section">
+      <label>엑스레이 입력</label>
+      <div class="xray-preview-container" style="display: flex; flex-wrap: wrap; gap: 10px;">
+        <div class="file-preview" id="xrayPreview1" style="background-image: url('/static/sample_pano.jpg');">📂 PANORAMA</div>
+        <div class="file-preview" id="xrayPreview2" style="background-image: url('/static/sample_lateral.jpg');">📂 Laterl_ceph</div>
+        <div class="file-preview" id="xrayPreview3" style="background-image: url('/static/sample_frontal.jpg');">📂 Frontal_ceph</div>
+        
+        <!-- PSA 박스와 Vceph 링크를 하나처럼 묶음 -->
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <div class="file-preview" id="xrayPreview4" style="background-image: url('/static/sample_psa.jpg');">📂 PSA</div>
+          
+          <!-- Vceph 사용하기 링크 (PSA 박스 바로 아래) -->
+          <a href="https://amenities7.notion.site/V-ceph-DBA-17eb70fc6ff641c0af77e62936538e48" 
+             target="_blank" 
+             style="text-decoration: none; font-weight: bold; color: #007bff; font-size: 14px; margin-top: 5px;">
+             Vceph 사용하기 →
+          </a>
+        </div>
+      </div>
+    
+      <input type="file" id="pano" name="pano" accept="image/*" hidden />
+      <input type="file" id="lateral_ceph" name="lateral_ceph" accept="image/*" hidden />
+      <input type="file" id="frontal_ceph" name="frontal_ceph" accept="image/*" hidden />
+      <input type="file" id="psa" name="psa" accept="image/*" hidden />
+    </div>
+    
     <!-- 구외포토 입력 (8개의 Drop Zone) -->
     <div class="upload-section">
       <label>구외포토 입력 (최대 8개)</label>
