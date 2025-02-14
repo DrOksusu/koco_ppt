@@ -431,7 +431,7 @@ def create_third_slide(prs, default_img):
         photo_paths.append(saved_path)  # 정상적으로 저장된 파일만 추가
 
     print(f"🔍 최종 photo_paths: {photo_paths}")  # 디버깅용 출력
-
+    # 제발^^
     # 3번째 슬라이드 가져오기
     temp_slide_2 = prs.slides[2]
     shape_s_2 = temp_slide_2.shapes
