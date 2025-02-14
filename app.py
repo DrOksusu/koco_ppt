@@ -284,11 +284,11 @@ def create_second_slide(prs, HGI, VGI, psa_name_path):
         return  # 여기서 함수 종료
 
     #psa 를 위해서 이미지 객체 만들기
-    print("psa_name_path:", psa_name_path)
+    print("psa_name_path:", psa_name_path, flush=True, file=sys.stderr)
     psa_image = cv2.imread(psa_name_path, cv2.IMREAD_COLOR)
     psa_height, psa_width, psa_channels = psa_image.shape
     print("psa_width:", psa_width, flush=True, file=sys.stderr)
-    print("psa_image.shape:", psa_image.shape)
+    print("psa_image.shape:", psa_image.shape, flush=True, file=sys.stderr)
 
     ### 이름 나온 곳 검은색으로 칠해주기
 
@@ -518,73 +518,6 @@ def create_fourth_slide(prs, oral_default_img):
 
     print("✅ 4번째 슬라이드에 모든 이미지 추가 완료!")
 
-
-# def convert_ppt_to_pdf(input_ppt, output_pdf):
-#     """
-#     PowerPoint 파일을 PDF로 변환하는 함수
-#     (Windows: pythoncom, Linux: LibreOffice 사용)
-    
-#     :param input_ppt: 변환할 PPTX 파일의 절대 경로
-#     :param output_pdf: 변환된 PDF 파일이 저장될 절대 경로
-#     """
-#     input_ppt = os.path.abspath(input_ppt)
-#     output_pdf = os.path.abspath(output_pdf)
-
-#     print(f"📂 변환 시작: {input_ppt} -> {output_pdf}", flush=True)
-
-#     if sys.platform.startswith("win"):
-#         # Windows 환경: PowerPoint COM 객체 활용
-#         import comtypes.client
-#         import pythoncom
-
-#         pythoncom.CoInitializeEx(0)  # 멀티스레드 방식으로 COM 객체 초기화
-
-#         try:
-#             powerpoint = comtypes.client.CreateObject("Powerpoint.Application")
-#             powerpoint.Visible = 1  # PowerPoint 창을 보이도록 설정 (숨김 옵션 제거)
-
-#             print("🔄 PowerPoint PDF 변환 실행 중...", flush=True)
-
-#             # WithWindow=False 옵션 제거
-#             presentation = powerpoint.Presentations.Open(input_ppt, WithWindow=True)
-#             presentation.SaveAs(output_pdf, 32)  # 32 = PDF 변환 코드
-#             presentation.Close()
-
-#             if os.path.exists(output_pdf):
-#                 print(f"✅ PDF 변환 성공: {output_pdf}", flush=True)
-#             else:
-#                 raise FileNotFoundError(f"🚨 PDF 변환 실패: {output_pdf} 파일이 생성되지 않음")
-
-#         except Exception as e:
-#             print(f"❌ PDF 변환 중 오류 발생: {e}", flush=True)
-#         finally:
-#             powerpoint.Quit()
-#             pythoncom.CoUninitialize()
-
-#     else:
-#         # Linux 환경: LibreOffice 사용
-#         try:
-#             output_dir = os.path.dirname(output_pdf)
-#             base_name = os.path.splitext(os.path.basename(input_ppt))[0]  # 파일명 추출
-#             converted_pdf = os.path.join(output_dir, f"{base_name}.pdf")
-
-#             command = ["libreoffice", "--headless", "--convert-to", "pdf", "--outdir", output_dir, input_ppt]
-#             print(f"🔄 LibreOffice 실행: {' '.join(command)}", flush=True)
-
-#             # LibreOffice 실행 (30초 타임아웃 추가)
-#             subprocess.run(command, check=True, timeout=30)
-
-#             # 변환된 파일 확인 후 이동
-#             if os.path.exists(converted_pdf):
-#                 shutil.move(converted_pdf, output_pdf)
-#                 print(f"✅ PDF 변환 성공: {output_pdf}", flush=True)
-#             else:
-#                 raise FileNotFoundError(f"🚨 PDF 변환 실패: {output_pdf} 파일이 생성되지 않음")
-
-#         except subprocess.TimeoutExpired:
-#             print("⏳ PDF 변환이 너무 오래 걸려서 강제 종료됨!", flush=True)
-#         except Exception as e:
-#             print(f"❌ PDF 변환 중 오류 발생: {e}", flush=True)
 
 
 def create_fifth_slide(prs, default_img):
