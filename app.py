@@ -316,12 +316,28 @@ def create_second_slide(prs, HGI, VGI, psa_name_path):
     #사진상에서 초록색만 남기는 것(마스크를 씌움)
     img_result = cv2.bitwise_and(image, image, mask=img_mask)
 
-    # 두 좌표
-    d = img_result.nonzero()[0][0]
-    b = img_result.nonzero()[0][-1]
-    print('2')
-    c = img_result.nonzero()[1][0]
-    a = img_result.nonzero()[1][-1]
+    
+    # 특정색상이 검출되지 않으면 이 부분은 건너뜀
+    if img_result is None:
+        print("❌ 특정 색상이 검출되지 않아 이미지 처리를 건너뜁니다.")
+        return
+    
+    print("이미지색상 검출",flush=True, file=sys.stderr)
+    # d = img_result.nonzero()[0][0]
+    # b = img_result.nonzero()[0][-1]
+    # print('2')
+    # c = img_result.nonzero()[1][0]
+    # a = img_result.nonzero()[1][-1]
+
+    nonzero_values = img_result.nonzero()
+    if len(nonzero_values[0]) > 0 and len(nonzero_values[1]) > 0:
+        d = nonzero_values[0][0]
+        b = nonzero_values[0][-1]
+        c = nonzero_values[1][0]
+        a = nonzero_values[1][-1]
+    else:
+        print("🚨 이미지에서 초록색 픽셀을 찾을 수 없습니다.", flush=True, file=sys.stderr)
+        d, b, c, a = 0, 0, 0, 0  # 기본값 설정
 
     # 하절치점의 좌표는 array 에서 columns 에 해당하는 [1]의 마지막 값이다 [-1] 결국 [1][-1] =a (하절치의 x 좌표)
 
@@ -372,8 +388,17 @@ def create_second_slide(prs, HGI, VGI, psa_name_path):
     s_y = 200
     color = (0,0,255)
     pt1 = (s_x, s_y)
-    pt2 = (int((s_x +(HGI*100)/4)), int((s_y - (VGI*100)/4)))
-    img_arrow = cv2.arrowedLine(src, pt1,pt2, color= (0,0,255))
+
+    #HGI, VGI 가 None 이 아니라면 화살표 그리고 None 이면 pass 하기
+    if HGI is None or VGI is None:
+        print("HGI, VGI 값이 없습니다.")
+        pass
+    else:
+        pt2 = (int((s_x +(HGI*100)/4)), int((s_y - (VGI*100)/4)))
+        img_arrow = cv2.arrowedLine(src, pt1,pt2, color= (0,0,255))
+
+    # pt2 = (int((s_x +(HGI*100)/4)), int((s_y - (VGI*100)/4)))
+    # img_arrow = cv2.arrowedLine(src, pt1,pt2, color= (0,0,255))
 
 
     # 결과이미지 저장하기
@@ -752,6 +777,7 @@ def create_ppt():
         psa_name_path = save_uploaded_file(request.files.get('psa'), 'psa_name.jpg', default_img="./static/default_image.jpg")
         id_photo_path = save_uploaded_file(request.files.get('photo4'), 'id_photo.jpg', default_img="./static/oral_default.jpg")
         print("id_photo_path:",id_photo_path, flush=True, file=sys.stderr)
+        print("psa_name_path:",psa_name_path, flush=True, file=sys.stderr)
 
         
         excel_file = request.files['excel_data']
@@ -769,6 +795,7 @@ def create_ppt():
 
         print("df_raw:",df_raw, flush=True, file=sys.stderr)
 
+
         # PPT 템
         # 현재 디렉터리에서 파일 경로를 생성
         ppt_template_path = os.path.join(os.getcwd(), 'koco_frame.pptx')
@@ -777,20 +804,7 @@ def create_ppt():
         prs = Presentation(ppt_template_path)
         
        # 첫 번째 슬라이드 만들기 (엑셀 파일이 있을 경우만)
-        if df_raw is not None and not df_raw.empty:
-            # ID 사진이 존재하고 정상적인 이미지인지 확인
-            # if not id_photo_path or not os.path.exists(id_photo_path) or os.path.getsize(id_photo_path) == 0:
-            #     print(f"🚨 ID 사진이 없거나 손상됨: {id_photo_path}, 기본 이미지 사용")
-            #     id_photo_path = "./static/default_image.jpg"
-            # else:
-            #     try:
-            #         # 이미지 유효성 검사
-            #         with Image.open(id_photo_path) as img:
-            #             img.verify()
-            #     except Exception as e:
-            #         print(f"🚨 유효하지 않은 이미지 파일: {id_photo_path}, 기본 이미지 사용")
-            #         id_photo_path = "./static/default_image.jpg"
-
+        if df_raw is not None and not df_raw.empty:            
             # 슬라이드 생성
             HGI, VGI = create_first_slide(prs, df, df_raw, id_photo_path)
             print("HGI:",HGI, flush=True, file=sys.stderr)
@@ -821,17 +835,23 @@ def create_ppt():
 
         # PPT 저장
         output_pptx = 'output_ppt.pptx'
+        print("output_pptx:",output_pptx, flush=True, file=sys.stderr)
         prs.save(output_pptx)
+        print("PPT 저장 완료", flush=True, file=sys.stderr)
 
+    
         
         # 임시 파일 삭제
-        try:
-            if os.path.exists(excel_file_path):
-                os.remove(excel_file_path)
-        except PermissionError as e:
-            print(f"PermissionError: {e}")
-
+        
+        # print("제발")
+        # if os.path.exists(excel_file_path):
+        #     os.remove(excel_file_path)
+        #     print(f"임시 엑셀 파일 삭제: {excel_file_path}", flush=True, file=sys.stderr)
+        # else:
+        #     print(f"삭제할 엑셀 파일이 없습니다: {excel_file_path}", flush=True, file=sys.stderr)
+        
         if file_type == 'pdf':
+            print("PDF 변환 시작까지는 되는 듯",flush=True, file=sys.stderr)
             output_pdf = 'output_ppt.pdf'
             convert_ppt_to_pdf(output_pptx, output_pdf)  # PDF 변환 로직 (구현 필요)
 
