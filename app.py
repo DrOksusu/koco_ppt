@@ -323,11 +323,7 @@ def create_second_slide(prs, HGI, VGI, psa_name_path):
         return
     
     print("이미지색상 검출",flush=True, file=sys.stderr)
-    # d = img_result.nonzero()[0][0]
-    # b = img_result.nonzero()[0][-1]
-    # print('2')
-    # c = img_result.nonzero()[1][0]
-    # a = img_result.nonzero()[1][-1]
+    
 
     nonzero_values = img_result.nonzero()
     if len(nonzero_values[0]) > 0 and len(nonzero_values[1]) > 0:
