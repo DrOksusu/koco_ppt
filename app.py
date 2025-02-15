@@ -376,8 +376,7 @@ def create_second_slide(prs, HGI, VGI, psa_name_path):
 
     #화살표그리기(성장방향)
     psa_image = cv2.imread(psa_name_path, cv2.IMREAD_COLOR)
-    #lateral_ceph = 'lateral_ceph.jpg'
-
+   
 
     # img_lateral_ceph = cv2.imread(lateral_ceph, cv2.IMREAD_COLOR)
     s_x = 1150
