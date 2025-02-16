@@ -181,6 +181,22 @@
       <input type="file" id="oralPhoto4" name="oralPhoto4" accept="image/*" hidden />
       <input type="file" id="oralPhoto5" name="oralPhoto5" accept="image/*" hidden />
     </div>
+
+    <div class="upload-section">
+      <label>자세포토 입력 (최대 4개)</label>
+      <div class="photo-preview-container">
+        <div class="file-preview" id="posturePhotoPreview1" style="background-image: url('/static/sample_posture1.jpg');">📂 눈뜨고 정면, CR</div>
+        <div class="file-preview" id="posturePhotoPreview2" style="background-image: url('/static/sample_posture2.jpg');">📂 눈감고 정면, CO</div>
+        <div class="file-preview" id="posturePhotoPreview3" style="background-image: url('/static/sample_posture3.jpg');">📂 눈뜨고 후면, CR</div>
+        <div class="file-preview" id="posturePhotoPreview4" style="background-image: url('/static/sample_posture4.jpg');">📂 눈감고 후면, CO</div>
+      </div>
+      
+      <input type="file" id="posturePhoto1" name="posturePhoto1" accept="image/*" hidden />
+      <input type="file" id="posturePhoto2" name="posturePhoto2" accept="image/*" hidden />
+      <input type="file" id="posturePhoto3" name="posturePhoto3" accept="image/*" hidden />
+      <input type="file" id="posturePhoto4" name="posturePhoto4" accept="image/*" hidden />
+    </div>
+
     <!-- 엑셀 파일 업로드 -->
     <div class="upload-section">
       <label for="excel_data">Excel 파일 선택</label>
@@ -277,6 +293,10 @@
     // 5개의 구내포토 Drop Zone 설정 (✅ 추가된 코드)
     for (let i = 1; i <= 5; i++) {
       setupDropZone(`oralPhotoPreview${i}`, `oralPhoto${i}`);
+    }
+    // 4개의 자세포토 Drop Zone 설정 (✅ 추가된 코드)
+    for (let i = 1; i <= 4; i++) {
+      setupDropZone(`posturePhotoPreview${i}`, `posturePhoto${i}`);
     }
 
     // 로그 출력 함수
