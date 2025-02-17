@@ -9,9 +9,34 @@
       margin: 20px;
       padding: 0;
     }
-    h1 {
-      color: #333;
+
+    /* 헤더 스타일 */
+    .header {
+        display: flex;
+        align-items: center; /* 세로 중앙 정렬 */
+        justify-content: center; /* 가로 중앙 정렬 */
+        width: 100%;
+        position: relative; /* 내부 요소의 absolute 위치 조정 가능하게 설정 */
+        padding: 20px 0; /* 제목과 너무 붙지 않도록 여백 추가 */
     }
+
+    /* 제목 스타일 */
+    h1 {
+        text-align: center; /* 텍스트 중앙 정렬 */
+        flex-grow: 1; /* h1이 중앙에 위치하도록 확장 */
+        color: blue; /* 글자 색상을 파란색으로 변경 */
+        margin: 0; /* 불필요한 여백 제거 */
+    }
+
+    /* 로고 스타일 (제목 높이에 맞게 조정) */
+    .logo {
+        position: absolute;
+        top: 50%; /* 헤더 높이의 중간으로 설정 */
+        right: 10px; /* 오른쪽 끝에 배치 */
+        height: 70px; /* 기존보다 두 배 크기 */
+        transform: translateY(-50%); /* 정확히 중앙에 위치하도록 조정 */
+    }
+
     .upload-section {
       margin-bottom: 20px;
     }
@@ -139,7 +164,14 @@
   
 </head>
 <body>
-  <h1>순응교합 자동진단과정</h1>
+
+  <div class="header">
+    <h1>순응교합 연구회 자동진단 프로그램</h1>
+    <!-- 하이퍼링크 추가 -->
+    <a href="https://www.notion.so/1ee3c6593cf84b75847236e916c5061b" target="_blank">
+        <img src="static/koco_logo.png" alt="KOCO 로고" class="logo">
+    </a>
+  </div>
   
   <form id="uploadForm" method="POST" enctype="multipart/form-data">
     
