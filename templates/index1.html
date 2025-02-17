@@ -115,7 +115,7 @@
   </style>
 </head>
 <body>
-  <h1>엑스레이 + 엑셀 파일 업로드</h1>
+  <h1>순응교합 자동진단과정</h1>
   
   <form id="uploadForm" method="POST" enctype="multipart/form-data">
     
@@ -198,6 +198,22 @@
       <input type="file" id="posturePhoto3" name="posturePhoto3" accept="image/*" hidden />
       <input type="file" id="posturePhoto4" name="posturePhoto4" accept="image/*" hidden />
     </div>
+
+    <div class="upload-section">
+      <label>족문이 비대칭일때 추가 검사</label>
+      <div class="photo-preview-container">
+          <div class="file-preview" id="posturePhotoPreview5" style="background-image: url('/static/sample_posture5.jpg');">📂 눈뜨고 정면, 폼매트</div>
+          <div class="file-preview" id="posturePhotoPreview6" style="background-image: url('/static/sample_posture6.jpg');">📂 눈감고 정면, 폼매트</div>
+          <div class="file-preview" id="posturePhotoPreview7" style="background-image: url('/static/sample_posture7.jpg');">📂 눈뜨고 후면, 폼매트</div>
+          <div class="file-preview" id="posturePhotoPreview8" style="background-image: url('/static/sample_posture8.jpg');">📂 눈감고 후면, 폼매트</div>
+      </div>
+      
+      <input type="file" id="posturePhoto5" name="posturePhoto5" accept="image/*" hidden />
+      <input type="file" id="posturePhoto6" name="posturePhoto6" accept="image/*" hidden />
+      <input type="file" id="posturePhoto7" name="posturePhoto7" accept="image/*" hidden />
+      <input type="file" id="posturePhoto8" name="posturePhoto8" accept="image/*" hidden />
+    </div>
+  
 
     <!-- 엑셀 파일 업로드 -->
     <div class="upload-section">
