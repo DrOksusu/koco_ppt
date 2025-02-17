@@ -805,8 +805,64 @@ def create_eighth_slide(prs, default_img):
 
     print("✅ 8번째 슬라이드에 자세사진 추가 완료!")
 
+def create_ninth_slide(prs, default_img):
+    """
+    자세 사진 4장을 9번째 슬라이드에 가로로 나란히 정렬하여 추가하는 함수.
+    빈 사진이 있으면 기본 이미지('./static/default_image.jpg')로 대체.    
+    """
+    # 파일 저장 후 경로 리스트 만들기
+    photo_paths = []
+    for idx in range(5,9):  # 4개의 자세사진을 가져옴
+        uploaded_file = request.files.get(f'posturePhoto{idx+1}')  # Flask에서 파일 가져오기
+        #print(f"📂 업로드된 파일 목록: {list(request.files.keys())}")
+        saved_path = save_uploaded_file(uploaded_file, f'posturePhoto_{idx+1}.jpg', default_img)
+        photo_paths.append(saved_path)  # 정상적으로 저장된 파일만 추가
 
-   
+    print(f"🔍 최종 photo_paths: {photo_paths}")  # 디버깅용 출력
+
+    # 8번째 슬라이드 가져오기
+    temp_slide_8 = prs.slides[7]
+    shape_s_8 = temp_slide_8.shapes
+
+    # 슬라이드 크기 설정
+    slide_width = 10  # 슬라이드 너비 (인치)
+    slide_height = 7.5  # 슬라이드 높이 (인치)
+    print("slide_width:", slide_width, flush=True, file=sys.stderr)
+    print("slide_height:", slide_height, flush=True, file=sys.stderr)
+
+    # 첫 번째 이미지를 불러와 비율 계산
+    img_sample = Image.open(photo_paths[0])
+    aspect_ratio = img_sample.size[0] / img_sample.size[1]  # 가로/세로 비율
+    print("aspect_ratio:", aspect_ratio, flush=True, file=sys.stderr)
+
+    # 한 줄에 4개 가로 배치 설정
+    num_images = 4  # 4개의 이미지 배치
+    img_height = 3  # 모든 이미지의 높이 동일하게 설정
+    img_width = img_height * aspect_ratio  # 가로 크기는 비율 유지
+    print("img_width:", img_width, flush=True, file=sys.stderr)
+
+    # 전체 가로 폭에서 이미지 4장을 중앙 정렬하기 위해 여백 계산
+    total_width = img_width * num_images # 전체 이미지 폭
+    left_start = (slide_width - total_width) / 2  # 좌측 여백 계산
+    print("total_width:", total_width, flush=True, file=sys.stderr)
+    print("left_start:", left_start, flush=True, file=sys.stderr)
+
+    #return # 여기서 함수 종료
+
+    # 이미지 삽입
+    for idx, img_path in enumerate(photo_paths):
+        left = Inches(left_start + idx * img_width)  # 가로 위치 (가로로 나란히 정렬)        
+        top = Inches((slide_height - img_height) / 2) # 슬라이드 중앙 정렬
+        print(f"left: {left}, top: {top}", flush=True, file=sys.stderr)
+        print(f"img_path: {img_path}", flush=True, file=sys.stderr)
+
+        try:
+            shape_s_8.add_picture(img_path, left, top, width=Inches(img_width), height=Inches(img_height))
+            print(f"✅ PowerPoint에 이미지 추가 성공: {img_path}", flush=True, file=sys.stderr)
+        except Exception as e:
+            print(f"❌ PowerPoint 이미지 추가 실패: {img_path}, 오류: {e}", flush=True, file=sys.stderr)
+
+    print("✅ 9번째 슬라이드에 자세사진 추가 완료!")
 # PPT 작성 엔드포인트
 @app.route('/dash_board', methods=['POST'])
 def create_ppt():
@@ -896,6 +952,9 @@ def create_ppt():
 
         ####8번째 슬라이드 만들기 (자세사진)
         create_eighth_slide(prs, default_img="./static/posture_default.jpg")
+
+        ####9번째 슬라이드 만들기 (자세사진추가)
+        create_ninth_slide(prs, default_img="./static/posture_default.jpg")
 
         # PPT 저장
         output_pptx = 'output_ppt.pptx'
