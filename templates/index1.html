@@ -313,7 +313,7 @@
             const formData = new FormData(e.target);
             logInfo("FormData 생성 완료:", Object.fromEntries(formData.entries()));
             try {
-                const response = await fetch("http://54.180.188.8:9500/dash_board", {
+                const response = await fetch("https://koco.me/dash_board", {
                     method: "POST",
                     body: formData
                 });
