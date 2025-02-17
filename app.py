@@ -820,8 +820,8 @@ def create_ninth_slide(prs, default_img):
 
     print(f"🔍 최종 photo_paths: {photo_paths}")  # 디버깅용 출력
 
-    # 8번째 슬라이드 가져오기
-    temp_slide_8 = prs.slides[7]
+    # 9번째 슬라이드 가져오기
+    temp_slide_8 = prs.slides[8]
     shape_s_8 = temp_slide_8.shapes
 
     # 슬라이드 크기 설정
