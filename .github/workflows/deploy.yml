@@ -41,11 +41,11 @@ jobs:
             --security-opt seccomp=unconfined \
             --security-opt apparmor=unconfined \
             -e OPENBLAS_NUM_THREADS=1 \
-            -v koco_volume:/data/uploads \
+            -v koco_volume:/uploads \
             oksusu2020/koco_final:$(date +%Y%m%d)
           exit
         EOF
-
+#
     # 5️⃣ AWS 키 파일 삭제
     - name: Clean up
       run: rm -rf aws_key.pem
