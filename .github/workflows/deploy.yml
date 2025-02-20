@@ -41,6 +41,7 @@ jobs:
             --security-opt seccomp=unconfined \
             --security-opt apparmor=unconfined \
             -e OPENBLAS_NUM_THREADS=1 \
+            -v koco_volume:/data/uploads \
             oksusu2020/koco_final:$(date +%Y%m%d)
           exit
         EOF
