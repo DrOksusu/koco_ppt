@@ -116,6 +116,7 @@ print(f"📂 파일 업로드 디렉토리: {UPLOAD_FOLDER}")
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
+#
 def save_uploaded_file(uploaded_file, filename, default_img=None):
     """
     파일을 저장하고, 저장되지 않으면 기본 이미지를 반환하는 함수.
