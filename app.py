@@ -48,9 +48,10 @@ def draw_psa():
     print("draw_psa_line API 호출됨")
     try:
         result  = draw_psa_line()
-        print(result)
+        print("result", result)
         return result
     except Exception as e:
+        print("error", str(e))
         return jsonify({"error": str(e)})
     
 @app.route('/download_psa_result', methods=['GET'])
