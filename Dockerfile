@@ -31,7 +31,7 @@ COPY . .
 
 # 6️⃣ 환경 변수 설정 (Flask 실행을 위한 설정)
 ENV FLASK_APP=app.py
-ENV FLASK_ENV=production  
+ENV FLASK_ENV=production
 
 # 7️⃣ Flask 서버 실행
 CMD ["python", "app.py"]
