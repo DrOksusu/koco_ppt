@@ -61,9 +61,15 @@ def convert_ppt_to_pdf(input_ppt, output_pdf):
         import pythoncom
 
         pythoncom.CoInitializeEx(0)  # 멀티스레드 방식으로 COM 객체 초기화
+        print("🔄 COM 초기화 완료", flush=True)
 
         try:
+            #  powerpoint Type Library 강제로드
+            comtypes.client.GetModule("C:/Program Files/Microsoft Office/root/Office16/MSPPT.OLB")
+            print("🔄 PowerPoint COM 인터페이스 로드 완료")           
+
             powerpoint = comtypes.client.CreateObject("Powerpoint.Application")
+            print("🔄 PowerPoint COM 객체 생성", flush=True)
             powerpoint.Visible = 1  # PowerPoint 창을 보이도록 설정 (숨김 옵션 제거)
 
             print("🔄 PowerPoint PDF 변환 실행 중...", flush=True)
@@ -80,8 +86,11 @@ def convert_ppt_to_pdf(input_ppt, output_pdf):
 
         except Exception as e:
             print(f"❌ PDF 변환 중 오류 발생: {e}", flush=True)
+
         finally:
-            powerpoint.Quit()
+            # 💡 올바른 순서: PowerPoint 종료 → COM 해제
+            if 'powerpoint' in locals():  # 객체가 생성된 경우에만 종료
+                powerpoint.Quit()
             pythoncom.CoUninitialize()
 
     else:

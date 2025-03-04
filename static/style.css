@@ -1,0 +1,142 @@
+body {
+    font-family: sans-serif;
+    margin: 20px;
+    padding: 0;
+  }
+  
+  /* 헤더 스타일 */
+  .header {
+    display: flex;
+    align-items: center; /* 세로 중앙 정렬 */
+    justify-content: center; /* 가로 중앙 정렬 */
+    width: 100%;
+    position: relative; /* 내부 요소의 absolute 위치 조정 가능하게 설정 */
+    padding: 20px 0; /* 제목과 너무 붙지 않도록 여백 추가 */
+  }
+  
+  /* 제목 스타일 */
+  h1 {
+    text-align: center; /* 텍스트 중앙 정렬 */
+    flex-grow: 1; /* h1이 중앙에 위치하도록 확장 */
+    color: blue; /* 글자 색상을 파란색으로 변경 */
+    margin: 0; /* 불필요한 여백 제거 */
+  }
+  
+  /* 로고 스타일 */
+  .logo {
+    position: absolute;
+    top: 50%; /* 헤더 높이의 중간으로 설정 */
+    right: 10px; /* 오른쪽 끝에 배치 */
+    height: 70px; /* 기존보다 두 배 크기 */
+    transform: translateY(-50%); /* 정확히 중앙에 위치하도록 조정 */
+  }
+  
+  .upload-section {
+    margin-bottom: 20px;
+  }
+  
+  label {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  input[type="file"] {
+    display: none;
+  }
+  
+  .btn-submit {
+    padding: 8px 15px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  /* 엑스레이 및 구외포토 선택 - 가로 배치 */
+  .xray-preview-container,
+  .photo-preview-container {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start; /* 왼쪽 정렬 */
+    flex-wrap: wrap; /* 화면이 작아질 경우 줄바꿈 */
+  }
+  
+  .file-preview {
+    width: 150px;
+    height: 150px;
+    border: 2px dashed #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    position: relative;
+    z-index: 10;
+  }
+  
+  .file-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .file-preview.drag-over {
+    border-color: #4CAF50 !important;
+    background-color: #f8fff8;
+  }
+  
+  .delete-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: red;
+    color: white;
+    border: none;
+    padding: 3px 6px;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 50%;
+  }
+  
+  /* 툴팁 스타일 */
+  #posturePhotoPreview2::before,
+  #posturePhotoPreview6::before {
+    position: absolute;
+    top: 105%; /* 박스 바깥으로 */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    font-size: 12px;
+    z-index: 9999;
+    white-space: nowrap;
+    border-radius: 5px;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    pointer-events: none;
+    visibility: hidden;
+  }
+  
+  #posturePhotoPreview2:hover::before,
+  #posturePhotoPreview6:hover::before {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  #uploadedImage {
+    max-width: 500px;
+    height: auto;
+    display: none;
+    cursor: crosshair;
+    position: relative;
+  }
+  
