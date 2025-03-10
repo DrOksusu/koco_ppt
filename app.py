@@ -73,5 +73,9 @@ logging.basicConfig(level=logging.INFO)
 def log_request():
     logging.info(f"📌 요청 수신: {request.method} {request.path}")
 
+@app.route("/download/pdf")
+def download_pdf():
+    return send_file("/app/output_ppt.pdf", as_attachment=True)
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=9500, debug=True)
