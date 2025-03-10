@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>PSA 선 그리기</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+        #image-container {
+            position: absolute;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        img {
+            max-width: 100vw;
+            max-height: 100vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border: none;
+        }
+        .marker {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background-color: red;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+        }
+        .guide-message {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 5px;
+            z-index: 10000;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container">
+        <p id="error-message" style="color: red; display: none;">🚨 이미지 데이터를 찾을 수 없습니다!</p>
+        <div id="guideMessage" class="guide-message">첫 번째 점(lower incisor point)을 찍으세요</div>
+        <canvas id="psaCanvas"></canvas>
+    </div>
+
+    <script>       
+        console.log("🚀 psa1.html 시작");
+        $(document).ready(function () {
+            console.log("🚀 psa1.html 로드됨");
+
+            // ✅ localStorage에서 이미지 데이터 가져오기
+            const imageSrc = localStorage.getItem("psaImage");
+            console.log(imageSrc);
+            
+
+            if (!imageSrc) {
+                console.error("🚨 이미지 데이터가 localStorage에 없습니다!");
+                $("#error-message").show();
+                return;
+            }
+
+            // ✅ Canvas 요소 설정 (화면 크기에 맞춤)
+            const canvas = document.getElementById("psaCanvas");
+            const ctx = canvas.getContext("2d");
+            const img = new Image();
+            console.log("✅ Canvas 요소 설정 완료");
+
+            img.onload = function () {
+                  // 브라우저 창 크기
+                const winWidth = window.innerWidth;
+                const winHeight = window.innerHeight;                
+                
+                 // 원본 이미지 크기
+                const imgWidth = img.naturalWidth;
+                const imgHeight = img.naturalHeight;
+
+
+                // ✅ 원본 비율을 유지하면서 화면에 맞추기
+                let scale = Math.min(winWidth / imgWidth, winHeight / imgHeight);
+                canvas.width = imgWidth * scale;
+                canvas.height = imgHeight * scale;
+
+                // ✅ 이미지 비율 유지
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            };
+
+            img.src = imageSrc;
+
+            // ✅ 윈도우 크기 변경 시 캔버스 크기 자동 조정
+            window.addEventListener("resize", function () {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+            });
+
+            // ✅ 4개의 좌표를 기록하고 선을 그림
+            let points = [];
+            const guideMessage = $("#guideMessage");
+            const messages = [
+                "첫 번째 점(lower incisor)을 찍으세요",
+                "두 번째 점(hinge point)을 찍으세요",
+                "세 번째 점을 찍으세요",
+                "네 번째 점을 찍으세요"
+            ];
+
+            canvas.addEventListener("click", function (event) {
+                if (points.length >= 4) {
+                    guideMessage.hide();
+                    return;
+                }
+
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / img.naturalWidth;
+                const scaleY = canvas.height / img.naturalHeight;
+                
+                // 좌표를 캔버스 크기에 맞게 변환하여 저장
+                const realX = Math.round((event.clientX - rect.left) / scaleX);
+                const realY = Math.round((event.clientY - rect.top) / scaleY);
+
+                points.push([realX, realY]);
+                console.log("📍 변환된 클릭 좌표:", realX, realY);
+
+                // 클릭한 위치에 빨간 점 표시 (캔버스 크기에 맞게 변환)
+                ctx.fillStyle = "red";
+                ctx.beginPath();
+                ctx.arc(realX * scaleX, realY * scaleY, 1, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (points.length == 2) {
+                    // 두 번째 점이 찍히면 초록색 직선 자동 생성
+                    drawGreenLine(points, scaleX, scaleY);
+                } else if (points.length == 3){
+                    // 세 번째 점이 찍히면 빨간색 직선 자동 생성
+                    drawRedLine(points, scaleX, scaleY);
+                } else if (points.length == 4){
+                    // 네 번째 점이 찍히면 파란색 직선 자동 생성
+                    drawBlueLine(points, scaleX, scaleY);
+                }
+
+                if (points.length < 4) {
+                    guideMessage.text(messages[points.length]);
+                } else {
+                    guideMessage.hide();
+                    alert("✅ 4개의 좌표가 선택되었습니다.");
+                    console.log("📌 최종 좌표 목록:", points);
+
+                    // 부모 창에 좌표 데이터 전송
+                    if (window.opener && typeof window.opener.logFromChild === "function") {
+                        window.opener.logFromChild(points);
+                    } else {
+                        alert("🚨 부모 창이 없습니다. 좌표 데이터를 보낼 수 없습니다.");
+                    }
+                }
+            });
+
+            // ✅ 초록색 직선을 그리는 함수 (캔버스 크기에 맞게 변환)
+            function drawGreenLine(points, scaleX, scaleY) {
+                if (points.length < 2) return;
+
+                // 캔버스 크기에 맞게 좌표 변환
+                const p1 = [points[0][0] * scaleX, points[0][1] * scaleY];
+                const p2 = [points[1][0] * scaleX, points[1][1] * scaleY];
+
+                console.log("🖌 초록색 선 좌표 (캔버스 내 변환):", p1, p2);
+                console.log("🖌 캔버스 크기:", canvas.width, canvas.height);
+
+                ctx.strokeStyle = "green";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(p1[0], p1[1]);
+                ctx.lineTo(p2[0], p2[1]);
+                ctx.stroke();
+
+                console.log("✅ 초록색 직선이 그려졌습니다.");
+            }
+
+            // ✅ 빨간색 직선을 그리는 함수 (두 번째~세 번째 점)
+            function drawRedLine(points, scaleX, scaleY) {
+                if (points.length < 3) return;
+
+                // 캔버스 크기에 맞게 좌표 변환
+                const p1 = [points[0][0] * scaleX, points[0][1] * scaleY]; // 두 번째 점
+                const p3 = [points[2][0] * scaleX, points[2][1] * scaleY]; // 세 번째 점
+
+                console.log("🖌 빨간색 선 좌표 (캔버스 내 변환):", p1, p3);
+
+                console.log("🖌 빨간색 선 원본 좌표:", p1, p3);
+
+                // 벡터 계산 (p1 → p3 방향)
+                const dx = p3[0] - p1[0];
+                const dy = p3[1] - p1[1];
+
+                // 벡터를 50% 더 연장 (p3 방향)
+                const extendedP3 = [p3[0] + dx * 0.6, p3[1] + dy * 0.6];
+
+                console.log("🖌 확장된 빨간색 선 좌표:", p1, extendedP3);
+
+                ctx.strokeStyle = "red";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(p1[0], p1[1]); // 기존 첫 번째 점
+                ctx.lineTo(extendedP3[0], extendedP3[1]); // 연장된 세 번째 점
+                ctx.stroke();
+
+                console.log("✅ 빨간색 직선이 p3 방향으로 50% 확장되었습니다.");
+            }
+
+            // ✅ 파란색 직선을 그리는 함수 (4번째 점과 빨간색 선이 직각으로 만나는 점 연결)
+            function drawBlueLine(points, scaleX, scaleY) {
+                if (points.length < 4) return;
+
+                // 캔버스 크기에 맞게 좌표 변환
+                const p1 = [points[0][0] * scaleX, points[0][1] * scaleY]; // 첫 번째 점
+                const p3 = [points[2][0] * scaleX, points[2][1] * scaleY]; // 세 번째 점
+                const p4 = [points[3][0] * scaleX, points[3][1] * scaleY]; // 네 번째 점
+
+                console.log("🔹 파란색 선 - p1:", p1, " p3:", p3, " p4:", p4);
+
+                // 🔸 기울기 m = (y2 - y1) / (x2 - x1)
+                const dx = p3[0] - p1[0];
+                const dy = p3[1] - p1[1];
+
+                // 기울기가 0 또는 무한대인 경우 예외 처리
+                if (dx === 0) {
+                    var p_perp = [p1[0], p4[1]]; // 빨간색 선이 수직일 경우, x 좌표 유지
+                } else if (dy === 0) {
+                    var p_perp = [p4[0], p1[1]]; // 빨간색 선이 수평일 경우, y 좌표 유지
+                } else {
+                    const m = dy / dx; // 원래 직선 기울기
+                    const m_perp = -1 / m; // 수선의 기울기
+
+                    // 🔸 빨간색 직선 방정식: y = m * x + b
+                    const b = p1[1] - m * p1[0];
+
+                    // 🔸 수선 방정식: y = m_perp * x + b_perp
+                    const b_perp = p4[1] - m_perp * p4[0];
+
+                    // 🔸 두 직선의 교점 (p_perp) 계산
+                    const x_perp = (b_perp - b) / (m - m_perp);
+                    const y_perp = m * x_perp + b;
+
+                    var p_perp = [x_perp, y_perp];
+                }
+
+                console.log("📍 수선의 발 p_perp:", p_perp);
+
+                // 🔹 파란색 선 그리기 (p4 → p_perp)
+                ctx.strokeStyle = "blue";
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(p4[0], p4[1]);
+                ctx.lineTo(p_perp[0], p_perp[1]);
+                ctx.stroke();
+
+                console.log("✅ 파란색 직선이 그려졌습니다.");
+            }
+
+        });             
+    </script>
+
+</body>
+</html>

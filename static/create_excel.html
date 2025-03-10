@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>엑셀 데이터 생성</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+        #image-container {
+            position: absolute;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        img {
+            max-width: 100vw;
+            max-height: 100vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border: none;
+        }
+        .marker {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background-color: red;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+        }
+        .guide-message {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 5px;
+            z-index: 10000;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="image-container">
+        <p id="error-message" style="color: red; display: none;">🚨 이미지 데이터를 찾을 수 없습니다!</p>
+        <div id="guideMessage" class="guide-message">첫 번째 점을 찍으세요</div>
+        <img id="expandedImage" alt="업로드된 엑셀 데이터 이미지">
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            console.log("🚀 create_excel.html 로드됨");
+
+            // ✅ localStorage에서 이미지 데이터 가져오기
+            const imageSrc = localStorage.getItem("excelImage1");
+
+            if (imageSrc) {
+                console.log("✅ 이미지 로드 성공!");
+                $("#expandedImage").attr("src", imageSrc);
+            } else {
+                console.error("🚨 이미지 데이터가 localStorage에 없습니다!");
+                $("#error-message").show();
+                return;
+            }
+
+            // ✅ 8개의 좌표를 찍기 위한 로직
+            setTimeout(() => {
+                const points = [];
+                const img = $("#expandedImage");
+                const guideMessage = $("#guideMessage");
+                
+                const messages = [
+                    "첫 번째 점을 찍으세요",
+                    "두 번째 점을 찍으세요",
+                    "세 번째 점을 찍으세요",
+                    "네 번째 점을 찍으세요",
+                    "다섯 번째 점을 찍으세요",
+                    "여섯 번째 점을 찍으세요",
+                    "일곱 번째 점을 찍으세요",
+                    "여덟 번째 점을 찍으세요"
+                ];
+
+                img.on("click", function (event) {
+                    if (points.length >= 8) {
+                        guideMessage.hide();
+                        alert("✅ 8개의 좌표가 선택되었습니다.");
+                        return;
+                    }
+
+                    const rect = img[0].getBoundingClientRect();
+                    const scaleX = img[0].naturalWidth / rect.width;
+                    const scaleY = img[0].naturalHeight / rect.height;
+                    const realX = Math.round((event.clientX - rect.left) * scaleX);
+                    const realY = Math.round((event.clientY - rect.top) * scaleY);
+
+                    points.push([realX, realY]);
+                    console.log("📍 변환된 클릭 좌표:", realX, realY);
+
+                    // 클릭한 위치에 빨간 점 추가
+                    const marker = $("<div class='marker'></div>");
+                    marker.css({ left: event.clientX - rect.left, top: event.clientY - rect.top });
+                    $("#image-container").append(marker);
+
+                    if (points.length < 8) {
+                        guideMessage.text(messages[points.length]);
+                    } else {
+                        guideMessage.hide();
+                    }
+
+                    // ✅ 8개 좌표 선택 완료 후 console 출력
+                    if (points.length === 8) {
+                        setTimeout(() => {
+                            alert("✅ 8개의 좌표가 선택되었습니다.");
+                            console.log("📌 최종 좌표 목록:", points);
+
+                            // ✅ 부모 창(Console)에서도 로그 확인 가능하도록 부모 함수 호출
+                            if (window.opener && typeof window.opener.logFromChild === "function") {
+                                window.opener.logFromChild(points);
+                            } else {
+                                alert("🚨 부모 창이 없습니다. 좌표 데이터를 보낼 수 없습니다.");
+                            }
+                        }, 100);
+                    }
+                });
+            }, 500); // ✅ 실행 보장 (0.5초 딜레이)
+        });
+    </script>
+
+</body>
+</html>

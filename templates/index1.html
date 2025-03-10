@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>파일 업로드 예시</title>
-  <link rel="stylesheet" href="static/style.css" />  
+  <link rel="stylesheet" href="static/style.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="static/uploadHandler.js" defer></script>
   
 </head>
@@ -109,22 +110,29 @@
       <input type="file" id="posturePhoto8" name="posturePhoto8" accept="image/*" hidden />
     </div>
   
-
-    <!-- 엑셀 파일 업로드 -->
-    <div class="upload-section">
+    <!-- ✅ 엑셀 파일 업로드 컨테이너 -->
+    <div class="excel-container">
       <label for="excel_data">Excel 파일 선택</label>
+
+      <!-- 엑셀 파일 업로드 박스 -->
       <div id="excelPreview" class="file-preview" style="background-image: url('/static/sample_excel.png');">
-        📂 엑셀 파일을 선택하거나 드래그하세요
+          📂 엑셀 파일을 선택하거나 드래그하세요
       </div>
       <input type="file" id="excel_data" name="excel_data" accept=".xlsx, .xls" hidden />
 
-      <!-- 참고 엑셀자료 열기 링크 추가 -->
-      <a href="/static/excel_reference1.xlsx" target="_blank" class="excel-link">참고 엑셀자료 열기</a>
+      <!-- ✅ 엑셀 자료 만들기 버튼 -->
+      <button type="button" id="excel-create-btn" class="excel-create-btn">엑셀 자료 만들기</button>
+
+      <!-- ✅ 참고 엑셀자료 열기 링크 -->
+      <a href="/static/excel_reference1.xlsx" target="_blank" class="excel-link">  참고 엑셀자료 열기--></a>
     </div>
+        
+        
+
 
     <!-- 파일 반환 형식 선택 -->
     <div class="upload-section">
-      <label for="file_type">반환 파일 형 식 선택</label>
+      <label for="file_type">반환 파일 형식</label>
       <select id="file_type" name="file_type">
         <option value="pdf" selected>📄 PDF로 반환받기</option>
         <option value="pptx">📊 PPTX로 반환받기</option>
@@ -140,8 +148,11 @@
   
 </body>
 <script>
-  // 부모 창에서 실행될 함수 (새 창에서 좌표를 전달받아 콘솔에 출력 및 백엔드로 전송)
   function logFromChild(points) {
+    console.log("📌 [부모 창] 최종 좌표 목록:", points);
+    }
+  // 부모 창에서 실행될 함수 (새 창에서 좌표를 전달받아 콘솔에 출력 및 백엔드로 전송)
+  function logFromChild1(points) {
         console.log("📌 [부모 창] 최종 좌표 목록:", points);
 
         const fileInput = document.getElementById("lateral_ceph");
@@ -156,7 +167,7 @@
         formData.append("points", JSON.stringify(points)); // ✅ 좌표를 JSON 문자열로 변환하여 추가
 
         // ✅ 백엔드 요청 (127.0.0.1:9500/draw_psa_line)
-        fetch("https://koco.me/draw_psa_line", {
+        fetch("http://127.0.0.1:9500/draw_psa_line", {
             method: "POST",
             body: formData,
         })
@@ -245,7 +256,7 @@
         
 
         try {
-            const response = await fetch("https://koco.me/dash_board", {
+            const response = await fetch("http://127.0.0.1:9500/dash_board", {
                 method: "POST",
                 body: formData
             });
