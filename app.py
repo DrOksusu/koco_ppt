@@ -5,6 +5,8 @@ from green_line import draw_psa_line
 import os
 from config import UPLOAD_FOLDER, RESULT_FOLDER
 from werkzeug.utils import secure_filename
+import logging
+from flask import request
 
 app = Flask(__name__)
 CORS(app)
@@ -64,6 +66,12 @@ def download_psa_result():
         return send_file(file_path, as_attachment=True)
     else:
         return jsonify({"error": "파일이 존재하지 않습니다."}), 404
+    
+logging.basicConfig(level=logging.INFO)
+
+@app.before_request
+def log_request():
+    logging.info(f"📌 요청 수신: {request.method} {request.path}")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=9500, debug=True)
