@@ -262,9 +262,22 @@
             });
 
             console.log("📌 서버 응답 상태 코드:", response.status);
+            console.log("응답 헤더:", response.headers);
+
             if (!response.ok) throw new Error(`🚨 서버 오류 발생: ${response.status}`);
 
+            // ✅ Content-Length 체크
+            const contentLength = response.headers.get("Content-Length");
+            console.log("📌 Content-Length:", contentLength);
+
             const blob = await response.blob();
+            // ✅ Blob 크기 확인
+            console.log("📌 Blob 크기:", blob.size, "bytes");
+
+            if (blob.size === 0) {
+              throw new Error("🚨 Blob 데이터가 비어 있습니다!");
+            }
+
             const url = window.URL.createObjectURL(blob);
             console.log("📌 Blob 객체 생성 완료:", url);
 
@@ -274,6 +287,9 @@
             if (selectedFileType === "pdf") {
                 pdfViewer.src = url;
                 pdfViewer.style.display = "block";
+
+                //pdf 를 새 창에서 열기
+                 window.open(url,"_blank");
             } else {
                 const link = document.createElement("a");
                 link.href = url;

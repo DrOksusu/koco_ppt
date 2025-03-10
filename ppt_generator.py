@@ -127,8 +127,23 @@ def create_ppt(request):
         print("PDF 변환 시작까지는 되는 듯",flush=True, file=sys.stderr)
         output_pdf = 'output_ppt.pdf'
         convert_ppt_to_pdf(output_pptx, output_pdf)  # PDF 변환 로직 (구현 필요)
+         # ✅ 파일이 존재하는지 확인
+        if not os.path.exists(output_pdf):
+            print(f"🚨 파일이 존재하지 않습니다: {output_pdf}", flush=True)
+            return "파일이 존재하지 않습니다", 404
 
-        return send_file(output_pdf, as_attachment=True, mimetype='application/pdf')
+        # ✅ 파일 크기 확인
+        file_size = os.path.getsize(output_pdf)
+        print(f"📌 PDF 파일 크기: {file_size} bytes", flush=True)
+
+        # ✅ 헤더 설정 확인
+        response = send_file(output_pdf, as_attachment=True, mimetype='application/pdf')
+        response.headers["Content-Length"] = file_size  # 크기 지정
+
+        print(f"✅ PDF 응답 반환 성공: {output_pdf}", flush=True)
+        return response
+
+        #return send_file(output_pdf, as_attachment=True, mimetype='application/pdf')
 
     # PPTX 파일 전송
     return send_file(output_pptx, as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation')
