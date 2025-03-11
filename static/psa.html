@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>PSA 선 그리기</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/static/psa_function.js"></script>
     <style>
         body {
             display: flex;
@@ -86,16 +87,32 @@
 
     <div id="canvas-container">
         <p id="error-message" style="color: red; display: none;">🚨 이미지 데이터를 찾을 수 없습니다!</p>
-        <div id="guideMessage" class="guide-message">첫 번째 점(lower incisor point)을 찍으세요</div>
+        <div id="guideMessage" class="guide-message">lower incisor tip</div>
         <canvas id="psaCanvas"></canvas>
     </div>
-    <div id="button-container">
-        <button id="saveButton">이미지 저장</button>
+    <div id="button-container">                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+        <button id="saveButton">이미지 저장</button>        
         <button id="insertButton">이미지 삽입</button>
+        <button id="resetButton">처음부터 다시하기</button>
     </div>
 
-    <script>       
-        console.log("🚀 psa1.html 시작");
+    
+    <script>
+    
+        // ✅ 전역 변수 선언 (초기에는 null로 설정)
+        // let canvas = null;
+        // let ctx = null;
+        // let img = null;
+        // let points = [];
+        
+        let messages = [
+                "lower incisor point",
+                "hinge point",
+                "occlusal point",
+                "symphysis lingual"
+            ];
+
+
         $(document).ready(function () {
             console.log("🚀 psa1.html 로드됨");
 
@@ -112,7 +129,9 @@
 
             // ✅ Canvas 요소 설정 (화면 크기에 맞춤)
             const canvas = document.getElementById("psaCanvas");
+            console.log(canvas);
             const ctx = canvas.getContext("2d");
+            console.log(ctx);
             const img = new Image();
             console.log("✅ Canvas 요소 설정 완료");
 
@@ -137,20 +156,7 @@
 
             img.src = imageSrc;
 
-            // ✅ 음성 출력 함수 추가
-            function speakMessage(message) {
-                if ('speechSynthesis' in window) {
-                    const utterance = new SpeechSynthesisUtterance(message);
-                    utterance.lang = 'ko-KR'; // 한국어 음성
-                    utterance.rate = 2; // 음성 속도 (0.5 ~ 2.0)
-                    utterance.pitch = 1.0; // 음성 높낮이 (0.5 ~ 2.0)
-                    utterance.volume = 1.0; // 음량 (0.0 ~ 1.0)
-
-                    window.speechSynthesis.speak(utterance);
-                } else {
-                    console.warn("🚨 현재 브라우저는 음성 출력을 지원하지 않습니다.");
-                }
-            }
+            
 
             // ✅ 윈도우 크기 변경 시 캔버스 크기 자동 조정
             window.addEventListener("resize", function () {
@@ -167,12 +173,12 @@
             // ✅ 4개의 좌표를 기록하고 선을 그림
             let points = [];
             const guideMessage = $("#guideMessage");
-            const messages = [
-                "첫 번째 점(lower incisor tip)을 찍으세요",
-                "두 번째 점(hinge point)을 찍으세요",
-                "세 번째 점(occlusal point)을 찍으세요",
-                "네 번째 점(symphysis lingual 최대풍융부)을 찍으세요"
-            ];
+            // const messages = [
+            //     "lower incisor tip",
+            //     "hinge point",
+            //     "occlusal point",
+            //     "symphysis lingual"
+            // ];
 
             canvas.addEventListener("click", function (event) {
                 if (points.length >= 4) {
@@ -204,13 +210,13 @@
 
                 if (points.length == 2) {
                     // 두 번째 점이 찍히면 초록색 직선 자동 생성
-                    drawGreenLine(points, scaleX, scaleY);
+                    drawGreenLine(points, scaleX, scaleY,ctx);
                 } else if (points.length == 3){
                     // 세 번째 점이 찍히면 빨간색 직선 자동 생성
-                    drawRedLine(points, scaleX, scaleY);
+                    drawRedLine(points, scaleX, scaleY, ctx);
                 } else if (points.length == 4){
                     // 네 번째 점이 찍히면 파란색 직선 자동 생성
-                    drawBlueLine(points, scaleX, scaleY);
+                    drawBlueLine(points, scaleX, scaleY, ctx);
 
                     //4번째 점이 찍히면 가이드 메세지 숨김
                     guideMessage.hide();
@@ -232,107 +238,7 @@
                 
             });
 
-            // ✅ 초록색 직선을 그리는 함수 (캔버스 크기에 맞게 변환)
-            function drawGreenLine(points, scaleX, scaleY) {
-                if (points.length < 2) return;
-
-                // 캔버스 크기에 맞게 좌표 변환
-                const p1 = [points[0][0] * scaleX, points[0][1] * scaleY];
-                const p2 = [points[1][0] * scaleX, points[1][1] * scaleY];
-
-                console.log("🖌 초록색 선 좌표 (캔버스 내 변환):", p1, p2);
-                console.log("🖌 캔버스 크기:", canvas.width, canvas.height);
-
-                ctx.strokeStyle = "green";
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(p1[0], p1[1]);
-                ctx.lineTo(p2[0], p2[1]);
-                ctx.stroke();
-
-                console.log("✅ 초록색 직선이 그려졌습니다.");
-            }
-
-            // ✅ 빨간색 직선을 그리는 함수 (두 번째~세 번째 점)
-            function drawRedLine(points, scaleX, scaleY) {
-                if (points.length < 3) return;
-
-                // 캔버스 크기에 맞게 좌표 변환
-                const p1 = [points[0][0] * scaleX, points[0][1] * scaleY]; // 두 번째 점
-                const p3 = [points[2][0] * scaleX, points[2][1] * scaleY]; // 세 번째 점
-
-                console.log("🖌 빨간색 선 좌표 (캔버스 내 변환):", p1, p3);
-
-                console.log("🖌 빨간색 선 원본 좌표:", p1, p3);
-
-                // 벡터 계산 (p1 → p3 방향)
-                const dx = p3[0] - p1[0];
-                const dy = p3[1] - p1[1];
-
-                // 벡터를 50% 더 연장 (p3 방향)
-                const extendedP3 = [p3[0] + dx * 3, p3[1] + dy * 3];
-
-                console.log("🖌 확장된 빨간색 선 좌표:", p1, extendedP3);
-
-                ctx.strokeStyle = "red";
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(p1[0], p1[1]); // 기존 첫 번째 점
-                ctx.lineTo(extendedP3[0], extendedP3[1]); // 연장된 세 번째 점
-                ctx.stroke();
-
-                console.log("✅ 빨간색 직선이 p3 방향으로 50% 확장되었습니다.");
-            }
-
-            // ✅ 파란색 직선을 그리는 함수 (4번째 점과 빨간색 선이 직각으로 만나는 점 연결)
-            function drawBlueLine(points, scaleX, scaleY) {
-                if (points.length < 4) return;
-
-                // 캔버스 크기에 맞게 좌표 변환
-                const p1 = [points[0][0] * scaleX, points[0][1] * scaleY]; // 첫 번째 점
-                const p3 = [points[2][0] * scaleX, points[2][1] * scaleY]; // 세 번째 점
-                const p4 = [points[3][0] * scaleX, points[3][1] * scaleY]; // 네 번째 점
-
-                console.log("🔹 파란색 선 - p1:", p1, " p3:", p3, " p4:", p4);
-
-                // 🔸 기울기 m = (y2 - y1) / (x2 - x1)
-                const dx = p3[0] - p1[0];
-                const dy = p3[1] - p1[1];
-
-                // 기울기가 0 또는 무한대인 경우 예외 처리
-                if (dx === 0) {
-                    var p_perp = [p1[0], p4[1]]; // 빨간색 선이 수직일 경우, x 좌표 유지
-                } else if (dy === 0) {
-                    var p_perp = [p4[0], p1[1]]; // 빨간색 선이 수평일 경우, y 좌표 유지
-                } else {
-                    const m = dy / dx; // 원래 직선 기울기
-                    const m_perp = -1 / m; // 수선의 기울기
-
-                    // 🔸 빨간색 직선 방정식: y = m * x + b
-                    const b = p1[1] - m * p1[0];
-
-                    // 🔸 수선 방정식: y = m_perp * x + b_perp
-                    const b_perp = p4[1] - m_perp * p4[0];
-
-                    // 🔸 두 직선의 교점 (p_perp) 계산
-                    const x_perp = (b_perp - b) / (m - m_perp);
-                    const y_perp = m * x_perp + b;
-
-                    var p_perp = [x_perp, y_perp];
-                }
-
-                console.log("📍 수선의 발 p_perp:", p_perp);
-
-                // 🔹 파란색 선 그리기 (p4 → p_perp)
-                ctx.strokeStyle = "blue";
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(p4[0], p4[1]);
-                ctx.lineTo(p_perp[0], p_perp[1]);
-                ctx.stroke();
-
-                console.log("✅ 파란색 직선이 그려졌습니다.");
-            }
+            
 
         });
         
@@ -406,6 +312,28 @@
                 }
             }, "image/jpeg");
         });
+
+        $("#resetButton").on("click", function () {
+            console.log("🔄 다시 시작하기 버튼 클릭됨");
+
+            // ✅ 부모 창이 존재하는지 확인
+            if (window.opener && !window.opener.closed) {
+                console.log("🚀 부모 창이 존재합니다. PSA 창을 다시 엽니다.");
+
+                // ✅ 부모 창에서 PSA 선 그리기 버튼을 실행
+                window.opener.$("#drawPSALine").trigger("click");
+
+                // ✅ 현재 창 닫기 (부모 창에서 창이 열리도록 한 후 닫음)
+                setTimeout(() => {
+                    window.close();
+                }, 100); // 100ms 딜레이 후 닫기 (부모 창 코드 실행 보장)
+            } else {
+                console.error("🚨 부모 창이 존재하지 않거나 닫혀 있습니다. 현재 창을 닫습니다.");
+                window.close();
+            }
+        });
+
+
 
     </script>
 
