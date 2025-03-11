@@ -137,6 +137,21 @@
 
             img.src = imageSrc;
 
+            // ✅ 음성 출력 함수 추가
+            function speakMessage(message) {
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(message);
+                    utterance.lang = 'ko-KR'; // 한국어 음성
+                    utterance.rate = 2; // 음성 속도 (0.5 ~ 2.0)
+                    utterance.pitch = 1.0; // 음성 높낮이 (0.5 ~ 2.0)
+                    utterance.volume = 1.0; // 음량 (0.0 ~ 1.0)
+
+                    window.speechSynthesis.speak(utterance);
+                } else {
+                    console.warn("🚨 현재 브라우저는 음성 출력을 지원하지 않습니다.");
+                }
+            }
+
             // ✅ 윈도우 크기 변경 시 캔버스 크기 자동 조정
             window.addEventListener("resize", function () {
                 canvas.width = window.innerWidth;
@@ -144,6 +159,10 @@
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 
             });
+
+            //페이지 로드시 첫번째 가이드 메세지 음성 출력
+            const firstMessage = $("#guideMessage").text();
+            speakMessage(firstMessage);
 
             // ✅ 4개의 좌표를 기록하고 선을 그림
             let points = [];
@@ -179,7 +198,9 @@
                 ctx.fill();
 
                 //점을 찍을 때마다 가이드 메시지 변경
-                guideMessage.text(messages[points.length]);
+                const newMessage = messages[points.length];
+                guideMessage.text(newMessage);
+                speakMessage(newMessage);
 
                 if (points.length == 2) {
                     // 두 번째 점이 찍히면 초록색 직선 자동 생성
@@ -190,6 +211,9 @@
                 } else if (points.length == 4){
                     // 네 번째 점이 찍히면 파란색 직선 자동 생성
                     drawBlueLine(points, scaleX, scaleY);
+
+                    //4번째 점이 찍히면 가이드 메세지 숨김
+                    guideMessage.hide();
 
                     // 🟢 파란색 선이 다 그려진 후 alert 메시지 실행
                     setTimeout(() => {
@@ -365,6 +389,8 @@
                         psaBox.appendChild(deleteBtn);
 
                         console.log("✅ PSA 이미지가 부모 창의 미리보기 박스(xrayPreview4)에 삽입되었습니다!");
+                        alert("✅ psa 이미지가 삽입되었습니다!");
+                        window.close(); // 자식 창 닫기
                     } else {
                         alert("🚨 부모 창에 'xrayPreview4'라는 ID를 가진 요소를 찾을 수 없습니다!");
                     }

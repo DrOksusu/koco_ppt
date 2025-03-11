@@ -58,7 +58,24 @@ document.addEventListener("DOMContentLoaded", function () {
             event.preventDefault();
             console.log("🔥 PSA 선 그리기 버튼 클릭됨!");
     
-            const fileInput = $("#lateral_ceph")[0];
+            let fileInput = $("#lateral_ceph")[0];
+    
+            // ✅ 1. `fileInput.files`가 비어있다면 `localStorage`에서 복구
+            if (!fileInput.files.length) {
+                console.warn("⚠️ `fileInput.files`이 비어 있음. localStorage에서 복구 시도");
+                const storedFile = localStorage.getItem("psaFile");
+                if (storedFile) {
+                    console.log("✅ localStorage에서 `psaFile` 복구됨!");
+                    const blob = dataURLtoBlob(storedFile);
+                    const file = new File([blob], "lateral_ceph.jpg", { type: "image/jpeg" });
+    
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    fileInput.files = dataTransfer.files; // ✅ 파일 복원
+                }
+            }
+    
+            // ✅ 2. 파일이 여전히 없으면 경고
             if (!fileInput.files.length) {
                 alert("⚠️ lateral_ceph에 업로드된 이미지가 없습니다!");
                 return;
@@ -71,17 +88,19 @@ document.addEventListener("DOMContentLoaded", function () {
             reader.onload = function (e) {
                 console.log("🔥 파일 읽기 완료!");
     
-                // Base64 인코딩된 이미지 데이터를 localStorage에 저장
+                // ✅ 3. Base64 인코딩된 이미지 데이터를 localStorage에 저장
                 localStorage.setItem("psaImage", e.target.result);
+                localStorage.setItem("psaFile", e.target.result); // ✅ 파일 정보도 저장
                 console.log("🔥 PSA 선 그리기 이미지 데이터 저장 완료!");
     
-                // psa.html 새 창 열기
+                // ✅ 4. `psa.html` 새 창 열기
                 window.open("/static/psa.html", "_blank", "width=700,height=700,scrollbars=yes");
             };
     
             reader.readAsDataURL(file);
         });
     });
+    
 
     $(document).ready(function () {
         $("#excel-create-btn").on("click", function (event) {
