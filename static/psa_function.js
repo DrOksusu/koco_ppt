@@ -12,6 +12,17 @@ window.speakMessage = function(message) {
     }
 }
 
+// ✅ dataURL을 Blob으로 변환하는 함수 추가
+window.dataURLtoBlob = function () {
+    let arr = dataURL.split(','), mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+    while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+}
+
+
 // ✅ 초록색 직선 그리는 함수
 window.drawGreenLine = function(points, scaleX, scaleY, ctx) {
     if (points.length < 2) return;

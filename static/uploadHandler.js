@@ -1,3 +1,18 @@
+function dataURLtoBlob(dataURL) {
+    const arr = dataURL.split(",");
+    const mime = arr[0].match(/:(.*?);/)[1]; // MIME 타입 추출
+    const bstr = atob(arr[1]); // Base64 디코딩
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+
+    while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+
+    return new Blob([u8arr], { type: mime });
+}
+
+
 document.addEventListener("DOMContentLoaded", function () {
     // 파일 업로드 처리
     function handleFilePreview(fileInput, dropZone) {
@@ -60,6 +75,44 @@ document.addEventListener("DOMContentLoaded", function () {
     
             let fileInput = $("#lateral_ceph")[0];
     
+            // ✅ 1. 파일이 없으면 localStorage 초기화
+            if (!fileInput.files.length) {
+                console.warn("⚠️ `fileInput.files`이 비어 있음. 기존 이미지 삭제");
+                localStorage.removeItem("psaImage");
+                localStorage.removeItem("psaFile"); // ✅ 파일 정보도 삭제
+                alert("⚠️ lateral_ceph에 업로드된 이미지가 없습니다!");
+                return;
+            }
+    
+            const file = fileInput.files[0];
+            console.log("📂 PSA 선 그리기 파일 정보:", file);
+            const reader = new FileReader();
+    
+            reader.onload = function (e) {
+                console.log("🔥 파일 읽기 완료!");
+    
+                // ✅ 2. Base64 인코딩된 이미지 데이터를 localStorage에 저장
+                localStorage.setItem("psaImage", e.target.result);
+                localStorage.setItem("psaFile", e.target.result); // ✅ 파일 정보도 저장
+                console.log("🔥 PSA 선 그리기 이미지 데이터 저장 완료!");
+    
+                // ✅ 3. `psa.html` 새 창 열기
+                window.open("/static/psa.html", "_blank", "width=700,height=700,scrollbars=yes");
+            };
+    
+            reader.readAsDataURL(file);
+        });
+    });
+    
+    
+
+    $(document).ready(function () {
+        $("#excel-create-btn").on("click", function (event) {
+            event.preventDefault();
+            console.log("🔥 PSA 선 그리기 버튼 클릭됨!");
+    
+            let fileInput = $("#lateral_ceph")[0];
+    
             // ✅ 1. `fileInput.files`가 비어있다면 `localStorage`에서 복구
             if (!fileInput.files.length) {
                 console.warn("⚠️ `fileInput.files`이 비어 있음. localStorage에서 복구 시도");
@@ -94,40 +147,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 console.log("🔥 PSA 선 그리기 이미지 데이터 저장 완료!");
     
                 // ✅ 4. `psa.html` 새 창 열기
-                window.open("/static/psa.html", "_blank", "width=700,height=700,scrollbars=yes");
-            };
-    
-            reader.readAsDataURL(file);
-        });
-    });
-    
-
-    $(document).ready(function () {
-        $("#excel-create-btn").on("click", function (event) {
-            event.preventDefault();
-            console.log("📂 엑셀 데이터 생성 버튼 클릭됨!");
-    
-            const fileInput = $("#lateral_ceph")[0];
-            if (!fileInput.files.length) {
-                alert("⚠️ lateral_ceph에 업로드된 이미지가 없습니다!");
-                return;
-            }
-    
-            const file = fileInput.files[0];
-            console.log("📂 파일 정보:", file);
-            const reader = new FileReader();
-    
-            reader.onload = function (e) {
-                console.log("🔥 파일 읽기 완료!");
-    
-                // ✅ localStorage에 이미지 데이터 저장
-                localStorage.setItem("excelImage1", e.target.result);
-                console.log("🔥 이미지 데이터 저장 완료!");
-    
-                // ✅ 새 창 열기
                 window.open("/static/create_excel.html", "_blank", "width=700,height=700,scrollbars=yes");
             };
-            
     
             reader.readAsDataURL(file);
         });
