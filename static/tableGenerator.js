@@ -1,0 +1,71 @@
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("✅ 테이블 생성 스크립트 로드됨");
+
+    const data = [
+        { mean: 81, name: "SNA", value: "", category: "pink" },
+        { mean: 79, name: "SNB", value: "", category: "pink" },
+        { mean: 91, name: "IMPA", value: "", category: "pink" },
+        { mean: 106, name: "1 to SN", value: "", category: "pink" },
+        { mean: 27, name: "FMA", value: "", category: "pink" },
+        { mean: 27.5, name: "PMA", value: "", category: "pink" },
+        { mean: 34, name: "SN-GoMe", value: "", category: "pink" },
+        { mean: 81, name: "FA'B'", value: "", category: "pink" },
+        { mean: 81, name: "FABA", value: "", category: "pink" },
+        { mean: 52, name: "Y-angle", value: "", category: "pink" },
+        { mean: 50, name: "UGA", value: "", category: "pink" },
+        { mean: 75, name: "LGA", value: "", category: "pink" },
+        { mean: 123, name: "S-A", value: "", category: "pink" },
+        { mean: 53, name: "UIOP", value: "", category: "pink" },
+        { mean: 17, name: "MOP", value: "", category: "pink" },
+        { mean: 31, name: "FH<Ans", value: "", category: "pink" },
+        { mean: 37, name: "FH<Pr", value: "", category: "pink" },
+        { mean: 131, name: "Na-S-BaA", value: "", category: "pink" },
+        { mean: 3, name: "incisor Overbite", value: "", category: "green" },
+        { mean: 3, name: "incisor Overjet", value: "", category: "green" },
+        { mean: 95, name: "NALA", value: "", category: "red" },
+        { mean: "", name: "HR", value: "", category: "red" },
+        { mean: "", name: "Cal", value: "", category: "green" },
+        { mean: 69, name: "ACBL", value: "", category: "blue" },
+        { mean: 71, name: "MBL", value: "", category: "blue" },
+        { mean: "", name: "AFH", value: "", category: "blue" },
+        { mean: "", name: "PFH", value: "", category: "blue" },
+        { mean: 0, name: "E-line", value: "", category: "blue" },
+        { mean: 50, name: "Ramus height", value: "", category: "blue" },
+        { mean: 0, name: "Naperp-A", value: "", category: "blue" },
+        { mean: 54, name: "MxBL", value: "", category: "blue" },
+        { mean: 46, name: "PCBL", value: "", category: "blue" },
+        { mean: 25, name: "S-Por", value: "", category: "blue" }
+    ];
+
+    function generateTable() {
+        const tableContainer = document.getElementById("tableContainer");
+        const table = document.createElement("table");
+
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th>평균치</th>
+                    <th>필수 계측항목</th>
+                    <th>계측값</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        `;
+
+        const tableBody = table.querySelector("tbody");
+
+        data.forEach(row => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${row.mean}</td>
+                <td class="${row.category}">${row.name}</td>
+                <td>${row.value}</td>
+            `;
+            tableBody.appendChild(tr);
+        });
+
+        tableContainer.appendChild(table);
+    }
+
+    generateTable();
+});

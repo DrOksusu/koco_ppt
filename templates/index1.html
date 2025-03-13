@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="static/style.css" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="static/uploadHandler.js" defer></script>
+  <script src="/static/tableGenerator.js" defer></script> <!-- ✅ 외부 JS 파일 불러오기 -->
   
 </head>
 <body>
@@ -127,6 +128,10 @@
       <a href="/static/excel_reference1.xlsx" target="_blank" class="excel-link">  참고 엑셀자료 열기--></a>
     </div>
         
+    <div class="table-wrapper"> <!-- ✅ 제목과 테이블을 감싸는 div -->
+      <h1>계측값 테이블</h1> <!-- ✅ 제목이 테이블 위에 자연스럽게 정렬됨 -->
+      <div id="tableContainer"></div> <!-- ✅ 테이블이 삽입될 위치 -->
+    </div>
         
 
 
