@@ -39,8 +39,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function generateTable() {
         const tableContainer = document.getElementById("tableContainer");
-        const table = document.createElement("table");
+        tableContainer.innerHTML = ""; // ✅ 기존 테이블 초기화
 
+        const table = document.createElement("table");
         table.innerHTML = `
             <thead>
                 <tr>
@@ -59,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
             tr.innerHTML = `
                 <td>${row.mean}</td>
                 <td class="${row.category}">${row.name}</td>
-                <td>${row.value}</td>
+                <td class="value-cell" data-name="${row.name}">${row.value}</td> <!-- ✅ data-name 속성 추가 -->
             `;
             tableBody.appendChild(tr);
         });
@@ -67,5 +68,25 @@ document.addEventListener("DOMContentLoaded", function () {
         tableContainer.appendChild(table);
     }
 
+    
+
+    // // ✅ 테이블 초기 생성
     generateTable();
 });
+
+// ✅ 부모 창의 테이블에서 '계측값' 업데이트 함수
+function updateTableWithAngles(angleDictionary) {
+    console.log("📌 계측값 업데이트 실행");
+
+    // ✅ 모든 '계측값' 셀을 찾고, `data-name`을 기반으로 값 업데이트
+    const valueCells = document.querySelectorAll(".value-cell");
+    valueCells.forEach(cell => {
+        const name = cell.getAttribute("data-name"); // ✅ 계측항목 이름 가져오기
+        if (name in angleDictionary) {
+            cell.textContent = angleDictionary[name]; // ✅ `angleDictionary` 값으로 업데이트
+        }
+    });
+
+    console.log("✅ 테이블 업데이트 완료!");
+}
+

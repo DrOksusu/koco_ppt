@@ -230,112 +230,126 @@
                         alert("✅ 9개의 좌표가 선택되었습니다.");
                         console.log("📌 최종 좌표 목록 (딕셔너리 형태):", landmarkCoordinates);
 
+                        // ✅ Sella - Nasion - A-Point 내각 계산
+                        const angle = calculateAngle(landmarkCoordinates, "Sella", "Nasion", "A-Point");
+                        console.log(`Sella - Nasion - A-Point의 내각: ${angle}°`);
+                        excel_dict = getAngleDictionary(landmarkCoordinates);
+                        console.log(excel_dict);
+                        
+
                         // ✅ 부모 창으로 좌표 데이터 전송
                         if (window.opener && typeof window.opener.logFromChild === "function") {
                             window.opener.logFromChild(landmarkCoordinates);
+                            window.opener.logFromChild(excel_dict);
                         } else {
                             alert("🚨 부모 창이 없습니다. 좌표 데이터를 보낼 수 없습니다.");
                         }
                     }, 100);
                 }
             });
+
+            $("#saveButton").on("click", function () {
+                alert("기능 개발 중입니다.");
+                return;                    
+            });
+
+            $("#insertButton").on("click", function () {
+                console.log("📌 `엑셀데이터 생성 버튼` 클릭됨!");
+
+                // ✅ SNA, SNB 내각 계산 후 `angleDictionary` 생성
+                const angleDictionary = getAngleDictionary(landmarkCoordinates);
+                console.log("📌 angleDictionary 생성 완료:", angleDictionary);
+
+                // ✅ 부모 창이 존재하는지 확인
+                if (window.opener && !window.opener.closed) {
+                    console.log("🚀 부모 창이 열려 있습니다. 데이터 전송!");
+
+                    // ✅ 부모 창에서 `updateTableWithAngles()` 함수가 존재하는지 확인 후 실행
+                    if (typeof window.opener.updateTableWithAngles === "function") {
+                        window.opener.updateTableWithAngles(angleDictionary); // ✅ 부모 창 테이블 업데이트 실행
+                        alert("✅ 계측값이 부모 창에 업데이트되었습니다!");
+                    } else {
+                        alert("🚨 부모 창에 `updateTableWithAngles` 함수가 없습니다!");
+                    }
+                } else {
+                    alert("🚨 부모 창이 닫혀 있습니다! 데이터를 보낼 수 없습니다.");
+                }
+            });
+
+                    
+
+            $("#resetButton").on("click", function () {
+                console.log("🔄 다시 시작하기 버튼 클릭됨");
+
+                // ✅ 부모 창이 존재하는지 확인
+                if (window.opener && !window.opener.closed) {
+                    console.log("🚀 부모 창이 존재합니다. 엑셀 창을 다시 엽니다.");
+
+                    // ✅ 부모 창에서 PSA 선 그리기 버튼을 실행
+                    window.opener.$("#excel-create-btn").trigger("click");
+
+                    // ✅ 현재 창 닫기 (부모 창에서 창이 열리도록 한 후 닫음)
+                    setTimeout(() => {
+                        window.close();
+                    }, 100); // 100ms 딜레이 후 닫기 (부모 창 코드 실행 보장)
+                } else {
+                    console.error("🚨 부모 창이 존재하지 않거나 닫혀 있습니다. 현재 창을 닫습니다.");
+                    window.close();
+                }
+            });
+
         });
 
+            
+        // $("#saveButton").on("click", function () {
+        //     alert("기능 개발 중입니다.");
+        //     return;                    
+        // });
+
+        // $("#insertButton").on("click", function () {
+        //     console.log("📌 `엑셀데이터 생성 버튼` 클릭됨!");
+
+        //     // ✅ SNA, SNB 내각 계산 후 `angleDictionary` 생성
+        //     const angleDictionary = getAngleDictionary(landmarkCoordinates);
+        //     console.log("📌 angleDictionary 생성 완료:", angleDictionary);
+
+        //     // ✅ 부모 창이 존재하는지 확인
+        //     if (window.opener && !window.opener.closed) {
+        //         console.log("🚀 부모 창이 열려 있습니다. 데이터 전송!");
+
+        //         // ✅ 부모 창에서 `updateTableWithAngles()` 함수가 존재하는지 확인 후 실행
+        //         if (typeof window.opener.updateTableWithAngles === "function") {
+        //             window.opener.updateTableWithAngles(angleDictionary); // ✅ 부모 창 테이블 업데이트 실행
+        //             alert("✅ 계측값이 부모 창에 업데이트되었습니다!");
+        //         } else {
+        //             alert("🚨 부모 창에 `updateTableWithAngles` 함수가 없습니다!");
+        //         }
+        //     } else {
+        //         alert("🚨 부모 창이 닫혀 있습니다! 데이터를 보낼 수 없습니다.");
+        //     }
+        // });
+
                 
-                $("#saveButton").on("click", function () {
-                    alert("기능 개발 중입니다.");
-                    return;
-                    // ✅ 캔버스를 이미지 데이터 URL로 변환
-                    const dataURL = $("#psaCanvas")[0].toDataURL("image/png");
 
-                    // ✅ 이미지 다운로드 링크 생성
-                    const link = $("<a>")
-                        .attr("href", dataURL)
-                        .attr("download", "psa_drawing.png")
-                        .appendTo("body");
+        // $("#resetButton").on("click", function () {
+        //     console.log("🔄 다시 시작하기 버튼 클릭됨");
 
-                    link[0].click();
-                    link.remove();
+        //     // ✅ 부모 창이 존재하는지 확인
+        //     if (window.opener && !window.opener.closed) {
+        //         console.log("🚀 부모 창이 존재합니다. 엑셀 창을 다시 엽니다.");
 
-                    console.log("📥 캔버스 이미지 저장 완료");
-                });
+        //         // ✅ 부모 창에서 PSA 선 그리기 버튼을 실행
+        //         window.opener.$("#excel-create-btn").trigger("click");
 
-                $("#insertButton").on("click", function () {
-                    alert("기능 개발 중입니다.");
-                    return;
-                    // ✅ 캔버스를 PNG 이미지로 변환
-                    const canvas = $("#psaCanvas")[0];
-                    canvas.toBlob((blob) => {
-                        // ✅ Blob 데이터로부터 File 객체 생성
-                        const file = new File([blob], "processed_psa.jpg", { type: "image/jpeg" });
-
-                        // ✅ 부모 창이 존재하는지 확인
-                        if (window.opener && !window.opener.closed) {
-                            // ✅ 부모 창의 PSA 미리보기 박스 (`xrayPreview4`) 가져오기
-                            const psaBox = window.opener.document.getElementById("xrayPreview4");
-                            const psaInput = window.opener.document.getElementById("psa"); // input[type=file]
-
-                            if (psaBox) {
-                                // ✅ 기존 내용 삭제 후 새 이미지 삽입
-                                psaBox.innerHTML = ""; // 기존 내용 제거
-                                const imgElement = document.createElement("img");
-                                imgElement.src = URL.createObjectURL(blob);
-                                imgElement.alt = "삽입된 PSA 이미지";
-                                imgElement.style.width = "100%";
-                                imgElement.style.height = "100%";
-                                imgElement.style.objectFit = "cover";
-
-                                // ✅ 삭제 버튼 추가
-                                const deleteBtn = document.createElement("button");
-                                deleteBtn.innerText = "X";
-                                deleteBtn.classList.add("delete-btn");
-                                deleteBtn.addEventListener("click", function () {
-                                    psaBox.innerHTML = "📂 PSA"; // 초기 상태로 되돌리기
-                                    if (psaInput) psaInput.value = ""; // 파일도 제거
-                                });
-
-                                // ✅ PSA 박스에 추가
-                                psaBox.appendChild(imgElement);
-                                psaBox.appendChild(deleteBtn);
-
-                                console.log("✅ PSA 이미지가 부모 창의 미리보기 박스(xrayPreview4)에 삽입되었습니다!");
-                                alert("✅ psa 이미지가 삽입되었습니다!");
-                                window.close(); // 자식 창 닫기
-                            } else {
-                                alert("🚨 부모 창에 'xrayPreview4'라는 ID를 가진 요소를 찾을 수 없습니다!");
-                            }
-
-                            // ✅ 파일 입력 필드 (`<input type="file" id="psa">`)에 파일 추가
-                            if (psaInput) {
-                                const dataTransfer = new DataTransfer();
-                                dataTransfer.items.add(file);
-                                psaInput.files = dataTransfer.files; // ✅ input 요소에 파일 추가
-                            }
-                        } else {
-                            alert("🚨 부모 창이 닫혀 있습니다! 이미지를 삽입할 수 없습니다.");
-                        }
-                    }, "image/jpeg");
-                });
-
-                $("#resetButton").on("click", function () {
-                    console.log("🔄 다시 시작하기 버튼 클릭됨");
-
-                    // ✅ 부모 창이 존재하는지 확인
-                    if (window.opener && !window.opener.closed) {
-                        console.log("🚀 부모 창이 존재합니다. 엑셀 창을 다시 엽니다.");
-
-                        // ✅ 부모 창에서 PSA 선 그리기 버튼을 실행
-                        window.opener.$("#excel-create-btn").trigger("click");
-
-                        // ✅ 현재 창 닫기 (부모 창에서 창이 열리도록 한 후 닫음)
-                        setTimeout(() => {
-                            window.close();
-                        }, 100); // 100ms 딜레이 후 닫기 (부모 창 코드 실행 보장)
-                    } else {
-                        console.error("🚨 부모 창이 존재하지 않거나 닫혀 있습니다. 현재 창을 닫습니다.");
-                        window.close();
-                    }
-                });
+        //         // ✅ 현재 창 닫기 (부모 창에서 창이 열리도록 한 후 닫음)
+        //         setTimeout(() => {
+        //             window.close();
+        //         }, 100); // 100ms 딜레이 후 닫기 (부모 창 코드 실행 보장)
+        //     } else {
+        //         console.error("🚨 부모 창이 존재하지 않거나 닫혀 있습니다. 현재 창을 닫습니다.");
+        //         window.close();
+        //     }
+        // });
 
 
     </script>
