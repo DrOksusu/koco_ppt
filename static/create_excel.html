@@ -129,16 +129,35 @@
             updateImageSize();
             
             let messages = [
-                "Nasion(2)",
-                "Sella(1)",
-                "Basion",
-                "Porion(4)",
-                "Orbitale(3)",
-                "ANS(12)",
-                "PNS(13)",
-                "A-Point(5)",
-                "B-Point(6)"
+                "Nasion(2)",  // Na
+                "Sella(1)",   // S
+                "Basion",     // Ba
+                "Porion(4)",  // Po
+                "Orbitale(3)", // Or                 
+                "ANS(12)",    // ANS
+                "PNS(13)",    // PNS
+                "A-Point(5)", // A-Point
+                "B-Point(6)", // B-Point
+
+                // ✅ PNS 이후 추가 항목 (숫자 및 괄호 없이 추가)
+                "Gn",   // Gn(Cons) → 괄호 없이 변경                
+                "Menton",    // Me
+                "Corpus Lt.", // Corpus Lt.
+                "Ramus Down", // Ramus Down
+                "Go",   // Go(Cons) → 괄호 없이 변경
+                "Ar",         // Ar
+                "Mx.1 cr", // Mx.1 crown
+                "Mx.1 root",  // Mx1. root
+                "Mn.1 cr",    // Mn.1 cr
+                "Mn.1 root",  // Mn.1 root
+                "Mn.6 distal",// Mn.6 distal
+
+                "Columella",  // Columella
+                "Subnasale",  // Subnasale                
+                "soft tissue A", // soft tissue A                
+                "soft tissue B"  // soft tissue B
             ];
+
 
             let landmarkCoordinates = {}; // ✅ 좌표 저장 객체
 
@@ -187,7 +206,7 @@
             speakMessage(guideMessage.text());
 
             canvas.addEventListener("click", function (event) {
-                if (Object.keys(landmarkCoordinates).length >= 9) {
+                if (Object.keys(landmarkCoordinates).length >= 24) {
                     guideMessage.hide();
                     return;
                 }
@@ -216,18 +235,22 @@
 
                 // ✅ 가이드 메시지 변경 및 음성 안내 (이제 올바른 순서로 실행됨)
                 const nextIndex = Object.keys(landmarkCoordinates).length; // ✅ 현재 저장된 개수 기준으로 다음 인덱스 계산
-                if (nextIndex < 9) {
+                if (nextIndex < messages.length) {
                     const nextMessage = messages[nextIndex]; // ✅ 다음 랜드마크 가져오기
                     guideMessage.text(nextMessage); // ✅ 가이드 메시지 업데이트
-                    speakMessage(nextMessage.replace(/\(\d+\)/g, "")); // ✅ 숫자 제거 후 음성 출력
+
+                     // ✅ nextMessage가 존재할 때만 음성 출력
+                    if (nextMessage) {
+                        speakMessage(nextMessage.replace(/\(\d+\)/g, "")); // ✅ 숫자 제거 후 음성 출력
+                    }
                 } else {
                     guideMessage.hide();
                 }
-                
-                // ✅ 9개 좌표가 선택되었을 때 딕셔너리 반환
-                if (Object.keys(landmarkCoordinates).length === 9) {
+                  
+                // ✅ 25개 좌표가 선택되었을 때 딕셔너리 반환
+                if (Object.keys(landmarkCoordinates).length === 24) {
                     setTimeout(() => {
-                        alert("✅ 9개의 좌표가 선택되었습니다.");
+                        alert("✅ 24개의 좌표가 선택되었습니다.");
                         console.log("📌 최종 좌표 목록 (딕셔너리 형태):", landmarkCoordinates);
 
                         // ✅ Sella - Nasion - A-Point 내각 계산
@@ -267,7 +290,10 @@
                     // ✅ 부모 창에서 `updateTableWithAngles()` 함수가 존재하는지 확인 후 실행
                     if (typeof window.opener.updateTableWithAngles === "function") {
                         window.opener.updateTableWithAngles(angleDictionary); // ✅ 부모 창 테이블 업데이트 실행
-                        alert("✅ 계측값이 부모 창에 업데이트되었습니다!");
+                        // ✅ 300ms(0.3초) 후 `alert()` 실행
+                        setTimeout(() => {
+                            alert("✅ 계측값이 부모 창에 업데이트되었습니다!");
+                        }, 300);
                     } else {
                         alert("🚨 부모 창에 `updateTableWithAngles` 함수가 없습니다!");
                     }

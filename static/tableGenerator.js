@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function generateTable() {
         const tableContainer = document.getElementById("tableContainer");
         tableContainer.innerHTML = ""; // ✅ 기존 테이블 초기화
-
+    
         const table = document.createElement("table");
         table.innerHTML = `
             <thead>
@@ -52,21 +52,26 @@ document.addEventListener("DOMContentLoaded", function () {
             </thead>
             <tbody></tbody>
         `;
-
+    
         const tableBody = table.querySelector("tbody");
-
+    
         data.forEach(row => {
             const tr = document.createElement("tr");
+    
+            // ✅ `<` 및 `>` 기호 변환
+            const safeName = row.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    
             tr.innerHTML = `
                 <td>${row.mean}</td>
-                <td class="${row.category}">${row.name}</td>
-                <td class="value-cell" data-name="${row.name}">${row.value}</td> <!-- ✅ data-name 속성 추가 -->
+                <td class="${row.category}">${safeName}</td> <!-- ✅ HTML 엔티티 변환 적용 -->
+                <td class="value-cell" data-name="${row.name}">${row.value}</td> <!-- ✅ data-name 속성 유지 -->
             `;
             tableBody.appendChild(tr);
         });
-
+    
         tableContainer.appendChild(table);
     }
+    
 
     
 

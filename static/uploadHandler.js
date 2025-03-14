@@ -109,6 +109,8 @@ document.addEventListener("DOMContentLoaded", function () {
     $(document).ready(function () {
         $("#excel-create-btn").on("click", function (event) {
             event.preventDefault();
+            localStorage.removeItem("psaImage"); // ✅ 브라우저가 열릴 때 이미지 삭제
+            localStorage.removeItem("psaFile");  // ✅ 파일 정보도 삭제
             console.log("🔥 PSA 선 그리기 버튼 클릭됨!");
     
             let fileInput = $("#lateral_ceph")[0];
