@@ -74,6 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log("🔥 PSA 선 그리기 버튼 클릭됨!");
     
             let fileInput = $("#lateral_ceph")[0];
+            console.log("📂 PSA 선 그리기 파일 정보:", fileInput.files);
     
             // ✅ 1. 파일이 없으면 localStorage 초기화
             if (!fileInput.files.length) {
