@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, send_file, render_template
 from flask_cors import CORS
-from ppt_generator1 import create_ppt
+from ppt_generator import create_ppt
 from green_line import draw_psa_line
 import os
 from config import UPLOAD_FOLDER, RESULT_FOLDER

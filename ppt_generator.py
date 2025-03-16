@@ -13,6 +13,12 @@ import math
 from PIL import Image
 import cv2
 import numpy as np
+import json
+from datetime import datetime, timedelta
+import random
+import traceback
+
+
 
 
 # 텍스트 프레임 양식 설정 함수
@@ -58,37 +64,59 @@ def create_ppt(request):
 
     
     excel_file = request.files['excel_data']
+    ceph_dict = request.form.get('excel_dict')
     file_type = request.form.get('file_type', 'pdf') #기본값은 pdf
 
     print("file_type:",file_type, flush=True, file=sys.stderr)
     
-    # 엑셀 파일이 비어있는지 확인
-    if excel_file and excel_file.filename != '': 
-        excel_file_path = save_uploaded_file(excel_file, 'excel_data.xlsx')
-        df_raw = pd.read_excel(excel_file_path)
-        df = df_raw.iloc[7:]  # 7번째 행 이후의 데이터 사용
-    else:
-        df_raw, df, excel_file_path = None, None, None
-
-    print("df_raw:",df_raw, flush=True, file=sys.stderr)
-
-
-    # PPT 템
     # 현재 디렉터리에서 파일 경로를 생성
     ppt_template_path = os.path.join(os.getcwd(), 'koco_frame.pptx')
 
     # PPT 템플릿 로드
     prs = Presentation(ppt_template_path)
-    
-    # 첫 번째 슬라이드 만들기 (엑셀 파일이 있을 경우만)
-    if df_raw is not None and not df_raw.empty:            
-        # 슬라이드 생성
-        HGI, VGI = create_first_slide(prs, df, df_raw, id_photo_path)
+
+    # 엑셀 파일이 비어있는지 확인
+    if excel_file and excel_file.filename != '': 
+        excel_file_path = save_uploaded_file(excel_file, 'excel_data.xlsx')
+        df_raw = pd.read_excel(excel_file_path)
+        df = df_raw.iloc[7:]  # 7번째 행 이후의 데이터 사용
+        df = df.copy()  # 원본 보호
+        df['Unnamed: 0'] = df['Unnamed: 0'].str.rstrip()  # 공백 제거        
+        ceph = {key: value for key, value in zip(df['Unnamed: 0'], df['Unnamed: 3'])}        
+        HGI, VGI = create_first_slide(prs, ceph, id_photo_path, df_raw)
         print("HGI:",HGI, flush=True, file=sys.stderr)
+
+    # ✅ 엑셀 파일이 없지만 ceph_dict가 존재하는 경우
+    elif ceph_dict:
+        try:
+            ceph = json.loads(ceph_dict)  # JSON 문자열을 딕셔너리로 변환
+            print("📌 ceph_dict에서 변환된 ceph:", ceph, flush=True, file=sys.stderr)
+            HGI, VGI = create_first_slide(prs, ceph, id_photo_path, None)
+            print("HGI:",HGI, flush=True, file=sys.stderr)
+        except json.JSONDecodeError:
+            print("🚨 JSON 변환 오류: ceph_dict가 올바른 JSON 형식이 아닙니다.", flush=True, file=sys.stderr)
+            ceph = None  # 변환 실패 시 None 설정
+            df_raw, df, excel_file_path = None, None, None
+        
+    # ✅ 엑셀 파일도 없고 ceph_dict도 없는 경우
     else:
+        df_raw, df, excel_file_path, ceph = None, None, None, None
+        print("🚨 엑셀 파일과 ceph_dict 둘 다 없습니다.", flush=True, file=sys.stderr)
         HGI, VGI = None, None  # 값이 없으면 이후 슬라이드에서 참고하지 않도록
         print("HGI:",HGI, flush=True, file=sys.stderr)
-        print("VGI:",VGI, flush=True, file=sys.stderr)
+        print("VGI:",VGI, flush=True, file=sys.stderr) 
+    
+    
+    
+    # # 첫 번째 슬라이드 만들기 (엑셀 파일이 있을 경우만)
+    # if df_raw is not None and not df_raw.empty:            
+    #     # 슬라이드 생성
+    #     HGI, VGI = create_first_slide(prs, df_raw, ceph, id_photo_path)
+    #     print("HGI:",HGI, flush=True, file=sys.stderr)
+    # else:
+    #     HGI, VGI = None, None  # 값이 없으면 이후 슬라이드에서 참고하지 않도록
+    #     print("HGI:",HGI, flush=True, file=sys.stderr)
+    #     print("VGI:",VGI, flush=True, file=sys.stderr)
             
         # 두 번째 슬라이드 만들기 (PSA 파일이 있을 경우만)
     print("두번째 슬라이드 시작",flush=True, file=sys.stderr)
@@ -149,102 +177,219 @@ def create_ppt(request):
     return send_file(output_pptx, as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation')
 
 
-def create_first_slide(prs, df, df_raw, id_photo_path):
-    temp_slide = prs.slides[0]
-    shape_s = temp_slide.shapes
-
-    #ppt table에 ceph 데이터 넣기
-    for i in range(df.shape[0]):
-        shape_s[7].table.cell(row_idx=i,col_idx =1).text = str(df.iloc[i,3])
-        TextFrame(shape_s[7].table.cell(row_idx=i,col_idx =1),font_size=Pt(7),font_bold=False,ft_color=False)
-
-    # Ceph 데이터 정리
-    df = df.copy()
-    df['Unnamed: 0'] = df['Unnamed: 0'].str.rstrip()
-    ceph = {key: value for key, value in zip(df['Unnamed: 0'], df['Unnamed: 3'])}
-    print("ceph:",ceph)
-
-    # 수식 계산
-    cosvalue = math.cos(math.radians(ceph['- AB<LOP']))
-    a = 3.5 / 4.4 * cosvalue
-    if ceph['APDI'] >= 81:
-        if ceph['PMA'] < 27.5:
-            IAPDI = 95 - 0.5 * ceph['PMA']
-        else:
-            IAPDI = 81
-    else:
-        IAPDI = 81 - a * (ceph['PMA'] - 27.5)
-
-    IAPDI = round(IAPDI, 2)
-    HGI = round(0.2 * ((ceph['MBL'] - ceph['ACBL']) * 2 + (ceph['UGA'] - 50) + 0.5 * (ceph['PCBA'] - 64)), 2)
-    VGI = round(0.2 * ((ceph['FHR'] - 60) * 2 - (ceph['LGA'] - 75) + 0.5 * (ceph['ACBA'] - 7)), 2)
-    APDL = round(0.4 * (ceph['APDI'] - IAPDI), 2)
-    IODI = round(((80 - 0.3 * ceph['PMA'] - (0.776 - 0.008 * ceph['FMA']) * (ceph['FABA'] - 80))), 2)
-    VDL = round(0.4849 * (ceph['ODI'] - IODI), 2)
-    CFD = round(ceph['APDI'] + ceph['ODI'] - IAPDI - IODI, 2)
-
-    # 고정 변수 설정
-    fixed_var_dict = {
-        8: 'C/C & Main problem',
-        9: 'MPH:',
-        11: f'HGI:{HGI}',
-        13: f'VGI:{VGI}',
-        17: f'IAPDI:{IAPDI}',
-        19: f'2APDL:{APDL * 2}',
-        20: f'IODI:{IODI}',
-        22: f'VDL:{VDL}',
-        24: 'CEPH RESULT',
-        25: f'CFD:{CFD}',
-        26: 'Extraction:'
-    }
-
-    for k, v in fixed_var_dict.items():
-        shape_s[k].text = v
-        TextFrame(shape_s[k], font_size=Pt(13), font_bold=True, ft_color=False)
-
-    # 이름, 나이 등 정보 설정
-    name = df_raw.iloc[3, 1]
-    age = df_raw.iloc[3, 3]
-    birth = df_raw.iloc[2, 3]
-    gender = f'({df_raw.iloc[4, 1][0]})'
-
-    soft_profile = 'S3' if ceph['FA`B`'] >= 83 else 'S1' if ceph['FA`B`'] >= 79 else 'S2'
-    bony_profile = 'B3' if ceph['FABA'] >= 83 else 'B1' if ceph['FABA'] >= 79 else 'B2'
-    denture_profile = 'D3' if 2 * APDL >= 2 else 'D1' if -1 <= 2 * APDL < 2 else 'D2'
-
-    if ceph['Overbite'] > 3:
-        nbt = 'dbt'
-    elif -2 < ceph['Overbite'] <= 3:
-        nbt = 'nbt'
-    else:
-        nbt = 'obt'
-
-    if VDL > 1:
-        skeletal_nbt = 'dbt'
-    elif -4 < VDL <= 1:
-        skeletal_nbt = 'nbt'
-    else:
-        skeletal_nbt = 'obt'
-
-    shape_s[4].text = f"{gender} {name} {age} {birth}\n {soft_profile}.{bony_profile}.{denture_profile}.C1-{nbt}({skeletal_nbt})-RM(Rt)-Fx:Ex-Fx/1-Type IV"
-    TextFrame(shape_s[4])
-
-    # 이미지 처리
-    with Image.open(id_photo_path) as img:
-        width, height = img.size
-        wpercent = 1.6 / float(width)
-        new_height = round(float(height) * wpercent, 1)
-
-        left = Inches(2.7)
-        top = Inches(0.55)
-        width = Inches(1.6)
-        height = Inches(new_height)
-        temp_slide.shapes.add_picture(id_photo_path, left, top, width, height)
+def create_first_slide(prs, ceph, id_photo_path, df_raw = None):   # 2️⃣ Ceph 데이터 정리 및 딕셔너리 생성
     
-    # HGI, VGI 값을 반환
-    print(f"HGI: {HGI}, VGI: {VGI}")
-    print("첫번째 슬라이드 완료")
-    return HGI, VGI
+      
+    print("📌 Ceph 데이터:", ceph)   
+
+    # 🔹 키 변형을 매핑하는 딕셔너리 (예: "PSA" ↔ "psa" ↔ "Psa")
+    alias_map = {        
+        "A - N /Ppn": "A point-N-perp",
+        "FA`B`" : "FA'B'",
+        "Ramus ht" : "Ramus height",
+        "Y-Axis" : "Y-axis",
+        "N-S-B" : "N-S-BaA",
+        "- AB<LOP" : "AB<LOP",
+    }
+    print("📌 Alias 매핑:", alias_map)
+
+    # 📌 ceph 딕셔너리를 alias_map을 적용하여 변형
+    ceph_standardized = {alias_map.get(k, k): v for k, v in ceph.items()}
+    print("📌 Ceph 데이터 (표준화 적용):", ceph_standardized)  
+
+    # 3️⃣ PPT 불러오기
+    
+    temp_slide = prs.slides[0]  # 첫 번째 슬라이드 선택
+    shape_s = temp_slide.shapes  # 슬라이드 내 모든 객체 가져오기
+
+    # 4️⃣ 테이블 선택 (shape_s[7]에 테이블이 있다고 가정)
+    table = shape_s[7].table  
+
+   # 5️⃣ 첫 번째 열과 비교하여 일치하는 경우 두 번째 열 업데이트
+    for i in range(0, len(table.rows)):  # 첫 번째 행(헤더 제외)
+        key = table.cell(i, 0).text.strip() # 첫 번째 열 (계측 지표)
+        
+        # 🔹 alias_map에서 변형된 키를 찾음
+        standardized_key = alias_map.get(key, key)
+        print("🔑 표준화된 키:", standardized_key)
+
+        # ✅ ceph_standardized에 존재하면 해당 값 입력, 없으면 "자료없음" 입력
+        table.cell(i, 1).text = str(ceph_standardized.get(standardized_key, "자료없음"))        
+        
+        # 텍스트 스타일 적용
+        TextFrame(table.cell(i, 1), font_size=Pt(7), font_bold=False, ft_color=True)  # 🔹 텍스트 스타일 적용
+
+    print("테이블 업데이트 완료")
+
+    
+
+    try:
+        # ✅ 기본값 설정 (오류 발생 시 사용)
+        DEFAULT_VALUES = {
+            'AB<LOP': 0, 'APDI': 81, 'PMA': 27.5, 'MBL': 0, 'ACBL': 0,
+            'UGA': 50, 'PCBA': 64, 'FHR': 60, 'LGA': 75, 'ACBA': 7,
+            'FMA': 0, 'FABA': 80, 'ODI': 0
+        }
+
+        # ✅ ceph 값이 없으면 기본값 사용
+        def get_ceph_value(key):
+            return ceph.get(key, DEFAULT_VALUES.get(key, 0))
+
+        # ✅ 값 계산
+        cosvalue = math.cos(math.radians(get_ceph_value('AB<LOP')))
+        a = 3.5 / 4.4 * cosvalue
+        pmaval = get_ceph_value('PMA')
+        apdival = get_ceph_value('APDI')
+
+        if apdival >= 81:
+            IAPDI = 95 - 0.5 * pmaval if pmaval < 27.5 else 81
+        else:
+            IAPDI = 81 - a * (pmaval - 27.5)
+
+        IAPDI = round(IAPDI, 2)
+
+        HGI = round(0.2 * ((get_ceph_value('MBL') - get_ceph_value('ACBL')) * 2 +
+                            (get_ceph_value('UGA') - 50) +
+                            0.5 * (get_ceph_value('PCBA') - 64)), 2)
+
+        VGI = round(0.2 * ((get_ceph_value('FHR') - 60) * 2 -
+                            (get_ceph_value('LGA') - 75) +
+                            0.5 * (get_ceph_value('ACBA') - 7)), 2)
+
+        APDL = round(0.4 * (get_ceph_value('APDI') - IAPDI), 2)
+
+        IODI = round(((80 - 0.3 * get_ceph_value('PMA') -
+                    (0.776 - 0.008 * get_ceph_value('FMA')) *
+                    (get_ceph_value('FABA') - 80))), 2)
+
+        VDL = round(0.4849 * (get_ceph_value('ODI') - IODI), 2)
+
+        CFD = round(get_ceph_value('APDI') + get_ceph_value('ODI') - IAPDI - IODI, 2)
+
+        # ✅ 고정 변수 설정
+        fixed_var_dict = {
+            8: 'C/C & Main problem',
+            9: 'MPH:',
+            11: f'HGI:{HGI}',
+            13: f'VGI:{VGI}',
+            17: f'IAPDI:{IAPDI}',
+            19: f'2APDL:{APDL * 2}',
+            20: f'IODI:{IODI}',
+            22: f'VDL:{VDL}',
+            24: 'CEPH RESULT',
+            25: f'CFD:{CFD}',
+            26: 'Extraction:'
+        }
+
+        # ✅ 슬라이드 업데이트
+        for k, v in fixed_var_dict.items():
+            shape_s[k].text = v
+            TextFrame(shape_s[k], font_size=Pt(13), font_bold=True, ft_color=False)
+
+    except Exception as e:
+        print("🚨 오류 발생: 코드 실행을 건너뜁니다.", flush=True)
+        print(traceback.format_exc(), flush=True)
+
+    
+    # ✅ 기본값 설정
+    DEFAULT_NAME = "순응교합"
+    DEFAULT_AGE = "20"
+    DEFAULT_BIRTH = (datetime.today() - timedelta(days=20*365)).strftime("%Y-%m-%d")  # 오늘 날짜에서 20년 전
+    DEFAULT_GENDER = random.choice(["Male", "Female"])  # Male 또는 Female 중 랜덤 선택
+
+    # ✅ df_raw가 None이 아닐 경우, 기존 데이터 사용
+    if df_raw is not None:
+        try:
+            name = df_raw.iloc[3, 1] if not pd.isna(df_raw.iloc[3, 1]) else DEFAULT_NAME
+            age = df_raw.iloc[3, 3] if not pd.isna(df_raw.iloc[3, 3]) else DEFAULT_AGE
+            birth = df_raw.iloc[2, 3] if not pd.isna(df_raw.iloc[2, 3]) else DEFAULT_BIRTH
+            gender = f'({df_raw.iloc[4, 1][0]})' if not pd.isna(df_raw.iloc[4, 1]) else DEFAULT_GENDER
+        except Exception as e:
+            print(f"🚨 데이터 추출 중 오류 발생: {e}")
+            name, age, birth, gender = DEFAULT_NAME, DEFAULT_AGE, DEFAULT_BIRTH, DEFAULT_GENDER
+    else:
+        # ✅ df_raw가 None이면 기본값 사용
+        name, age, birth, gender = DEFAULT_NAME, DEFAULT_AGE, DEFAULT_BIRTH, DEFAULT_GENDER
+
+    # ✅ 최종 값 출력 (디버깅 용도)
+    print(f"📌 이름: {name}, 나이: {age}, 생년월일: {birth}, 성별: {gender}")
+
+    
+
+    try:
+        # ✅ 기본값 설정 (오류 발생 시 사용)
+        DEFAULT_VALUES = {
+            'FA`B`': 80, 'FABA': 80, 'Overbite': 0, 'APDL': 0
+        }
+
+        # ✅ ceph 값이 없으면 기본값 사용
+        def get_ceph_value(key):
+            return ceph.get(key, DEFAULT_VALUES.get(key, 0))
+
+        # ✅ Soft, Bony, Denture Profile 계산
+        try:
+            soft_profile = 'S3' if get_ceph_value('FA`B`') >= 83 else 'S1' if get_ceph_value('FA`B`') >= 79 else 'S2'
+            bony_profile = 'B3' if get_ceph_value('FABA') >= 83 else 'B1' if get_ceph_value('FABA') >= 79 else 'B2'
+            denture_profile = 'D3' if 2 * APDL >= 2 else 'D1' if -1 <= 2 * APDL < 2 else 'D2'
+        except Exception:
+            soft_profile, bony_profile, denture_profile = "S2", "B2", "D2"
+
+        # ✅ Normal / Deep / Open Bite 판별
+        try:
+            overbite_val = get_ceph_value('Overbite')
+            if overbite_val > 3:
+                nbt = 'dbt'
+            elif -2 < overbite_val <= 3:
+                nbt = 'nbt'
+            else:
+                nbt = 'obt'
+        except Exception:
+            nbt = "nbt"  # 기본값
+
+        # ✅ Skeletal NBT 판별
+        try:
+            if VDL > 1:
+                skeletal_nbt = 'dbt'
+            elif -4 < VDL <= 1:
+                skeletal_nbt = 'nbt'
+            else:
+                skeletal_nbt = 'obt'
+        except Exception:
+            skeletal_nbt = "nbt"  # 기본값
+
+        # ✅ 텍스트 업데이트 (오류 발생 시 건너뜀)
+        try:
+            shape_s[4].text = f"{gender} {name} {age} {birth}\n {soft_profile}.{bony_profile}.{denture_profile}.C1-{nbt}({skeletal_nbt})-RM(Rt)-Fx:Ex-Fx/1-Type IV"
+            TextFrame(shape_s[4])
+        except (KeyError, IndexError):
+            print(f"🚨 shape_s[4]에서 오류 발생: 텍스트 업데이트 건너뜀.", flush=True)
+
+        # ✅ 이미지 처리 (오류 발생 시 건너뜀)
+        try:
+            with Image.open(id_photo_path) as img:
+                width, height = img.size
+                wpercent = 1.6 / float(width)
+                new_height = round(float(height) * wpercent, 1)
+
+                left = Inches(2.7)
+                top = Inches(0.55)
+                width = Inches(1.6)
+                height = Inches(new_height)
+
+                temp_slide.shapes.add_picture(id_photo_path, left, top, width, height)
+        except Exception:
+            print(f"🚨 ID 사진을 추가하는 중 오류 발생: {id_photo_path}를 찾을 수 없음.", flush=True)
+
+        # ✅ HGI, VGI 값을 반환
+        print(f"HGI: {HGI}, VGI: {VGI}")
+        print("첫 번째 슬라이드 완료")
+        return HGI, VGI
+
+    except Exception as e:
+        print("🚨 전체 코드 실행 중 오류 발생! 이 블록을 건너뜁니다.", flush=True)
+        print(traceback.format_exc(), flush=True)
+        return None, None  # 오류 발생 시 기본값 반환
+
 
 def create_second_slide(prs, HGI, VGI, psa_name_path):
     # 두 번째 슬라이드 만들기

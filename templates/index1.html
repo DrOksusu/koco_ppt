@@ -153,15 +153,43 @@
   
 </body>
 <script>
-  function logFromChild(points) {
-    console.log(points);
-    }
+
+    let psaData = JSON.parse(localStorage.getItem("psaData")) || {};  
+    let excelDictData = JSON.parse(localStorage.getItem("excelDictData")) || {};  
+
+    function logFromChild(data) {
+      console.log("📌 자식 창에서 받은 데이터:", data);
+      
+      if (typeof data === 'object' && Object.keys(data).length > 0) {
+          if (Array.isArray(data) && data.length === 4) {  
+              // ✅ PSA 좌표 데이터인 경우 (4개의 좌표로 구성된 배열)
+              psaData = { psa_coordinates: data };  // 객체 형태로 저장
+              localStorage.setItem("psaData", JSON.stringify(psaData));
+              console.log("📌 PSA 데이터 저장 완료:", psaData);
+          } else {  
+              // ✅ 엑셀 데이터인 경우
+              excelDictData = data;
+              localStorage.setItem("excelDictData", JSON.stringify(excelDictData));
+              console.log("📌 엑셀 데이터 저장 완료:", excelDictData);
+          }
+      }
+  }
+
+
   
     document.getElementById("uploadForm").addEventListener("submit", async (e) => {
         e.preventDefault();
              
         console.log("🚀 파일 업로드 시작!");
         const formData = new FormData(e.target);
+
+        // ✅ receivedData에 데이터가 있는 경우 FormData에 추가
+        if (Object.keys(excelDictData).length > 0) {
+            formData.append("landmarkCoordinates", JSON.stringify(excelDictData.landmarkCoordinates));
+            formData.append("excel_dict", JSON.stringify(excelDictData.excel_dict));
+            console.log("📌 FormData에 landmarkCoordinates & excel_dict 추가 완료:", excelDictData);
+        }
+
         const formElement = document.getElementById("uploadForm");
         console.log("✅ uploadForm 요소:", formElement);
         console.log("📌 FormData 생성 완료:", Object.fromEntries(formData.entries()));
@@ -169,7 +197,7 @@
         
 
         try {
-            const response = await fetch("https://koco.me/dash_board", {
+            const response = await fetch("http://127.0.0.1:9500/dash_board", {
                 method: "POST",
                 body: formData
             });

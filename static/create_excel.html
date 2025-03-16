@@ -262,8 +262,13 @@
 
                         // ✅ 부모 창으로 좌표 데이터 전송
                         if (window.opener && typeof window.opener.logFromChild === "function") {
-                            window.opener.logFromChild(landmarkCoordinates);
-                            window.opener.logFromChild(excel_dict);
+                            const combinedData = {
+                                landmarkCoordinates: landmarkCoordinates,  // 랜드마크 좌표 데이터
+                                excel_dict: excel_dict  // 엑셀 데이터
+                            };
+
+                            window.opener.logFromChild(combinedData);  // ✅ 하나의 객체로 부모 창에 전송
+                            console.log("📌 부모 창으로 데이터 전송 완료:", combinedData);
                         } else {
                             alert("🚨 부모 창이 없습니다. 좌표 데이터를 보낼 수 없습니다.");
                         }
