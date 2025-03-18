@@ -97,7 +97,7 @@
 
     <div id="canvas-container">
         <p id="error-message" style="color: red; display: none;">🚨 이미지 데이터를 찾을 수 없습니다!</p>
-        <div id="guideMessage" class="guide-message">Nasion(2)</div>
+        <div id="guideMessage" class="guide-message">Nasion</div>
         <canvas id="psaCanvas"></canvas>
     </div>
     <div id="button-container">                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
@@ -110,6 +110,15 @@
 
 
     <script>
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            if (typeof getAngleDictionary === "function") {
+                console.log("✅ getAngleDictionary 함수가 정상적으로 로드되었습니다.");
+            } else {
+                console.error("❌ getAngleDictionary 함수가 정의되지 않았습니다.");
+            }
+        });
+
 
         $(document).ready(function () {
             console.log("🚀 create_excel.html 로드됨");
@@ -129,33 +138,33 @@
             updateImageSize();
             
             let messages = [
-                "Nasion(2)",  // Na
-                "Sella(1)",   // S
-                "Basion",     // Ba
-                "Porion(4)",  // Po
-                "Orbitale(3)", // Or                 
-                "ANS(12)",    // ANS
-                "PNS(13)",    // PNS
-                "A-Point(5)", // A-Point
-                "B-Point(6)", // B-Point
-
-                // ✅ PNS 이후 추가 항목 (숫자 및 괄호 없이 추가)
-                "Gn",   // Gn(Cons) → 괄호 없이 변경                
+                "Nasion",  // Na
+                "Sella",   // S
+                "Porion",     // Ba
+                "Orbitale",  // Po
+                "Basion", // Or                 
+                "ANS",    // ANS
+                "PNS",    // PNS
+                "A-Point", // A-Point
+                "B-Point", // B-Point
+                "Pogonion", // Pogonion
+                                          
                 "Menton",    // Me
                 "Corpus Lt.", // Corpus Lt.
-                "Ramus Down", // Ramus Down
-                "Go",   // Go(Cons) → 괄호 없이 변경
+                "Ramus Down", // Ramus Down                
                 "Ar",         // Ar
                 "Mx.1 cr", // Mx.1 crown
                 "Mx.1 root",  // Mx1. root
                 "Mn.1 cr",    // Mn.1 cr
                 "Mn.1 root",  // Mn.1 root
                 "Mn.6 distal",// Mn.6 distal
-
                 "Columella",  // Columella
+
                 "Subnasale",  // Subnasale                
                 "soft tissue A", // soft tissue A                
-                "soft tissue B"  // soft tissue B
+                "soft tissue B",  // soft tissue B
+                "Ruler Start", // ruler start
+                "Ruler End" // ruler end
             ];
 
 
@@ -206,14 +215,14 @@
             speakMessage(guideMessage.text());
 
             canvas.addEventListener("click", function (event) {
-                if (Object.keys(landmarkCoordinates).length >= 24) {
+                if (Object.keys(landmarkCoordinates).length >= 25) {
                     guideMessage.hide();
                     return;
                 }
 
                 const rect = canvas.getBoundingClientRect();
                 const scaleX = img.naturalWidth / rect.width;
-                const scaleY = img.naturalHeight / rect.height;
+                const scaleY = img.naturalHeight / rect.height;;
 
                 const realX = Math.round((event.clientX - rect.left) * scaleX);
                 const realY = Math.round((event.clientY - rect.top) * scaleY);
@@ -248,16 +257,14 @@
                 }
                   
                 // ✅ 25개 좌표가 선택되었을 때 딕셔너리 반환
-                if (Object.keys(landmarkCoordinates).length === 24) {
+                if (Object.keys(landmarkCoordinates).length === 25) {
                     setTimeout(() => {
-                        alert("✅ 24개의 좌표가 선택되었습니다.");
+                        alert("✅ 25개의 좌표가 선택되었습니다.");
                         console.log("📌 최종 좌표 목록 (딕셔너리 형태):", landmarkCoordinates);
 
-                        // ✅ Sella - Nasion - A-Point 내각 계산
-                        const angle = calculateAngle(landmarkCoordinates, "Sella", "Nasion", "A-Point");
-                        console.log(`Sella - Nasion - A-Point의 내각: ${angle}°`);
+                        
                         excel_dict = getAngleDictionary(landmarkCoordinates);
-                        console.log(excel_dict);
+                        console.log("📌 계측값 생성 완료:", excel_dict);
                         
 
                         // ✅ 부모 창으로 좌표 데이터 전송

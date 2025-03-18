@@ -53,6 +53,7 @@
             border-radius: 5px;
             z-index: 10000;
         }
+        
         #button-container {
             position: absolute;
             bottom: 20px;
@@ -78,6 +79,17 @@
         #saveButton:hover, #insertButton:hover {
             background-color: #0056b3;
         }
+        #gaugeCanvas {
+            position: absolute;  /* 절대 위치 설정 */
+            top: 1px; /* 상단에서 10px 떨어진 위치 */
+            left: 1px; /* 왼쪽에서 10px 떨어진 위치 */
+            width: 40%; /* 전체 이미지의 40% 크기로 설정 */
+            height: 30%; /* 높이도 동일하게 40% */
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            display : none;
+        }
+
 
 
 
@@ -85,16 +97,22 @@
 </head>
 <body>
 
-    <div id="canvas-container">
+    <div id="canvas-container" style="position: relative;">
         <p id="error-message" style="color: red; display: none;">🚨 이미지 데이터를 찾을 수 없습니다!</p>
         <div id="guideMessage" class="guide-message">lower incisor tip</div>
         <canvas id="psaCanvas"></canvas>
+        
+        <!-- ✅ 왼쪽 상단에 배치할 캔버스 -->
+        <canvas id="gaugeCanvas" width="300" height="80"></canvas>
     </div>
+    
     <div id="button-container">                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
         <button id="saveButton">이미지 저장</button>        
         <button id="insertButton">이미지 삽입</button>
         <button id="resetButton">처음부터 다시하기</button>
     </div>
+    <!-- <canvas id="gaugeCanvas" width="600" height="200" style="background-color: #f9f9f9; border: 1px solid #ccc;"></canvas> -->
+
 
     
     <script>
@@ -186,11 +204,16 @@
                 const scaleY = canvas.height / img.naturalHeight;
                 
                 // 좌표를 캔버스 크기에 맞게 변환하여 저장
-                const realX = Math.round((event.clientX - rect.left) / scaleX);
-                const realY = Math.round((event.clientY - rect.top) / scaleY);
+                // const realX = Math.round((event.clientX - rect.left) / scaleX);
+                // const realY = Math.round((event.clientY - rect.top) / scaleY);
+                // 좌표를 캔버스 크기에 맞게 변환하여 저장 (소수점 1자리)
+                const realX = parseFloat(((event.clientX - rect.left) / scaleX).toFixed(2));
+                const realY = parseFloat(((event.clientY - rect.top) / scaleY).toFixed(2));
+
 
                 points.push([realX, realY]);
                 console.log("📍 변환된 클릭 좌표:", realX, realY);
+                console.log("📍 현재 좌표 목록:", points);
 
                 // 클릭한 위치에 빨간 점 표시 (캔버스 크기에 맞게 변환)
                 ctx.fillStyle = "red";
@@ -211,7 +234,28 @@
                     drawRedLine(points, scaleX, scaleY, ctx);
                 } else if (points.length == 4){
                     // 네 번째 점이 찍히면 파란색 직선 자동 생성
-                    drawBlueLine(points, scaleX, scaleY, ctx);
+                    const blue_result = drawBlueLine(points, scaleX, scaleY, ctx);
+
+                    if (!blue_result || !blue_result.p_perp) {
+                        console.error("🚨 drawBlueLine()에서 p_perp을 반환하지 못했습니다.");
+                        return;
+                    }
+
+                    console.log("📌 최종 좌표 목록:", points);
+                    console.log("📌 p_perp 반환됨:", blue_result.p_perp);
+                    console.log("Distance(Guide Zone): ", blue_result.D1);
+
+                    // 🟡 파란색 선이 다 그려진 후, 노란색 원 2개 추가!
+                    const yellow_result = drawYellowCircles(ctx, points, scaleX, scaleY, blue_result.p_perp);
+            
+                    console.log("Distance(Buffer Zone): ", yellow_result.D2);
+                    console.log("🟡 노란색 원 2개 추가 완료!");
+
+                    //캔버스 그리기
+                    showGaugeCanvas();
+
+                     // ✅ 계기판 UI 업데이트!
+                    updateCarDashboard(blue_result, yellow_result);
 
                     //4번째 점이 찍히면 가이드 메세지 숨김
                     guideMessage.hide();
@@ -219,7 +263,7 @@
                     // 🟢 파란색 선이 다 그려진 후 alert 메시지 실행
                     setTimeout(() => {
                         alert("✅ 4개의 좌표가 선택되었습니다.");
-                        console.log("📌 최종 좌표 목록:", points);
+                        
                         
                         // 부모 창에 좌표 데이터 전송
                         if (window.opener && typeof window.opener.logFromChild === "function") {

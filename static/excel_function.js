@@ -83,6 +83,133 @@ function calculateIntersectionAngle(landmarkCoordinates, key1, key2, key3, key4)
     return Math.round(thetaDeg * 100) / 100;  // ✅ 소수점 둘째 자리 반올림
 }
 
+function calculateIntersectionPoint(landmarkCoordinates, key1, key2, key3, key4) {
+    /**
+     * 두 직선의 교차점을 계산하는 함수
+     *
+     * @param {Object} landmarkCoordinates - 좌표를 저장한 딕셔너리
+     * @param {string} key1 - 첫 번째 직선의 시작점
+     * @param {string} key2 - 첫 번째 직선의 끝점
+     * @param {string} key3 - 두 번째 직선의 시작점
+     * @param {string} key4 - 두 번째 직선의 끝점
+     * @returns {Object|null} - 교차점 {x, y} 또는 null (평행할 경우)
+     */
+
+    // ✅ 1. 입력된 키가 landmarkCoordinates에 존재하는지 확인
+    if (!(key1 in landmarkCoordinates) || !(key2 in landmarkCoordinates) || 
+        !(key3 in landmarkCoordinates) || !(key4 in landmarkCoordinates)) {
+        console.error("❌ 입력된 키가 landmarkCoordinates에 존재하지 않습니다!");
+        return null;
+    }
+
+    // ✅ 2. 좌표 가져오기
+    const p1 = landmarkCoordinates[key1];  // 첫 번째 직선의 시작점
+    const p2 = landmarkCoordinates[key2];  // 첫 번째 직선의 끝점
+    const p3 = landmarkCoordinates[key3];  // 두 번째 직선의 시작점
+    const p4 = landmarkCoordinates[key4];  // 두 번째 직선의 끝점
+
+    // ✅ 3. 직선의 방정식 구하기: Ax + By = C 형태로 변환
+    const A1 = p2.y - p1.y;
+    const B1 = p1.x - p2.x;
+    const C1 = A1 * p1.x + B1 * p1.y;
+
+    const A2 = p4.y - p3.y;
+    const B2 = p3.x - p4.x;
+    const C2 = A2 * p3.x + B2 * p3.y;
+
+    // ✅ 4. 두 직선의 교차점 구하기
+    const determinant = A1 * B2 - A2 * B1;
+
+    if (determinant === 0) {
+        // 직선이 평행하거나 일치할 경우 (교차점 없음)
+        console.error("⚠️ 두 직선이 평행하여 교차점이 존재하지 않습니다.");
+        return null;
+    } else {
+        // 크래머의 법칙을 이용하여 교차점 계산
+        let x = (C1 * B2 - C2 * B1) / determinant;
+        let y = (A1 * C2 - A2 * C1) / determinant;
+
+        // ✅ 소수점 한 자리에서 반올림
+        x = Math.round(x * 10) / 10;
+        y = Math.round(y * 10) / 10;
+
+        return { x, y };
+    }
+}
+
+function calculateScaleFactor(landmarkCoordinates) {
+    /**
+     * "Ruler Start"와 "Ruler End" 사이의 거리를 계산하여 scaleFactor(거리/20)를 반환하는 함수
+     *
+     * @param {Object} landmarkCoordinates - 좌표를 저장한 딕셔너리
+     * @returns {number|null} - 변환 비율(scaleFactor, 소수점 한 자리 반올림) 또는 null (좌표 없음)
+     */
+
+    // ✅ 1. "Ruler Start" 및 "Ruler End" 좌표가 존재하는지 확인
+    if (!("Ruler Start" in landmarkCoordinates) || !("Ruler End" in landmarkCoordinates)) {
+        console.error("❌ 'Ruler Start' 또는 'Ruler End' 키가 landmarkCoordinates에 존재하지 않습니다!");
+        return null;
+    }
+
+    // ✅ 2. 좌표 가져오기
+    const start = landmarkCoordinates["Ruler Start"];
+    const end = landmarkCoordinates["Ruler End"];
+
+    // ✅ 3. 두 점 사이의 거리 계산 (유클리드 거리 공식)
+    const dx = end.x - start.x;  // x 좌표 차이
+    const dy = end.y - start.y;  // y 좌표 차이
+    const distance = Math.sqrt(dx * dx + dy * dy);  // 유클리드 거리 공식 적용
+
+    // ✅ 4. 변환 비율 계산 및 소수점 한 자리 반올림
+    const scaleFactor = Math.round((20 / distance) * 10) / 10;   
+
+    console.log("📏 두 점 사이의 거리:", distance);
+    console.log("📌 변환 비율(scaleFactor):", scaleFactor);
+    console.log("📏 Ruler Start:", start, "Ruler End:", end);
+
+    return scaleFactor;
+}
+
+
+function calculateScaledDistanceFromKeys(landmarkCoordinates, key1, key2, scaleFactor) {
+    /**
+     * landmarkCoordinates에서 두 키에 해당하는 좌표를 가져와 거리 계산 후 변환 비율 적용
+     *
+     * @param {Object} landmarkCoordinates - 좌표를 저장한 딕셔너리
+     * @param {string} key1 - 첫 번째 좌표의 키
+     * @param {string} key2 - 두 번째 좌표의 키
+     * @param {number} scaleFactor - 변환 비율
+     * @returns {number|null} - 변환된 거리 (소수점 한 자리에서 반올림) 또는 null (키가 존재하지 않을 경우)
+     */
+
+    scaleFactor = calculateScaleFactor(landmarkCoordinates);
+    if (scaleFactor === null) {
+        console.error("❌ 변환 비율이 계산되지 않았습니다!");
+        return null;
+    }
+    console.log("📏 변환 비율(scaleFactor):", scaleFactor);
+
+    // ✅ 1. 입력된 키가 landmarkCoordinates에 존재하는지 확인
+    if (!(key1 in landmarkCoordinates) || !(key2 in landmarkCoordinates)) {
+        console.error(`❌ 입력된 키(${key1}, ${key2})가 landmarkCoordinates에 존재하지 않습니다!`);
+        return null;
+    }
+
+    // ✅ 2. 좌표 가져오기
+    const point1 = landmarkCoordinates[key1];  // 첫 번째 키의 좌표
+    const point2 = landmarkCoordinates[key2];  // 두 번째 키의 좌표
+
+    // ✅ 3. 두 점 사이의 거리 계산 (유클리드 거리 공식)
+    const dx = point2.x - point1.x;  // x 좌표 차이
+    const dy = point2.y - point1.y;  // y 좌표 차이
+    const distance = Math.sqrt(dx * dx + dy * dy);  // 유클리드 거리 공식 적용
+
+    // ✅ 4. 변환 비율 적용 및 소수점 한 자리 반올림
+    const scaledDistance = Math.round((distance * scaleFactor) * 10) / 10;
+
+    return scaledDistance;
+}
+
 
 // ✅ SNA & SNB 계산 후 딕셔너리 반환 함수
 function getAngleDictionary(landmarkCoordinates) {
@@ -92,6 +219,15 @@ function getAngleDictionary(landmarkCoordinates) {
      * @param {Object} landmarkCoordinates - 좌표를 저장한 딕셔너리
      * @returns {Object} - {"SNA": xx.x, "SNB": xx.x} 형태의 객체
      */
+    const Go_Gn = {
+        "Go" : calculateIntersectionPoint(landmarkCoordinates, "Ar", "Ramus Down", "Menton", "Corpus Lt."),
+        "Gn" : calculateIntersectionPoint(landmarkCoordinates, "Nasion", "Pogonion", "Menton", "Corpus Lt."),
+    };
+
+    landmarkCoordinates["Go"] = Go_Gn["Go"];
+    console.log("📌 Go 좌표:", Go_Gn["Go"]);
+    landmarkCoordinates["Gn"] = Go_Gn["Gn"];
+    console.log("📌 Gn 좌표:", Go_Gn["Gn"]);
 
     const angles = {
         SNA: calculateAngle(landmarkCoordinates, "Sella", "Nasion", "A-Point"),
@@ -112,10 +248,22 @@ function getAngleDictionary(landmarkCoordinates) {
         "FH<Ans" :calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Sella", "ANS"),
         "FH<Pr" : calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Sella", "Porion"),
         "Na-S-BaA" : calculateAngle(landmarkCoordinates, "Nasion", "Sella", "Basion"),
+        "incisor Overbite" : "개발 중",
+        "incisor Overjet" : "개발 중",
         "NALA" : calculateAngle(landmarkCoordinates, "Columella", "Subnasale", "soft tissue A"),
-
-
-        
+        "HR" : "개발 중",
+        "Cal" : calculateScaleFactor(landmarkCoordinates),
+        "ACBL" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Sella", "Nasion"),
+        "MBL" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Menton", "Go"),
+        "AFH" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Nasion", "Menton"),
+        "PFH" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Sella", "Go"),
+        "E-line" : "개발 중",
+        "Ramus height" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Ar", "Go"),
+        "Naperp-A" : "개발 중",
+        "MxBL" : calculateScaledDistanceFromKeys(landmarkCoordinates, "ANS", "PNS"),
+        "PCBL" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Sella", "Basion"),
+        "S-Por" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Sella", "Porion"),          
+      
 
     };
 
