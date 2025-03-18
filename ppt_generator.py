@@ -390,193 +390,260 @@ def create_first_slide(prs, ceph, id_photo_path, df_raw = None):   # 2️⃣ Cep
         print(traceback.format_exc(), flush=True)
         return None, None  # 오류 발생 시 기본값 반환
 
+def create_second_slide(prs, HGI, VGI, default_img):
+     
+     """
+    psa 이미지를 2번째 슬라이드에 추가하는 함수.
+    만약 업로드된 Pano 이미지가 없거나 손상되었을 경우, 기본 이미지 사용.
 
-def create_second_slide(prs, HGI, VGI, psa_name_path):
-    # 두 번째 슬라이드 만들기
-    temp_slide_1 = prs.slides[1] #2번째 슬라이드를 KOCO 프레임에서가지고 오기
-    shape_s_1= temp_slide_1.shapes
-    
-    # PSA 이미지가 기본 이미지라면 복잡한 연산 생략
-    if psa_name_path == "./static/default_image.jpg":
-        print("🚨 PSA 이미지 없음 -> 기본 이미지로 대체하여 슬라이드 생성", flush=True)
+    :param prs: 프레젠테이션 객체
+    :param default_img: 기본 이미지 파일 경로
+    """
+     # Pano 이미지 업로드 확인
+     psa_file = request.files.get('psa')  # Flask에서 request로 직접 가져옴
 
-        # 기본 이미지 처리
-        # exp = "default_psa_result"
-        img_psa = Image.open(psa_name_path)
-        print("img_psa.size:", img_psa.size, flush=True, file=sys.stderr)
+     if psa_file and psa_file.filename:
+        # 파일 저장 후 경로 설정
+        psa_path = save_uploaded_file(psa_file, 'psa.jpg')
 
-        # 이미지 크기 조정 및 삽입
-        if img_psa.size[1] / img_psa.size[0] < 19.05 / 25.4:
-            w = 10
-            print("w:", w, flush=True, file=sys.stderr)
-            width = Inches(w)
-            print("w:", w, flush=True, file=sys.stderr)
-            h = w * img_psa.size[1] / img_psa.size[0]
-            height = Inches(h)
-            left = Inches(0)
-            top = Inches(((19.05 / 2.54) - h) / 2)
+        # 파일 유효성 검사 (파일이 존재하고 크기가 0보다 커야 함)
+        if not os.path.exists(psa_path) or os.path.getsize(psa_path) == 0:
+            print(f"🚨 PSA 이미지가 없거나 손상됨: {psa_path}, 기본 이미지 사용")
+            psa_path = default_img  # 기본 이미지로 변경
         else:
-            h = 19.05 / 2.54
-            height = Inches(h)
-            w = h * img_psa.size[0] / img_psa.size[1]
-            width = Inches(w)
-            left = Inches((10 - w) / 2)
-            top = Inches(0)
+            try:
+                # 이미지 유효성 검사
+                with Image.open(psa_path) as img:
+                    img.verify()
+                print(f"✅ 유효한 PSA 이미지 확인: {psa_path}")
+            except Exception as e:
+                print(f"🚨 유효하지 않은 PSA 이미지 파일: {psa_path}, 기본 이미지 사용")
+                psa_path = default_img  # 기본 이미지로 변경
+     else:
+        print(f"🚨 PSA 이미지가 업로드되지 않음, 기본 이미지 사용")
+        psa_path = default_img  # 기본 이미지로 변경
 
-        print("w:", w, flush=True, file=sys.stderr)
-        print("h:", h, flush=True, file=sys.stderr)
-        shape_s_1.add_picture(psa_name_path, left, top, width, height)
-        print("두번째 슬라이드 완료", flush=True, file=sys.stderr)
-    
-        return  # 여기서 함수 종료
+     # 2번째 슬라이드 가져오기
+     temp_slide_1 = prs.slides[1]  # 슬라이드 인덱스는 0부터 시작하므로 5번째는 인덱스 4
+     shape_s_1 = temp_slide_1.shapes
 
-    #psa 를 위해서 이미지 객체 만들기
-    print("psa_name_path:", psa_name_path, flush=True, file=sys.stderr)
-    psa_image = cv2.imread(psa_name_path, cv2.IMREAD_COLOR)
-    psa_height, psa_width, psa_channels = psa_image.shape
-    print("psa_width:", psa_width, flush=True, file=sys.stderr)
-    print("psa_image.shape:", psa_image.shape, flush=True, file=sys.stderr)
+     # 이미지 열기
+     img_psa = Image.open(psa_path)
 
-    ### 이름 나온 곳 검은색으로 칠해주기
+     # 슬라이드 크기 (인치 단위)
+     slide_width = 10
+     slide_height = 19.05 / 2.54  # cm를 inch로 변환
 
-    x_start = int(psa_width)
-    y_start = int(psa_height/4)
-
-    image = cv2.rectangle(psa_image, (0,0), (x_start, y_start),(0,0,0),-1)
-
-
-    x_start = int(psa_width/3)
-    y_start = int(psa_height)
-    image = cv2.rectangle(psa_image, (0,0), (x_start, y_start),(0,0,0),-1)
-
-    # 초록색 색상 범위 설정
-    lower_green = (30, 80, 80)
-    upper_green = (70, 255, 255)
-
-
-    # RGB 에서 HSV 로 색상지정방식 변경
-    img_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
-    #마스크 씌우기
-    img_mask = cv2.inRange(img_hsv, lower_green, upper_green)
-
-    #사진상에서 초록색만 남기는 것(마스크를 씌움)
-    img_result = cv2.bitwise_and(image, image, mask=img_mask)
-
-    
-    # 특정색상이 검출되지 않으면 이 부분은 건너뜀
-    if img_result is None:
-        print("❌ 특정 색상이 검출되지 않아 이미지 처리를 건너뜁니다.")
-        return
-    
-    print("이미지색상 검출",flush=True, file=sys.stderr)
-    
-
-    nonzero_values = img_result.nonzero()
-    if len(nonzero_values[0]) > 0 and len(nonzero_values[1]) > 0:
-        d = nonzero_values[0][0]
-        b = nonzero_values[0][-1]
-        c = nonzero_values[1][0]
-        a = nonzero_values[1][-1]
-    else:
-        print("🚨 이미지에서 초록색 픽셀을 찾을 수 없습니다.", flush=True, file=sys.stderr)
-        d, b, c, a = 0, 0, 0, 0  # 기본값 설정
-
-    # 하절치점의 좌표는 array 에서 columns 에 해당하는 [1]의 마지막 값이다 [-1] 결국 [1][-1] =a (하절치의 x 좌표)
-
-    # 남은 하나 꼭짓점 좌표 구하기
-    x0 = int((a+c)/2 - (np.sqrt(3)*(d-b))/2)
-    y0 = int((b+d)/2 + (np.sqrt(3)*(c-a))/2)
-
-    x1 = int((a+c)/2 + (np.sqrt(3)*(d-b))/2)
-    y1 = int((b+d)/2 - (np.sqrt(3)*(c-a))/2)
-
-    if x0 > x1:
-        x = x0
-    else:
-        x = x1
-
-    if y0 < y1:
-        y = y0
-    else:
-        y = y1
-        
-    # 좌표 위치 묶어주기 
-    pts = np.array([[a,b],[c,d],[x,y]],dtype=np.int32)
-    image = cv2.imread(psa_name_path, cv2.IMREAD_COLOR)
-
-    # 삼각형 그리기
-    src = cv2.polylines(image, [pts], isClosed=True, color = (0,255,255))
-
-
-    print('1')
-
-    # 변 길이
-
-    lim = int(np.sqrt((a-c)**2+(b-d)**2))
-
-    # 원그리기1
-    src = cv2.circle(image, (x,y), radius=lim, color = (0,255,255))
-
-    # 원그리기 2
-    src = cv2.circle(src, (a,b), radius=lim, color = (0,255,255))
-
-    #화살표그리기(성장방향)
-    psa_image = cv2.imread(psa_name_path, cv2.IMREAD_COLOR)
-   
-
-    # img_lateral_ceph = cv2.imread(lateral_ceph, cv2.IMREAD_COLOR)
-    s_x = 1150
-    s_y = 200
-    color = (0,0,255)
-    pt1 = (s_x, s_y)
-
-    #HGI, VGI 가 None 이 아니라면 화살표 그리고 None 이면 pass 하기
-    if HGI is None or VGI is None:
-        print("HGI, VGI 값이 없습니다.")
-        pass
-    else:
-        pt2 = (int((s_x +(HGI*100)/4)), int((s_y - (VGI*100)/4)))
-        img_arrow = cv2.arrowedLine(src, pt1,pt2, color= (0,0,255))
-
-    # pt2 = (int((s_x +(HGI*100)/4)), int((s_y - (VGI*100)/4)))
-    # img_arrow = cv2.arrowedLine(src, pt1,pt2, color= (0,0,255))
-
-
-    # 결과이미지 저장하기
-    psa_name = os.path.basename(psa_name_path)
-    exp = psa_name.strip().split('.')[0]
-    print("exp:",exp)
-    if src is not None:
-        save_path = f"{exp}_result.png"
-        success = cv2.imwrite(save_path, src)
-        if success:
-            print(f"✅ 결과 이미지 저장 완료: {save_path}")
-        else:
-            print(f"❌ 이미지 저장 실패: {save_path}")
-    else:
-        print("❌ 저장할 이미지 데이터가 없습니다.")
-    
-        
-    img_psa = Image.open(f"{exp}_result.png")
-    if img_psa.size[1]/img_psa.size[0] < 19.05/25.4 :
-        w = 10
+     # 이미지 비율에 따라 크기 조정
+     if img_psa.size[1] / img_psa.size[0] < slide_height / slide_width:
+        w = slide_width
         width = Inches(w)
-        h = w * img_psa.size[1]/img_psa.size[0]
+        h = w * img_psa.size[1] / img_psa.size[0]
         height = Inches(h)
         left = Inches(0)
-        top = Inches(((19.05/2.54)-h)/2)
-        
-    else:
-        h = 19.05/2.54
+        top = Inches((slide_height - h) / 2)  # 중앙 정렬
+     else:
+        h = slide_height
         height = Inches(h)
-        w = h * img_psa.size[0]/img_psa.size[1]
+        w = h * img_psa.size[0] / img_psa.size[1]
         width = Inches(w)
-        left = Inches((10-w)/2)
+        left = Inches((slide_width - w) / 2)  # 중앙 정렬
         top = Inches(0)
-    shape_s_1.add_picture(f"{exp}_result.png",left, top, width, height)
 
-    print("두번째 슬라이드 완료",flush=True, file=sys.stderr)
+     # 이미지 추가
+     shape_s_1.add_picture(psa_path, left, top, width, height)
+
+     print("✅ 2번째 슬라이드에 PSA 이미지 추가 완료!")
+
+     
+     
+
+# def create_second_slide(prs, HGI, VGI, psa_name_path):
+#     # 두 번째 슬라이드 만들기
+#     temp_slide_1 = prs.slides[1] #2번째 슬라이드를 KOCO 프레임에서가지고 오기
+#     shape_s_1= temp_slide_1.shapes
+    
+#     # PSA 이미지가 기본 이미지라면 복잡한 연산 생략
+#     if psa_name_path == "./static/default_image.jpg":
+#         print("🚨 PSA 이미지 없음 -> 기본 이미지로 대체하여 슬라이드 생성", flush=True)
+
+#         # 기본 이미지 처리
+#         # exp = "default_psa_result"
+#         img_psa = Image.open(psa_name_path)
+#         print("img_psa.size:", img_psa.size, flush=True, file=sys.stderr)
+
+#         # 이미지 크기 조정 및 삽입
+#         if img_psa.size[1] / img_psa.size[0] < 19.05 / 25.4:
+#             w = 10
+#             print("w:", w, flush=True, file=sys.stderr)
+#             width = Inches(w)
+#             print("w:", w, flush=True, file=sys.stderr)
+#             h = w * img_psa.size[1] / img_psa.size[0]
+#             height = Inches(h)
+#             left = Inches(0)
+#             top = Inches(((19.05 / 2.54) - h) / 2)
+#         else:
+#             h = 19.05 / 2.54
+#             height = Inches(h)
+#             w = h * img_psa.size[0] / img_psa.size[1]
+#             width = Inches(w)
+#             left = Inches((10 - w) / 2)
+#             top = Inches(0)
+
+#         print("w:", w, flush=True, file=sys.stderr)
+#         print("h:", h, flush=True, file=sys.stderr)
+#         shape_s_1.add_picture(psa_name_path, left, top, width, height)
+#         print("두번째 슬라이드 완료", flush=True, file=sys.stderr)
+    
+#         return  # 여기서 함수 종료
+
+#     #psa 를 위해서 이미지 객체 만들기
+#     print("psa_name_path:", psa_name_path, flush=True, file=sys.stderr)
+#     psa_image = cv2.imread(psa_name_path, cv2.IMREAD_COLOR)
+#     psa_height, psa_width, psa_channels = psa_image.shape
+#     print("psa_width:", psa_width, flush=True, file=sys.stderr)
+#     print("psa_image.shape:", psa_image.shape, flush=True, file=sys.stderr)
+
+#     ### 이름 나온 곳 검은색으로 칠해주기
+
+#     x_start = int(psa_width)
+#     y_start = int(psa_height/4)
+
+#     image = cv2.rectangle(psa_image, (0,0), (x_start, y_start),(0,0,0),-1)
+
+
+#     x_start = int(psa_width/3)
+#     y_start = int(psa_height)
+#     image = cv2.rectangle(psa_image, (0,0), (x_start, y_start),(0,0,0),-1)
+
+#     # 초록색 색상 범위 설정
+#     lower_green = (30, 80, 80)
+#     upper_green = (70, 255, 255)
+
+
+#     # RGB 에서 HSV 로 색상지정방식 변경
+#     img_hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+#     #마스크 씌우기
+#     img_mask = cv2.inRange(img_hsv, lower_green, upper_green)
+
+#     #사진상에서 초록색만 남기는 것(마스크를 씌움)
+#     img_result = cv2.bitwise_and(image, image, mask=img_mask)
+
+    
+#     # 특정색상이 검출되지 않으면 이 부분은 건너뜀
+#     if img_result is None:
+#         print("❌ 특정 색상이 검출되지 않아 이미지 처리를 건너뜁니다.")
+#         return
+    
+#     print("이미지색상 검출",flush=True, file=sys.stderr)
+    
+
+#     nonzero_values = img_result.nonzero()
+#     if len(nonzero_values[0]) > 0 and len(nonzero_values[1]) > 0:
+#         d = nonzero_values[0][0]
+#         b = nonzero_values[0][-1]
+#         c = nonzero_values[1][0]
+#         a = nonzero_values[1][-1]
+#     else:
+#         print("🚨 이미지에서 초록색 픽셀을 찾을 수 없습니다.", flush=True, file=sys.stderr)
+#         d, b, c, a = 0, 0, 0, 0  # 기본값 설정
+
+#     # 하절치점의 좌표는 array 에서 columns 에 해당하는 [1]의 마지막 값이다 [-1] 결국 [1][-1] =a (하절치의 x 좌표)
+
+#     # 남은 하나 꼭짓점 좌표 구하기
+#     x0 = int((a+c)/2 - (np.sqrt(3)*(d-b))/2)
+#     y0 = int((b+d)/2 + (np.sqrt(3)*(c-a))/2)
+
+#     x1 = int((a+c)/2 + (np.sqrt(3)*(d-b))/2)
+#     y1 = int((b+d)/2 - (np.sqrt(3)*(c-a))/2)
+
+#     if x0 > x1:
+#         x = x0
+#     else:
+#         x = x1
+
+#     if y0 < y1:
+#         y = y0
+#     else:
+#         y = y1
+        
+#     # 좌표 위치 묶어주기 
+#     pts = np.array([[a,b],[c,d],[x,y]],dtype=np.int32)
+#     image = cv2.imread(psa_name_path, cv2.IMREAD_COLOR)
+
+#     # 삼각형 그리기
+#     src = cv2.polylines(image, [pts], isClosed=True, color = (0,255,255))
+
+
+#     print('1')
+
+#     # 변 길이
+
+#     lim = int(np.sqrt((a-c)**2+(b-d)**2))
+
+#     # 원그리기1
+#     src = cv2.circle(image, (x,y), radius=lim, color = (0,255,255))
+
+#     # 원그리기 2
+#     src = cv2.circle(src, (a,b), radius=lim, color = (0,255,255))
+
+#     #화살표그리기(성장방향)
+#     psa_image = cv2.imread(psa_name_path, cv2.IMREAD_COLOR)
+   
+
+#     # img_lateral_ceph = cv2.imread(lateral_ceph, cv2.IMREAD_COLOR)
+#     s_x = 1150
+#     s_y = 200
+#     color = (0,0,255)
+#     pt1 = (s_x, s_y)
+
+#     #HGI, VGI 가 None 이 아니라면 화살표 그리고 None 이면 pass 하기
+#     if HGI is None or VGI is None:
+#         print("HGI, VGI 값이 없습니다.")
+#         pass
+#     else:
+#         pt2 = (int((s_x +(HGI*100)/4)), int((s_y - (VGI*100)/4)))
+#         img_arrow = cv2.arrowedLine(src, pt1, pt2, color= (0,0,255))
+
+#     # pt2 = (int((s_x +(HGI*100)/4)), int((s_y - (VGI*100)/4)))
+#     # img_arrow = cv2.arrowedLine(src, pt1,pt2, color= (0,0,255))
+
+
+#     # 결과이미지 저장하기
+#     psa_name = os.path.basename(psa_name_path)
+#     exp = psa_name.strip().split('.')[0]
+#     print("exp:",exp)
+#     if src is not None:
+#         save_path = f"{exp}_result.png"
+#         success = cv2.imwrite(save_path, src)
+#         if success:
+#             print(f"✅ 결과 이미지 저장 완료: {save_path}")
+#         else:
+#             print(f"❌ 이미지 저장 실패: {save_path}")
+#     else:
+#         print("❌ 저장할 이미지 데이터가 없습니다.")
+    
+        
+#     img_psa = Image.open(f"{exp}_result.png")
+#     if img_psa.size[1]/img_psa.size[0] < 19.05/25.4 :
+#         w = 10
+#         width = Inches(w)
+#         h = w * img_psa.size[1]/img_psa.size[0]
+#         height = Inches(h)
+#         left = Inches(0)
+#         top = Inches(((19.05/2.54)-h)/2)
+        
+#     else:
+#         h = 19.05/2.54
+#         height = Inches(h)
+#         w = h * img_psa.size[0]/img_psa.size[1]
+#         width = Inches(w)
+#         left = Inches((10-w)/2)
+#         top = Inches(0)
+#     shape_s_1.add_picture(f"{exp}_result.png",left, top, width, height)
+
+#     print("두번째 슬라이드 완료",flush=True, file=sys.stderr)
 
 # 3번째 슬라이드 생성 함수 (구외사진)
 def create_third_slide(prs, default_img):
