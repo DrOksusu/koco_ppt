@@ -104,7 +104,8 @@ def create_ppt(request):
         print("🚨 엑셀 파일과 ceph_dict 둘 다 없습니다.", flush=True, file=sys.stderr)
         HGI, VGI = None, None  # 값이 없으면 이후 슬라이드에서 참고하지 않도록
         print("HGI:",HGI, flush=True, file=sys.stderr)
-        print("VGI:",VGI, flush=True, file=sys.stderr) 
+        print("VGI:",VGI, flush=True, file=sys.stderr)
+        
     
     
     

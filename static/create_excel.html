@@ -101,7 +101,7 @@
         <canvas id="psaCanvas"></canvas>
     </div>
     <div id="button-container">                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
-        <button id="saveButton">이미지 저장</button>        
+        <button id="backButton">한 칸 전으로</button>        
         <button id="insertButton">엑셀 데이터 생성</button>
         <button id="resetButton">처음부터 다시하기</button>
     </div>
@@ -110,14 +110,9 @@
 
 
     <script>
-        
-        document.addEventListener("DOMContentLoaded", function() {
-            if (typeof getAngleDictionary === "function") {
-                console.log("✅ getAngleDictionary 함수가 정상적으로 로드되었습니다.");
-            } else {
-                console.error("❌ getAngleDictionary 함수가 정의되지 않았습니다.");
-            }
-        });
+        // ✅ 전역 변수로 선언 (전역에서 유지되도록 설정)
+        let scaleX = 1;
+        let scaleY = 1;      
 
 
         $(document).ready(function () {
@@ -127,7 +122,7 @@
             function updateImageSize() {
                 const landmarkImage = document.getElementById("landmarkImage");
                 if (landmarkImage) {
-                    landmarkImage.style.width = (window.innerWidth * 0.4) + "px"; // ✅ 윈도우 폭의 40% 크기로 설정
+                    landmarkImage.style.width = (window.innerWidth * 0.35) + "px"; // ✅ 윈도우 폭의 40% 크기로 설정
                 }
             }
 
@@ -195,6 +190,7 @@
                 const imgHeight = img.naturalHeight;
 
                 let scale = Math.min(winWidth / imgWidth, winHeight / imgHeight);
+                console.log("📏 이미지 크기 조정 비율:", scale);
                 canvas.width = imgWidth * scale;
                 canvas.height = imgHeight * scale;
 
@@ -221,8 +217,8 @@
                 }
 
                 const rect = canvas.getBoundingClientRect();
-                const scaleX = img.naturalWidth / rect.width;
-                const scaleY = img.naturalHeight / rect.height;;
+                scaleX = img.naturalWidth / rect.width;
+                scaleY = img.naturalHeight / rect.height;;
 
                 const realX = Math.round((event.clientX - rect.left) * scaleX);
                 const realY = Math.round((event.clientY - rect.top) * scaleY);
@@ -283,9 +279,36 @@
                 }
             });
 
-            $("#saveButton").on("click", function () {
-                alert("기능 개발 중입니다.");
-                return;                    
+            $("#backButton").on("click", function () {
+                if (Object.keys(landmarkCoordinates).length === 0) {
+                    alert("🚨 되돌릴 좌표가 없습니다.");
+                    return;
+                }
+
+                // ✅ 마지막으로 저장된 좌표 삭제
+                const keys = Object.keys(landmarkCoordinates); // 현재 저장된 좌표 키 배열
+                const lastKey = keys[keys.length - 1]; // 마지막 키 가져오기
+                delete landmarkCoordinates[lastKey]; // 마지막 좌표 삭제
+                console.log(`❌ 마지막 좌표 삭제: ${lastKey}`);
+
+                // ✅ 캔버스 다시 그리기 (이미지 리셋 후 다시 점 찍기)
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                // ✅ 남아있는 좌표 다시 표시
+                Object.entries(landmarkCoordinates).forEach(([key, coord]) => {
+                    ctx.fillStyle = "red";
+                    ctx.beginPath();
+                    ctx.arc(coord.x / scaleX, coord.y / scaleY, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // ✅ 가이드 메시지를 이전 메시지로 변경
+                const prevIndex = Object.keys(landmarkCoordinates).length; // 현재 남아 있는 개수
+                if (prevIndex < messages.length) {
+                    guideMessage.text(messages[prevIndex]); // ✅ 가이드 메시지 업데이트
+                    speakMessage(messages[prevIndex]); // ✅ 음성 안내
+                }      
             });
 
             $("#insertButton").on("click", function () {

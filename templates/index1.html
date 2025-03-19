@@ -154,8 +154,11 @@
 </body>
 <script>
 
-    let psaData = JSON.parse(localStorage.getItem("psaData")) || {};  
-    let excelDictData = JSON.parse(localStorage.getItem("excelDictData")) || {};  
+    // let psaData = JSON.parse(localStorage.getItem("psaData")) || {};  
+    // let excelDictData = JSON.parse(localStorage.getItem("excelDictData")) || {};  
+
+    let psaData = {};
+    let excelDictData = {};
 
     function logFromChild(data) {
       console.log("📌 자식 창에서 받은 데이터:", data);

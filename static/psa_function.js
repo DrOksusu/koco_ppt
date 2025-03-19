@@ -235,9 +235,9 @@ function drawYellowCircles(ctx, points, scaleX, scaleY, p_perp) {
 
 // ✅ 게이지 스타일 설정
 const GAUGE_COLORS = {
-    safe: "green",   // 50 ~ 120
+    safe: "green",   // 50 ~ 150
     warning: "yellow",  // 0 ~ 50
-    danger: "red"  // 130 이상
+    danger: "red"  // 150 이상
 };
 
 // ✅ 게이지를 그리는 함수
@@ -256,7 +256,7 @@ function drawGauge(ctx, value, maxValue, x, y, radius, label) {
     // ✅ 게이지 색상 결정
     let color;
     if (value <= 50) color = GAUGE_COLORS.warning;
-    else if (value <= 130) color = GAUGE_COLORS.safe;
+    else if (value <= 150) color = GAUGE_COLORS.safe;
     else color = GAUGE_COLORS.danger;
 
     // ✅ 원형 게이지 바탕

@@ -36,7 +36,7 @@ function calculateAngle(landmarkCoordinates, key1, key2, key3) {
     const thetaRad = Math.acos(Math.min(Math.max(cosTheta, -1), 1));  // -1 ~ 1 범위로 제한
     const thetaDeg = (thetaRad * 180) / Math.PI;
 
-    return Math.round(thetaDeg * 100) / 100;  // ✅ 소수점 둘째 자리 반올림
+    return Math.round(thetaDeg * 10) / 10;  // ✅ 소수점 둘째 자리 반올림
 }
 
 function calculateIntersectionAngle(landmarkCoordinates, key1, key2, key3, key4) {
@@ -80,7 +80,7 @@ function calculateIntersectionAngle(landmarkCoordinates, key1, key2, key3, key4)
     const thetaRad = Math.acos(Math.min(Math.max(cosTheta, -1), 1));  // -1 ~ 1 범위로 제한
     const thetaDeg = (thetaRad * 180) / Math.PI;
 
-    return Math.round(thetaDeg * 100) / 100;  // ✅ 소수점 둘째 자리 반올림
+    return Math.round(thetaDeg * 10) / 10;  // ✅ 소수점 둘째 자리 반올림
 }
 
 function calculateIntersectionPoint(landmarkCoordinates, key1, key2, key3, key4) {
@@ -160,8 +160,8 @@ function calculateScaleFactor(landmarkCoordinates) {
     const dy = end.y - start.y;  // y 좌표 차이
     const distance = Math.sqrt(dx * dx + dy * dy);  // 유클리드 거리 공식 적용
 
-    // ✅ 4. 변환 비율 계산 및 소수점 한 자리 반올림
-    const scaleFactor = Math.round((20 / distance) * 10) / 10;   
+    // ✅ 4. 변환 비율 계산 및 소수점 세 자리 반올림
+    const scaleFactor = Math.round((20 / distance) * 100) / 100;   
 
     console.log("📏 두 점 사이의 거리:", distance);
     console.log("📌 변환 비율(scaleFactor):", scaleFactor);
@@ -232,21 +232,21 @@ function getAngleDictionary(landmarkCoordinates) {
     const angles = {
         SNA: calculateAngle(landmarkCoordinates, "Sella", "Nasion", "A-Point"),
         SNB: calculateAngle(landmarkCoordinates, "Sella", "Nasion", "B-Point"),
-        FMA: calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Menton","Go"),
+        FMA: Math.round((180-(calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Menton","Go")))*10)/10,
         '1 to SN': calculateIntersectionAngle(landmarkCoordinates, "Sella", "Nasion", "Mx.1 cr", "Mx.1 root"),
-        IMPA : calculateIntersectionAngle(landmarkCoordinates, "Go", "Menton", "Mn.1 cr", "Mn.1 root"),
+        IMPA : Math.round((180-(calculateIntersectionAngle(landmarkCoordinates, "Go", "Menton", "Mn.1 cr", "Mn.1 root")))*10)/10,
         PMA : calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Go", "Menton"),
         'SN-GoMe' : calculateIntersectionAngle(landmarkCoordinates, "Sella", "Nasion", "Go", "Menton"),
         "FA'B'" : calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "soft tissue A", "soft tissue B"),
         "FABA" : calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "A-Point", "B-Point"),
-        "Y-angle" : calculateAngle(landmarkCoordinates, "Porion", "Orbitale", "Gn"),
+        "Y-angle" : calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Sella","Gn"),
         "UGA" : calculateAngle(landmarkCoordinates, "Ar", "Go", "Nasion"),
         "LGA" : calculateAngle(landmarkCoordinates, "Nasion", "Go", "Menton"),
         "S-A" : calculateAngle(landmarkCoordinates, "Nasion", "Sella", "Ar"),
         "UIOP" : calculateIntersectionAngle(landmarkCoordinates, "Mn.1 cr", "Mn.6 distal", "Mx.1 cr", "Mx.1 root"),
-        "MOP" : calculateIntersectionAngle(landmarkCoordinates, "Mn.6 distal", "Mn.1 cr", "Menton", "Go"),
+        "MOP" : Math.round((180-(calculateIntersectionAngle(landmarkCoordinates, "Mn.6 distal", "Mn.1 cr", "Menton", "Go")))*10)/10,
         "FH<Ans" :calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Sella", "ANS"),
-        "FH<Pr" : calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Sella", "Porion"),
+        "FH<Pr" : Math.round((180-(calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Sella", "Porion")))*10)/10,
         "Na-S-BaA" : calculateAngle(landmarkCoordinates, "Nasion", "Sella", "Basion"),
         "incisor Overbite" : "개발 중",
         "incisor Overjet" : "개발 중",
