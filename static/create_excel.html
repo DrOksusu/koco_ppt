@@ -122,7 +122,7 @@
             function updateImageSize() {
                 const landmarkImage = document.getElementById("landmarkImage");
                 if (landmarkImage) {
-                    landmarkImage.style.width = (window.innerWidth * 0.35) + "px"; // ✅ 윈도우 폭의 40% 크기로 설정
+                    landmarkImage.style.width = (window.innerWidth * 0.3) + "px"; // ✅ 윈도우 폭의 30% 크기로 설정
                 }
             }
 
@@ -153,11 +153,15 @@
                 "Mn.1 cr",    // Mn.1 cr
                 "Mn.1 root",  // Mn.1 root
                 "Mn.6 distal",// Mn.6 distal
-                "Columella",  // Columella
+                "Pronasale",  // Pronasale
 
+                "Columella",  // Columella
                 "Subnasale",  // Subnasale                
-                "soft tissue A", // soft tissue A                
+                "soft tissue A", // soft tissue A
+                "Upper lip", // upper lip
+                "Lower lip", // lower lip             
                 "soft tissue B",  // soft tissue B
+                "soft tissue Pogonion", // soft tissue pogonion
                 "Ruler Start", // ruler start
                 "Ruler End" // ruler end
             ];
@@ -211,7 +215,7 @@
             speakMessage(guideMessage.text());
 
             canvas.addEventListener("click", function (event) {
-                if (Object.keys(landmarkCoordinates).length >= 25) {
+                if (Object.keys(landmarkCoordinates).length >= 29) {
                     guideMessage.hide();
                     return;
                 }
@@ -252,10 +256,10 @@
                     guideMessage.hide();
                 }
                   
-                // ✅ 25개 좌표가 선택되었을 때 딕셔너리 반환
-                if (Object.keys(landmarkCoordinates).length === 25) {
+                // ✅ 29개 좌표가 선택되었을 때 딕셔너리 반환
+                if (Object.keys(landmarkCoordinates).length === 29) {
                     setTimeout(() => {
-                        alert("✅ 25개의 좌표가 선택되었습니다.");
+                        alert("✅ 29개의 좌표가 선택되었습니다.");
                         console.log("📌 최종 좌표 목록 (딕셔너리 형태):", landmarkCoordinates);
 
                         

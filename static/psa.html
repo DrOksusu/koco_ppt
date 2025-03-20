@@ -89,6 +89,15 @@
             border: 1px solid #ccc;
             display : none;
         }
+        #psa_landmark_image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 25vw; /* 윈도우 폭의 1/4 크기로 설정 */
+            height: auto;
+            z-index: 10001; /* 다른 요소 위에 배치 */
+            border: 2px solid black; /* 테두리 추가 (디버깅용, 필요하면 제거 가능) */
+        }
 
 
 
@@ -111,6 +120,8 @@
         <button id="insertButton">이미지 삽입</button>
         <button id="resetButton">처음부터 다시하기</button>
     </div>
+    <!-- ✅ 좌측 상단에 landmark.png 추가 -->
+    <img id="psa_landmark_image" src="/static/psa_diagram.png" alt="Landmark Image">
     <!-- <canvas id="gaugeCanvas" width="600" height="200" style="background-color: #f9f9f9; border: 1px solid #ccc;"></canvas> -->
 
 
@@ -133,6 +144,22 @@
 
         $(document).ready(function () {
             console.log("🚀 psa1.html 로드됨");
+
+            // ✅ landmark.png 이미지를 윈도우 폭의 1/4 크기로 조정하는 함수
+            function updateImageSize() {
+                const landmarkImage = document.getElementById("psa_landmark_image");
+                if (landmarkImage) {
+                    landmarkImage.style.width = (window.innerWidth * 0.3) + "px"; // ✅ 윈도우 폭의 30% 크기로 설정
+                }
+            }
+
+            // ✅ 윈도우 크기 변경 시 landmark.png 크기 업데이트
+            window.addEventListener("resize", updateImageSize);
+
+            // ✅ 페이지 로드시 초기 크기 조정
+            updateImageSize();
+
+
 
             // ✅ localStorage에서 이미지 데이터 가져오기
             const imageSrc = localStorage.getItem("psaImage");
