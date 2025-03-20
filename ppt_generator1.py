@@ -67,6 +67,7 @@ def create_ppt(request):
         excel_file_path = save_uploaded_file(excel_file, 'excel_data.xlsx')
         df_raw = pd.read_excel(excel_file_path)
         df = df_raw.iloc[7:]  # 7번째 행 이후의 데이터 사용
+        
     else:
         df_raw, df, excel_file_path = None, None, None
 
@@ -153,8 +154,7 @@ def create_first_slide(prs, df, df_raw, id_photo_path):
    # 2️⃣ Ceph 데이터 정리 및 딕셔너리 생성
     df = df.copy()  # 원본 보호
     df['Unnamed: 0'] = df['Unnamed: 0'].str.rstrip()  # 공백 제거
-
-    # 🔹 대소문자를 무시하도록 딕셔너리 키를 소문자로 변환하여 저장
+    
     ceph = {key: value for key, value in zip(df['Unnamed: 0'], df['Unnamed: 3'])}
     ceph_lower = {key.lower(): value for key, value in zip(df['Unnamed: 0'], df['Unnamed: 3'])}   
     print("📌 Ceph 데이터:", ceph)

@@ -7,14 +7,26 @@ from config import UPLOAD_FOLDER, RESULT_FOLDER
 from werkzeug.utils import secure_filename
 import logging
 from flask import request
+from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'dev'
+csrf = CSRFProtect(app)
 CORS(app)
 
 @app.route('/')
 def home():
 
     return render_template('index1.html')
+
+@app.route('/signup', methods=['GET','POST'])
+def signup():
+    if request.method == 'GET':
+        return render_template('signup.html')
+    elif request.method == 'POST':
+        return render_template('index1.html')
+
+      
 
 @app.route('/dash_board', methods=['POST'])
 def generate_ppt():

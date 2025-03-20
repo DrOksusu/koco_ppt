@@ -7,29 +7,40 @@ body {
   /* 헤더 스타일 */
   .header {
     display: flex;
+    justify-content: space-between; /* 좌우 정렬 */
     align-items: center; /* 세로 중앙 정렬 */
-    justify-content: center; /* 가로 중앙 정렬 */
-    width: 100%;
-    position: relative; /* 내부 요소의 absolute 위치 조정 가능하게 설정 */
-    padding: 20px 0; /* 제목과 너무 붙지 않도록 여백 추가 */
+    padding: 10px 20px;
+    background-color: #f8f9fa; /* 연한 배경색 */
+    border-bottom: 2px solid #ddd; /* 구분선 추가 */
   }
-  
-  /* 제목 스타일 */
-  h1 {
-    text-align: center; /* 텍스트 중앙 정렬 */
-    flex-grow: 1; /* h1이 중앙에 위치하도록 확장 */
-    color: blue; /* 글자 색상을 파란색으로 변경 */
-    margin: 0; /* 불필요한 여백 제거 */
+
+  .header h1 {
+      font-size: 24px;
+      text-align: center;
+      margin: 0;
+      flex-grow: 1; /* 제목이 중앙에 오도록 설정 */
   }
-  
-  /* 로고 스타일 */
-  .logo {
-    position: absolute;
-    top: 50%; /* 헤더 높이의 중간으로 설정 */
-    right: 10px; /* 오른쪽 끝에 배치 */
-    height: 70px; /* 기존보다 두 배 크기 */
-    transform: translateY(-50%); /* 정확히 중앙에 위치하도록 조정 */
+
+  .header .nav-links {
+      display: flex; /* 회원가입과 로고를 같은 줄에 배치 */
+      align-items: center; /* 세로 정렬 */
+      gap: 15px; /* 링크와 로고 사이 간격 */
   }
+
+  .header a {
+      text-decoration: none;
+      font-size: 16px;
+      color: #007bff;
+  }
+
+  .header a:hover {
+      text-decoration: underline;
+  }
+
+  .header .logo {
+      height: 50px; /* 로고 크기 조정 */
+  }
+ 
   
   .upload-section {
     margin-bottom: 20px;
