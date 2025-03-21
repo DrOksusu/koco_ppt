@@ -64,7 +64,22 @@ def create_ppt(request):
 
     
     excel_file = request.files['excel_data']
-    ceph_dict = request.form.get('excel_dict')
+    ceph_dict_raw = request.form.get('excel_dict')
+    ceph_add_raw= request.form.get('excel_add')
+    print("ceph_dict_raw:",ceph_dict_raw, flush=True, file=sys.stderr)
+    print("ceph_add_raw:",ceph_add_raw, flush=True, file=sys.stderr)
+
+    # 2. JSON 문자열 → 파이썬 객체로 파싱
+    ceph = json.loads(ceph_dict_raw)   # 리스트
+    print("ceph:",ceph, flush=True, file=sys.stderr)
+    ceph_add = json.loads(ceph_add_raw)     # 딕셔너리
+    print("ceph_add:",ceph_add, flush=True, file=sys.stderr)
+
+    # 3. 리스트에 새 딕셔너리 update(리스트인 경우에는  append, 딕셔너리는 update)
+    ceph.update(ceph_add)
+    print("ceph:",ceph, flush=True, file=sys.stderr)
+
+
     file_type = request.form.get('file_type', 'pdf') #기본값은 pdf
 
     print("file_type:",file_type, flush=True, file=sys.stderr)
@@ -81,15 +96,16 @@ def create_ppt(request):
         df_raw = pd.read_excel(excel_file_path)
         df = df_raw.iloc[7:]  # 7번째 행 이후의 데이터 사용
         df = df.copy()  # 원본 보호
-        df['Unnamed: 0'] = df['Unnamed: 0'].str.rstrip()  # 공백 제거        
+        df['Unnamed: 0'] = df['Unnamed: 0'].str.rstrip()  # 공백 제거
+        ceph ={}        
         ceph = {key: value for key, value in zip(df['Unnamed: 0'], df['Unnamed: 3'])}        
         HGI, VGI = create_first_slide(prs, ceph, id_photo_path, df_raw)
         print("HGI:",HGI, flush=True, file=sys.stderr)
 
     # ✅ 엑셀 파일이 없지만 ceph_dict가 존재하는 경우
-    elif ceph_dict:
+    elif ceph:
         try:
-            ceph = json.loads(ceph_dict)  # JSON 문자열을 딕셔너리로 변환
+            # ceph = json.loads(ceph_dict)  # JSON 문자열을 딕셔너리로 변환
             print("📌 ceph_dict에서 변환된 ceph:", ceph, flush=True, file=sys.stderr)
             HGI, VGI = create_first_slide(prs, ceph, id_photo_path, None)
             print("HGI:",HGI, flush=True, file=sys.stderr)
@@ -108,17 +124,6 @@ def create_ppt(request):
         
     
     
-    
-    # # 첫 번째 슬라이드 만들기 (엑셀 파일이 있을 경우만)
-    # if df_raw is not None and not df_raw.empty:            
-    #     # 슬라이드 생성
-    #     HGI, VGI = create_first_slide(prs, df_raw, ceph, id_photo_path)
-    #     print("HGI:",HGI, flush=True, file=sys.stderr)
-    # else:
-    #     HGI, VGI = None, None  # 값이 없으면 이후 슬라이드에서 참고하지 않도록
-    #     print("HGI:",HGI, flush=True, file=sys.stderr)
-    #     print("VGI:",VGI, flush=True, file=sys.stderr)
-            
         # 두 번째 슬라이드 만들기 (PSA 파일이 있을 경우만)
     print("두번째 슬라이드 시작",flush=True, file=sys.stderr)
     create_second_slide(prs, HGI, VGI, psa_name_path)       
@@ -191,6 +196,12 @@ def create_first_slide(prs, ceph, id_photo_path, df_raw = None):   # 2️⃣ Cep
         "Y-Axis" : "Y-axis",
         "N-S-B" : "N-S-BaA",
         "- AB<LOP" : "AB<LOP",
+        "E-line" : "L.Lip E-line",
+        "Naperp-A" : "A point-N-perp",
+        "Y-angle" : "Y-axis",
+        "Y-axis angle" : "Y-axis",
+        "Na-S-BaA" : "N-S-BaA",
+
     }
     print("📌 Alias 매핑:", alias_map)
 

@@ -316,6 +316,7 @@ function na_perp_a(landmarkCoordinates) {
 
 
 // ✅ SNA & SNB 계산 후 딕셔너리 반환 함수
+// window.getAngleDictionary = function(landmarkCoordinates) {
 function getAngleDictionary(landmarkCoordinates) {
     /**
      * SNA 및 SNB 내각을 계산하고 딕셔너리 형태로 반환하는 함수.
@@ -361,17 +362,48 @@ function getAngleDictionary(landmarkCoordinates) {
         "MBL" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Menton", "Go"),
         "AFH" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Nasion", "Menton"),
         "PFH" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Sella", "Go"),
-        "E-line" : calculatePerpendicularDistance(landmarkCoordinates, "Pronasale", "soft tissue Pogonion", "Upper lip"),
+        "E-line" : calculatePerpendicularDistance(landmarkCoordinates, "Pronasale", "soft tissue Pogonion", "Lower lip"),
         "Ramus height" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Ar", "Go"),
         "Naperp-A" : na_perp_a(landmarkCoordinates),
         "MxBL" : calculateScaledDistanceFromKeys(landmarkCoordinates, "ANS", "PNS"),
         "PCBL" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Sella", "Basion"),
-        "S-Por" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Sella", "Porion"),          
-      
+        "S-Por" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Sella", "Porion"),
+        "FMIA" : calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Mn.1 cr", "Mn.1 root"),
+        "MAB" : calculateIntersectionAngle(landmarkCoordinates, "Menton", "Go", "A-Point", "B-Point"),
+        "ACBA" : calculateIntersectionAngle(landmarkCoordinates, "Sella", "Nasion", "Porion", "Orbitale"),
+        "FH<B" : calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Sella", "Basion"),
+        "PCBA" : calculateAngle(landmarkCoordinates, "Nasion", "Sella", "Basion"),
+        "FUIA" : calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Mx.1 cr", "Mx.1 root"),
+        "AB<LOP" : calculateIntersectionAngle(landmarkCoordinates, "A-Point", "B-Point", "Mn.1 cr", "Mn.6 distal"),             
 
     };
-
-    console.log("📌 계산된 각도들:", angles);
+    
     return angles;
 }
 
+function calculateAdditionalAngles(angles, landmarkCoordinates) {
+    /**
+     * 기존 각도 및 거리 데이터를 기반으로 추가적인 계산 수행
+     */
+
+    // ✅ 중간 계산 변수들 먼저 정의
+    const PPA = Math.round((angles.FMA - angles.PMA) * 10) / 10;
+    const FHR = Math.round((angles.PFH / angles.AFH) * 1000) / 10; // 퍼센트로 환산
+    const MB_ACBL = Math.round((angles.MBL - angles.ACBL) * 10) / 10;
+    const FLOPA = Math.round((angles.FMA - angles.MOP) * 10) / 10;
+    const APDI = Math.round((angles.FABA + PPA) * 10) / 10;
+    const ODI = angles.MAB !== undefined ? Math.round((angles.MAB + PPA) * 10) / 10 : null;
+
+    const additionalAngles = {
+        ANB: Math.round((angles.SNA - angles.SNB) * 10) / 10,
+        PPA,
+        FHR,
+        "MB-ACBL": MB_ACBL,
+        FLOPA,
+        APDI,
+        ODI,
+    };
+    
+    return additionalAngles;    
+}
+  

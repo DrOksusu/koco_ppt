@@ -193,7 +193,8 @@
         if (Object.keys(excelDictData).length > 0) {
             formData.append("landmarkCoordinates", JSON.stringify(excelDictData.landmarkCoordinates));
             formData.append("excel_dict", JSON.stringify(excelDictData.excel_dict));
-            console.log("📌 FormData에 landmarkCoordinates & excel_dict 추가 완료:", excelDictData);
+            formData.append("excel_add", JSON.stringify(excelDictData.excel_add));
+            console.log("📌 FormData에 landmarkCoordinates & excel_dict & excel_add 추가 완료:", excelDictData);
         }
 
         const formElement = document.getElementById("uploadForm");

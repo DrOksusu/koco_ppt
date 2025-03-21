@@ -79,6 +79,7 @@
         #saveButton:hover, #insertButton:hover {
             background-color: #0056b3;
         }
+
         #gaugeCanvas {
             position: absolute;  /* 절대 위치 설정 */
             top: 1px; /* 상단에서 10px 떨어진 위치 */
@@ -88,14 +89,16 @@
             background-color: #f9f9f9;
             border: 1px solid #ccc;
             display : none;
+            z-index : 10000;
         }
+
         #psa_landmark_image {
             position: absolute;
             top: 0;
             left: 0;
             width: 25vw; /* 윈도우 폭의 1/4 크기로 설정 */
             height: auto;
-            z-index: 10001; /* 다른 요소 위에 배치 */
+            z-index: 5000; /* 다른 요소 위에 배치 */
             border: 2px solid black; /* 테두리 추가 (디버깅용, 필요하면 제거 가능) */
         }
 
@@ -128,12 +131,7 @@
     
     <script>
     
-        // ✅ 전역 변수 선언 (초기에는 null로 설정)
-        // let canvas = null;
-        // let ctx = null;
-        // let img = null;
-        // let points = [];
-        
+        // ✅ 가이드 메시지 목록    
         let messages = [
                 "lower incisor point",
                 "hinge point",
@@ -245,7 +243,7 @@
                 // 클릭한 위치에 빨간 점 표시 (캔버스 크기에 맞게 변환)
                 ctx.fillStyle = "red";
                 ctx.beginPath();
-                ctx.arc(realX * scaleX, realY * scaleY, 1, 0, Math.PI * 2);
+                ctx.arc(realX * scaleX, realY * scaleY, 1.5, 0, Math.PI * 2);
                 ctx.fill();
 
                 //점을 찍을 때마다 가이드 메시지 변경
@@ -278,34 +276,30 @@
                     console.log("Distance(Buffer Zone): ", yellow_result.D2);
                     console.log("🟡 노란색 원 2개 추가 완료!");
 
-                    //캔버스 그리기
-                    showGaugeCanvas();
-
+                    // ✅ 마지막 가이드 메시지 추가
+                    const finalMessage = "4개의 점이 모두 찍혔습니다.";
+                    guideMessage.text(finalMessage); // 마지막 메시지 표시
+                    speakMessage(finalMessage); // 마지막 메시지를 음성으로 출력                    
+                    
                      // ✅ 계기판 UI 업데이트!
                     updateCarDashboard(blue_result, yellow_result);
 
-                    //4번째 점이 찍히면 가이드 메세지 숨김
-                    guideMessage.hide();
-
-                    // 🟢 파란색 선이 다 그려진 후 alert 메시지 실행
+                     // ✅ 일정 시간 후 가이드 메시지 숨김 (예: 2초 후)
                     setTimeout(() => {
-                        alert("✅ 4개의 좌표가 선택되었습니다.");
-                        
-                        
-                        // 부모 창에 좌표 데이터 전송
-                        if (window.opener && typeof window.opener.logFromChild === "function") {
-                            window.opener.logFromChild(points);
-                        } else {
-                            alert("🚨 부모 창이 없습니다. 좌표 데이터를 보낼 수 없습니다.");
-                        }
-                    }, 100); // 100ms 지연 후 실행 (선이 그려질 시간을 확보)
-                }
+                        guideMessage.hide();
+                    }, 2000);
 
-                
+                    // ✅ 캔버스 그리기 (UI 업데이트)
+                    showGaugeCanvas();
+
+                    // 부모 창에 좌표 데이터 전송
+                    if (window.opener && typeof window.opener.logFromChild === "function") {
+                        window.opener.logFromChild(points);
+                    } else {
+                        console.warn("🚨 부모 창에 logFromChild 함수가 없거나 함수가 아닙니다.");
+                    }               
+                }          
             });
-
-            
-
         });
         
         $("#saveButton").on("click", function () {
