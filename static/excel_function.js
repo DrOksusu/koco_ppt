@@ -315,6 +315,8 @@ function na_perp_a(landmarkCoordinates) {
 }
 
 
+     
+
 // ✅ SNA & SNB 계산 후 딕셔너리 반환 함수
 // window.getAngleDictionary = function(landmarkCoordinates) {
 function getAngleDictionary(landmarkCoordinates) {
@@ -362,7 +364,7 @@ function getAngleDictionary(landmarkCoordinates) {
         "MBL" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Menton", "Go"),
         "AFH" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Nasion", "Menton"),
         "PFH" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Sella", "Go"),
-        "E-line" : calculatePerpendicularDistance(landmarkCoordinates, "Pronasale", "soft tissue Pogonion", "Lower lip"),
+        "E-line" : -(calculatePerpendicularDistance(landmarkCoordinates, "Pronasale", "soft tissue Pogonion", "Lower lip")),        
         "Ramus height" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Ar", "Go"),
         "Naperp-A" : na_perp_a(landmarkCoordinates),
         "MxBL" : calculateScaledDistanceFromKeys(landmarkCoordinates, "ANS", "PNS"),
