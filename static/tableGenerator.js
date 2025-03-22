@@ -1,6 +1,43 @@
 document.addEventListener("DOMContentLoaded", function () {
     console.log("✅ 테이블 생성 스크립트 로드됨");
 
+    const tooltips = {
+        "SNA": "Sella-Nasion-A",
+        "SNB": "Sella-Nasion-B",
+        "IMPA": "Incisor Mandibular Plane Angle",
+        "1 to SN": "1 to Sella-Nasion",
+        "FMA": "Frankfort Mandibular Plane Angle",
+        "PMA": "Palatal Mandibular Angle",
+        "SN-GoMe": "Sella-Nasion to Gonion-Menton",
+        "FA'B'": "Frankfort Horizontal to AB",
+        "FABA": "Frankfort Horizontal to AB Angle",
+        "Y-angle": "Y-axis Angle",
+        "UGA": "Upper Gonial Angle",
+        "LGA": "Lower Gonial Angle",
+        "S-A": "Sella-A Point",
+        "UIOP": "Upper Incisor to Occlusal Plane",
+        "MOP": "Mandibular Plane to Occlusal Plane",
+        "FH<Ans": "Frankfort Horizontal to ANS",
+        "FH<Pr": "Frankfort Horizontal to Pogonion",
+        "Na-S-BaA": "Nasion-Sella-Basion to A",
+        "incisor Overbite": "incisor Overbite",
+        "incisor Overjet": "incisor Overjet",
+        "NALA": "Nasion-A Point to Lower A Point",
+        "HR": "Horizontal Reference",
+        "Cal": "Calibration",
+        "ACBL": "Anterior Cranial Base Length",
+        "MBL": "Mandibular Base Length",
+        "AFH": "Anterior Face Height",
+        "PFH": "Posterior Face Height",
+        "E-line": "E-line",
+        "Ramus height": "Ramus height",
+        "Naperp-A": "Nasion perpendicular to A",
+        "MxBL": "Maxillary Base Length",
+        "PCBL": "Posterior Cranial Base Length",
+        "S-Por": "Sella to Porion"
+    };        
+
+
     const data = [
         { mean: 81, name: "SNA", value: "", category: "pink" },
         { mean: 79, name: "SNB", value: "", category: "pink" },
@@ -60,10 +97,13 @@ document.addEventListener("DOMContentLoaded", function () {
     
             // ✅ `<` 및 `>` 기호 변환
             const safeName = row.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+            const tip = tooltips[row.name] || "";
     
             tr.innerHTML = `
                 <td>${row.mean}</td>
-                <td class="${row.category}">${safeName}</td> <!-- ✅ HTML 엔티티 변환 적용 -->
+                
+                <td class="tooltip ${row.category}" data-tooltip="${tip}">${safeName}</td> <!-- ✅ HTML 엔티티 변환 적용 -->
                 <td class="value-cell" data-name="${row.name}">${row.value}</td> <!-- ✅ data-name 속성 유지 -->
             `;
             tableBody.appendChild(tr);

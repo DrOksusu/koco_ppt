@@ -26,6 +26,9 @@
             background-color: #ddd; /* 헤더 배경색 */
             font-weight: bold;
         }
+        .tooltip {
+            position: relative;
+        }
         .pink { background-color: #f8c8dc; } /* 필수 계측항목 */
         .green { background-color: #c8e6c9; } /* incisor Overbite/Overjet */
         .red { background-color: #f4c7c3; } /* NALA, HR */
@@ -46,54 +49,95 @@
     </table>
 
     <script>
-        const data = [
-            { mean: 81, name: "SNA", value: "", category: "pink" },
-            { mean: 79, name: "SNB", value: "", category: "pink" },
-            { mean: 91, name: "IMPA", value: "", category: "pink" },
-            { mean: 106, name: "1 to SN", value: "", category: "pink" },
-            { mean: 27, name: "FMA", value: "", category: "pink" },
-            { mean: 27.5, name: "PMA", value: "", category: "pink" },
-            { mean: 34, name: "SN-GoMe", value: "", category: "pink" },
-            { mean: 81, name: "FA'B'", value: "", category: "pink" },
-            { mean: 81, name: "FABA", value: "", category: "pink" },
-            { mean: 52, name: "Y-angle", value: "", category: "pink" },
-            { mean: 50, name: "UGA", value: "", category: "pink" },
-            { mean: 75, name: "LGA", value: "", category: "pink" },
-            { mean: 123, name: "S-A", value: "", category: "pink" },
-            { mean: 53, name: "UIOP", value: "", category: "pink" },
-            { mean: 17, name: "MOP", value: "", category: "pink" },
-            { mean: 31, name: "FH<Ans", value: "", category: "pink" },
-            { mean: 37, name: "FH<Pr", value: "", category: "pink" },
-            { mean: 131, name: "Na-S-BaA", value: "", category: "pink" },
-            { mean: 3, name: "incisor Overbite", value: "", category: "green" },
-            { mean: 3, name: "incisor Overjet", value: "", category: "green" },
-            { mean: 95, name: "NALA", value: "", category: "red" },
-            { mean: "", name: "HR", value: "", category: "red" },
-            { mean: "", name: "Cal", value: "", category: "green" },
-            { mean: 69, name: "ACBL", value: "", category: "blue" },
-            { mean: 71, name: "MBL", value: "", category: "blue" },
-            { mean: "", name: "AFH", value: "", category: "blue" },
-            { mean: "", name: "PFH", value: "", category: "blue" },
-            { mean: 0, name: "E-line", value: "", category: "blue" },
-            { mean: 50, name: "Ramus height", value: "", category: "blue" },
-            { mean: 0, name: "Naperp-A", value: "", category: "blue" },
-            { mean: 54, name: "MxBL", value: "", category: "blue" },
-            { mean: 46, name: "PCBL", value: "", category: "blue" },
-            { mean: 25, name: "S-Por", value: "", category: "blue" }
-        ];
-
-        const tableBody = document.querySelector("#measurementTable tbody");
-
-        data.forEach(row => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${row.mean}</td>
-                <td class="${row.category}">${row.name}</td>
-                <td>${row.value}</td>
-            `;
-            tableBody.appendChild(tr);
+        document.addEventListener("DOMContentLoaded", function () {
+        
+            const tooltips = {
+                "SNA": "Sella-Nasion-A",
+                "SNB": "Sella-Nasion-B",
+                "IMPA": "Incisor Mandibular Plane Angle",
+                "1 to SN": "1 to Sella-Nasion",
+                "FMA": "Frankfort Mandibular Plane Angle",
+                "PMA": "Palatal Mandibular Angle",
+                "SN-GoMe": "Sella-Nasion to Gonion-Menton",
+                "FA'B'": "Frankfort Horizontal to AB",
+                "FABA": "Frankfort Horizontal to AB Angle",
+                "Y-angle": "Y-axis Angle",
+                "UGA": "Upper Gonial Angle",
+                "LGA": "Lower Gonial Angle",
+                "S-A": "Sella-A Point",
+                "UIOP": "Upper Incisor to Occlusal Plane",
+                "MOP": "Mandibular Plane to Occlusal Plane",
+                "FH<Ans": "Frankfort Horizontal to ANS",
+                "FH<Pr": "Frankfort Horizontal to Pogonion",
+                "Na-S-BaA": "Nasion-Sella-Basion to A",
+                "incisor Overbite": "incisor Overbite",
+                "incisor Overjet": "incisor Overjet",
+                "NALA": "Nasion-A Point to Lower A Point",
+                "HR": "Horizontal Reference",
+                "Cal": "Calibration",
+                "ACBL": "Anterior Cranial Base Length",
+                "MBL": "Mandibular Base Length",
+                "AFH": "Anterior Face Height",
+                "PFH": "Posterior Face Height",
+                "E-line": "E-line",
+                "Ramus height": "Ramus height",
+                "Naperp-A": "Nasion perpendicular to A",
+                "MxBL": "Maxillary Base Length",
+                "PCBL": "Posterior Cranial Base Length",
+                "S-Por": "Sella to Porion"
+            };        
+        
+            const data = [
+                { mean: 81, name: "SNA", value: "", category: "pink" },
+                { mean: 79, name: "SNB", value: "", category: "pink" },
+                { mean: 91, name: "IMPA", value: "", category: "pink" },
+                { mean: 106, name: "1 to SN", value: "", category: "pink" },
+                { mean: 27, name: "FMA", value: "", category: "pink" },
+                { mean: 27.5, name: "PMA", value: "", category: "pink" },
+                { mean: 34, name: "SN-GoMe", value: "", category: "pink" },
+                { mean: 81, name: "FA'B'", value: "", category: "pink" },
+                { mean: 81, name: "FABA", value: "", category: "pink" },
+                { mean: 52, name: "Y-angle", value: "", category: "pink" },
+                { mean: 50, name: "UGA", value: "", category: "pink" },
+                { mean: 75, name: "LGA", value: "", category: "pink" },
+                { mean: 123, name: "S-A", value: "", category: "pink" },
+                { mean: 53, name: "UIOP", value: "", category: "pink" },
+                { mean: 17, name: "MOP", value: "", category: "pink" },
+                { mean: 31, name: "FH<Ans", value: "", category: "pink" },
+                { mean: 37, name: "FH<Pr", value: "", category: "pink" },
+                { mean: 131, name: "Na-S-BaA", value: "", category: "pink" },
+                { mean: 3, name: "incisor Overbite", value: "", category: "green" },
+                { mean: 3, name: "incisor Overjet", value: "", category: "green" },
+                { mean: 95, name: "NALA", value: "", category: "red" },
+                { mean: "", name: "HR", value: "", category: "red" },
+                { mean: "", name: "Cal", value: "", category: "green" },
+                { mean: 69, name: "ACBL", value: "", category: "blue" },
+                { mean: 71, name: "MBL", value: "", category: "blue" },
+                { mean: "", name: "AFH", value: "", category: "blue" },
+                { mean: "", name: "PFH", value: "", category: "blue" },
+                { mean: 0, name: "E-line", value: "", category: "blue" },
+                { mean: 50, name: "Ramus height", value: "", category: "blue" },
+                { mean: 0, name: "Naperp-A", value: "", category: "blue" },
+                { mean: 54, name: "MxBL", value: "", category: "blue" },
+                { mean: 46, name: "PCBL", value: "", category: "blue" },
+                { mean: 25, name: "S-Por", value: "", category: "blue" }
+            ];
+        
+            const tableBody = document.querySelector("#measurementTable tbody");
+        
+            data.forEach(row => {
+                const tr = document.createElement("tr");
+                const tip = tooltips[row.name] || "";
+                tr.innerHTML = `
+                    <td>${row.mean}</td>
+                    <td class="${row.category}" title="${tip}">${row.name}</td>
+                    <td>${row.value}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        
         });
-    </script>
-
+        </script>
+        
 </body>
 </html>

@@ -86,6 +86,39 @@ body {
       text-align: center; /* ✅ 헤더는 가운데 정렬 유지 */
   }
 
+  /* 강제로 마우스 이벤트 받도록 설정 */
+  td {
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 10;
+  }
+
+  .tooltip {
+    position: relative;
+    cursor: help;
+  }
+  
+  .tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%) translateX(2px); 
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 5px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out;
+  }
+  
+  .tooltip:hover::after {
+    opacity: 1;
+  }
+
   .pink { background-color: #f8c8dc; }
   .green { background-color: #c8e6c9; }
   .red { background-color: #f4c7c3; }
