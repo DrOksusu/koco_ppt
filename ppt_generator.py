@@ -135,7 +135,8 @@ def create_ppt(request):
         df = df.copy()  # 원본 보호
         df['Unnamed: 0'] = df['Unnamed: 0'].str.rstrip()  # 공백 제거
         ceph ={}        
-        ceph = {key: value for key, value in zip(df['Unnamed: 0'], df['Unnamed: 3'])}        
+        ceph = {key: value for key, value in zip(df['Unnamed: 0'], df['Unnamed: 3'])}
+        print("📌 엑셀 데이터:", ceph, flush=True, file=sys.stderr)        
         HGI, VGI = create_first_slide(prs, ceph, id_photo_path, df_raw)
         print("HGI:",HGI, flush=True, file=sys.stderr)
 
@@ -237,6 +238,9 @@ def create_first_slide(prs, ceph, id_photo_path, df_raw = None):   # 2️⃣ Cep
         "Y-angle" : "Y-axis",
         "Y-axis angle" : "Y-axis",
         "Na-S-BaA" : "N-S-BaA",
+        "L.Lip E-line" : "E-line",
+        "Overbite" : "Incisor Overbite",
+        "Overjet" : "Incisor Overjet",
 
     }
     print("📌 Alias 매핑:", alias_map)
