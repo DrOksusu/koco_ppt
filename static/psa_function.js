@@ -226,9 +226,17 @@ function drawYellowCircles(ctx, points, scaleX, scaleY, p_perp) {
     }
 
     let D2 = calculateDistance([p_perp[0], p_perp[1]], intersection);
-    console.log("📏 D2 (P_perp - 교점 거리):", D2);
 
-    return { intersection, D2 };
+    // ✅ 중심 좌표 (스케일 적용된 값)도 함께 반환
+    const circleCenter = [x * scaleX, y * scaleY];
+    console.log("📏 D2 (P_perp - 교점 거리):", D2, circleCenter);
+    console.log("circleCenter:", circleCenter);
+    console.log("scaleX:", scaleX);
+    console.log("scaleY:", scaleY);
+
+
+    return { intersection, D2, circleCenter };
+    
 }
 
 

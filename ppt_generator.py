@@ -69,15 +69,52 @@ def create_ppt(request):
     print("ceph_dict_raw:",ceph_dict_raw, flush=True, file=sys.stderr)
     print("ceph_add_raw:",ceph_add_raw, flush=True, file=sys.stderr)
 
-    # 2. JSON 문자열 → 파이썬 객체로 파싱
-    ceph = json.loads(ceph_dict_raw)   # 리스트
-    print("ceph:",ceph, flush=True, file=sys.stderr)
-    ceph_add = json.loads(ceph_add_raw)     # 딕셔너리
-    print("ceph_add:",ceph_add, flush=True, file=sys.stderr)
+   # 2. JSON 문자열 → 파이썬 객체로 파싱
+    try:
+        # ceph_dict_raw가 None이 아니고 문자열일 경우만 파싱 시도
+        if ceph_dict_raw:
+            ceph = json.loads(ceph_dict_raw)   # 리스트 형태
+            print("ceph:", ceph, flush=True, file=sys.stderr)
+        else:
+            ceph = []  # 기본 빈 리스트로 설정
+            print("⚠️ ceph_dict_raw가 None이거나 비어있습니다. 빈 리스트로 대체합니다.", flush=True, file=sys.stderr)
 
-    # 3. 리스트에 새 딕셔너리 update(리스트인 경우에는  append, 딕셔너리는 update)
-    ceph.update(ceph_add)
-    print("ceph:",ceph, flush=True, file=sys.stderr)
+        # ceph_add_raw도 마찬가지로 체크
+        if ceph_add_raw:
+            ceph_add = json.loads(ceph_add_raw)  # 딕셔너리 형태
+            print("ceph_add:", ceph_add, flush=True, file=sys.stderr)
+        else:
+            ceph_add = {}  # 기본 빈 딕셔너리로 설정
+            print("⚠️ ceph_add_raw가 None이거나 비어있습니다. 빈 딕셔너리로 대체합니다.", flush=True, file=sys.stderr)
+
+    except json.JSONDecodeError:
+        print("🚨 JSON 변환 오류: ceph_dict_raw 또는 ceph_add_raw가 올바른 JSON 형식이 아닙니다.", flush=True, file=sys.stderr)
+        ceph = []
+        ceph_add = {}
+
+    # 3. 리스트 또는 딕셔너리에 ceph_add를 병합
+    try:
+        if isinstance(ceph, list):
+            if ceph_add:  # ceph_add가 None이 아니고 비어있지 않을 때만
+                ceph.append(ceph_add)
+                print("✅ 리스트에 ceph_add 추가 (append).", flush=True, file=sys.stderr)
+            else:
+                print("⚠️ ceph_add가 비어 있어 리스트에 추가하지 않음.", flush=True, file=sys.stderr)
+
+        elif isinstance(ceph, dict):
+            if ceph_add:  # ceph_add가 유효한 딕셔너리일 경우
+                ceph.update(ceph_add)
+                print("✅ 딕셔너리에 ceph_add 병합 (update).", flush=True, file=sys.stderr)
+            else:
+                print("⚠️ ceph_add가 비어 있어 딕셔너리에 병합하지 않음.", flush=True, file=sys.stderr)
+
+        else:
+            print("🚨 ceph의 자료형이 리스트나 딕셔너리가 아닙니다. 병합 생략.", flush=True, file=sys.stderr)
+
+        print("ceph:", ceph, flush=True, file=sys.stderr)
+
+    except Exception as e:
+        print(f"🚨 ceph 병합 중 오류 발생: {e}", flush=True, file=sys.stderr)
 
 
     file_type = request.form.get('file_type', 'pdf') #기본값은 pdf
@@ -433,6 +470,8 @@ def create_second_slide(prs, HGI, VGI, default_img):
      else:
         print(f"🚨 PSA 이미지가 업로드되지 않음, 기본 이미지 사용")
         psa_path = default_img  # 기본 이미지로 변경
+
+    
 
      # 2번째 슬라이드 가져오기
      temp_slide_1 = prs.slides[1]  # 슬라이드 인덱스는 0부터 시작하므로 5번째는 인덱스 4
