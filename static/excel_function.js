@@ -339,6 +339,7 @@ function getAngleDictionary(landmarkCoordinates) {
     const angles = {
         SNA: calculateAngle(landmarkCoordinates, "Sella", "Nasion", "A-Point"),
         SNB: calculateAngle(landmarkCoordinates, "Sella", "Nasion", "B-Point"),
+        "FMIA" : Math.round((180-(calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Mn.1 cr", "Mn.1 root")))*10)/10,
         FMA: Math.round((180-(calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Menton","Go")))*10)/10,
         '1 to SN': calculateIntersectionAngle(landmarkCoordinates, "Sella", "Nasion", "Mx.1 cr", "Mx.1 root"),
         IMPA : calculateIntersectionAngle(landmarkCoordinates, "Go", "Menton", "Mn.1 cr", "Mn.1 root"),
@@ -370,12 +371,12 @@ function getAngleDictionary(landmarkCoordinates) {
         "MxBL" : calculateScaledDistanceFromKeys(landmarkCoordinates, "ANS", "PNS"),
         "PCBL" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Sella", "Basion"),
         "S-Por" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Sella", "Porion"),
-        "FMIA" : calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Mn.1 cr", "Mn.1 root"),
+       
         "MAB" : calculateIntersectionAngle(landmarkCoordinates, "Menton", "Go", "A-Point", "B-Point"),
         "ACBA" : calculateIntersectionAngle(landmarkCoordinates, "Sella", "Nasion", "Porion", "Orbitale"),
-        "FH<B" : calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Sella", "Basion"),
-        "PCBA" : calculateAngle(landmarkCoordinates, "Nasion", "Sella", "Basion"),
-        "FUIA" : calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Mx.1 cr", "Mx.1 root"),
+        "FH<B" : Math.round((180-(calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Sella", "Basion")))*10)/10,
+        "PCBA" : Math.round((180-(calculateAngle(landmarkCoordinates, "Nasion", "Sella", "Basion")))*10)/10,
+        "FUIA" : Math.round((180-(calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Mx.1 cr", "Mx.1 root")))*10)/10,
         "AB<LOP" : calculateIntersectionAngle(landmarkCoordinates, "A-Point", "B-Point", "Mn.1 cr", "Mn.6 distal"),             
 
     };
