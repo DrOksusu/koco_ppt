@@ -272,9 +272,10 @@
 
                     // 🟡 파란색 선이 다 그려진 후, 노란색 원 2개 추가!
                     const yellow_result = drawYellowCircles(ctx, points, scaleX, scaleY, blue_result.p_perp);
-            
+                    const [cx, cy] = yellow_result.circleCenter;
                     console.log("Distance(Buffer Zone): ", yellow_result.D2);
-                    console.log("🟡 노란색 원 2개 추가 완료!");
+                    console.log("circleCenter: ", cx, cy);
+                    drawArrowFromYellowCircle(HGI=0, VGI=0, ctx, cx, cy, scaleX, scaleY);
 
                     // ✅ 마지막 가이드 메시지 추가
                     const finalMessage = "4개의 점이 모두 찍혔습니다.";

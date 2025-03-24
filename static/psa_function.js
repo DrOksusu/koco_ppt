@@ -228,7 +228,7 @@ function drawYellowCircles(ctx, points, scaleX, scaleY, p_perp) {
     let D2 = calculateDistance([p_perp[0], p_perp[1]], intersection);
 
     // ✅ 중심 좌표 (스케일 적용된 값)도 함께 반환
-    const circleCenter = [x * scaleX, y * scaleY];
+    const circleCenter = [x , y];
     console.log("📏 D2 (P_perp - 교점 거리):", D2, circleCenter);
     console.log("circleCenter:", circleCenter);
     console.log("scaleX:", scaleX);
@@ -238,6 +238,64 @@ function drawYellowCircles(ctx, points, scaleX, scaleY, p_perp) {
     return { intersection, D2, circleCenter };
     
 }
+
+
+function drawArrowFromYellowCircle(
+    HGI = 0,
+    VGI = 0,
+    ctx,
+    x, y,              // 중심 좌표 (원본 좌표계)
+    scaleX, scaleY     // 스케일
+) {
+    if (isNaN(HGI) || isNaN(VGI)) {
+        console.warn("❌ HGI 또는 VGI 값이 숫자가 아닙니다. 기본값(0)으로 처리합니다.");
+        HGI = 0;
+        VGI = 0;
+    }
+
+    const startX = x * scaleX;
+    const startY = y * scaleY;
+
+    const endX = startX + HGI*20 * scaleX;
+    const endY = startY - VGI*20 * scaleY;
+
+    console.log(`🎯 화살표 시작: (${startX}, ${startY}) → (${endX}, ${endY})`);
+
+    ctx.strokeStyle = "red";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+
+    const dx = endX - startX;
+    const dy = endY - startY;
+    const len = Math.sqrt(dx * dx + dy * dy);
+
+    if (len === 0) {
+        console.warn("⚠️ HGI, VGI가 0이므로 화살 길이 없음");
+        return;
+    }
+
+    const unitX = dx / len;
+    const unitY = dy / len;
+    const arrowSize = 10;
+
+    const leftX = endX - arrowSize * (unitX + unitY);
+    const leftY = endY - arrowSize * (unitY - unitX);
+    const rightX = endX - arrowSize * (unitX - unitY);
+    const rightY = endY - arrowSize * (unitY + unitX);
+
+    ctx.beginPath();
+    ctx.moveTo(endX, endY);
+    ctx.lineTo(leftX, leftY);
+    ctx.lineTo(rightX, rightY);
+    ctx.closePath();
+    ctx.fillStyle = "red";
+    ctx.fill();
+
+    console.log("✅ 화살표 그리기 완료 (노란 원 중심 기준)");
+};
 
 
 

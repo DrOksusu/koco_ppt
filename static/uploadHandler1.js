@@ -68,40 +68,35 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    $(document).ready(function () {
-        $("#drawPSALine").on("click", function (event) {
-            event.preventDefault();
-            console.log("🔥 PSA 선 그리기 버튼 클릭됨!");
+    $("#drawPSALine").on("click", function (event) {
+        event.preventDefault();
     
-            let fileInput = $("#lateral_ceph")[0];
+        const fileInput = $("#lateral_ceph")[0];
     
-            // ✅ localStorage 전체 비우기 (이전에 저장된 큰 파일들 포함 모두 삭제)
-            localStorage.clear();
-            console.log("🔥 localStorage 초기화 완료!");
+        if (!fileInput.files.length) {
+            alert("⚠️ lateral_ceph에 업로드된 이미지가 없습니다!");
+            return;
+        }
     
-            if (!fileInput.files.length) {
-                alert("⚠️ lateral_ceph에 업로드된 이미지가 없습니다!");
-                return;
-            }
+        const file = fileInput.files[0];
+        const reader = new FileReader();
     
-            const file = fileInput.files[0];
-            const reader = new FileReader();
+        reader.onload = function (e) {
+            const imageData = e.target.result;
     
-            reader.onload = function (e) {
-                try {
-                    localStorage.setItem("psaImage", e.target.result);
-                    localStorage.setItem("psaFile", e.target.result);
-                    console.log("✅ localStorage에 이미지 저장 완료!");
-                    window.open("/static/psa.html", "_blank", "width=700,height=700");
-                } catch (err) {
-                    console.error("💥 localStorage 저장 실패:", err);
-                    alert("⚠️ 이미지가 너무 커서 저장에 실패했습니다.");
-                }
+            // ✅ 새 창 열기
+            const newWindow = window.open("/static/psa1.html", "_blank", "width=700,height=700,scrollbars=yes");
+    
+            // ✅ 새 창이 완전히 열린 후에 postMessage 전달
+            newWindow.onload = function () {
+                newWindow.postMessage({ type: "PSA_IMAGE", data: imageData }, "*");
+                console.log("✅ 이미지 데이터를 새 창으로 전송 완료!");
             };
+        };
     
-            reader.readAsDataURL(file);
-        });
+        reader.readAsDataURL(file);  // base64로 읽기
     });
+    
     
     
     

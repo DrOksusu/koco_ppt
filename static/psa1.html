@@ -53,6 +53,7 @@
             border-radius: 5px;
             z-index: 10000;
         }
+        
         #button-container {
             position: absolute;
             bottom: 20px;
@@ -79,108 +80,131 @@
             background-color: #0056b3;
         }
 
+        #gaugeCanvas {
+            position: absolute;  /* 절대 위치 설정 */
+            top: 1px; /* 상단에서 10px 떨어진 위치 */
+            left: 1px; /* 왼쪽에서 10px 떨어진 위치 */
+            width: 40%; /* 전체 이미지의 40% 크기로 설정 */
+            height: 30%; /* 높이도 동일하게 40% */
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            display : none;
+            z-index : 10000;
+        }
+
+        #psa_landmark_image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 25vw; /* 윈도우 폭의 1/4 크기로 설정 */
+            height: auto;
+            z-index: 5000; /* 다른 요소 위에 배치 */
+            border: 2px solid black; /* 테두리 추가 (디버깅용, 필요하면 제거 가능) */
+        }
+
+
 
 
     </style>
 </head>
 <body>
 
-    <div id="canvas-container">
+    <div id="canvas-container" style="position: relative;">
         <p id="error-message" style="color: red; display: none;">🚨 이미지 데이터를 찾을 수 없습니다!</p>
         <div id="guideMessage" class="guide-message">lower incisor tip</div>
         <canvas id="psaCanvas"></canvas>
+        
+        <!-- ✅ 왼쪽 상단에 배치할 캔버스 -->
+        <canvas id="gaugeCanvas" width="300" height="80"></canvas>
     </div>
+    
     <div id="button-container">                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
         <button id="saveButton">이미지 저장</button>        
         <button id="insertButton">이미지 삽입</button>
         <button id="resetButton">처음부터 다시하기</button>
     </div>
+    <!-- ✅ 좌측 상단에 landmark.png 추가 -->
+    <img id="psa_landmark_image" src="/static/psa_diagram.png" alt="Landmark Image">
+    <!-- <canvas id="gaugeCanvas" width="600" height="200" style="background-color: #f9f9f9; border: 1px solid #ccc;"></canvas> -->
+
 
     
     <script>
     
-        // ✅ 전역 변수 선언 (초기에는 null로 설정)
-        // let canvas = null;
-        // let ctx = null;
-        // let img = null;
-        // let points = [];
-        
-        let messages = [
-                "lower incisor point",
-                "hinge point",
-                "occlusal point",
-                "symphysis lingual"
-            ];
+        // ✅ 전역 변수 선언
+        let canvas, ctx, img;
+        let points = [];
 
+        // ✅ 가이드 메시지 목록
+        const messages = [
+            "lower incisor point",
+            "hinge point",
+            "occlusal point",
+            "symphysis lingual"
+        ];
 
         $(document).ready(function () {
             console.log("🚀 psa1.html 로드됨");
 
-            // ✅ localStorage에서 이미지 데이터 가져오기
-            const imageSrc = localStorage.getItem("psaImage");
-            console.log(imageSrc);
-            
+            const guideMessage = $("#guideMessage");
 
-            if (!imageSrc) {
-                console.error("🚨 이미지 데이터가 localStorage에 없습니다!");
-                $("#error-message").show();
-                return;
+            // ✅ landmark 이미지 크기 조절
+            function updateImageSize() {
+                const landmarkImage = document.getElementById("psa_landmark_image");
+                if (landmarkImage) {
+                    landmarkImage.style.width = (window.innerWidth * 0.3) + "px";
+                }
             }
+            updateImageSize();
+            window.addEventListener("resize", updateImageSize);
 
-            // ✅ Canvas 요소 설정 (화면 크기에 맞춤)
-            const canvas = document.getElementById("psaCanvas");
-            console.log(canvas);
-            const ctx = canvas.getContext("2d");
-            console.log(ctx);
-            const img = new Image();
-            console.log("✅ Canvas 요소 설정 완료");
-
-            img.onload = function () {
-                  // 브라우저 창 크기
-                const winWidth = window.innerWidth;
-                const winHeight = window.innerHeight;                
-                
-                 // 원본 이미지 크기
-                const imgWidth = img.naturalWidth;
-                const imgHeight = img.naturalHeight;
-
-
-                // ✅ 원본 비율을 유지하면서 화면에 맞추기
-                let scale = Math.min(winWidth / imgWidth, winHeight / imgHeight);
-                canvas.width = imgWidth * scale;
-                canvas.height = imgHeight * scale;
-
-                // ✅ 이미지 비율 유지
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            };
-
-            img.src = imageSrc;
-
-            
-
-            // ✅ 윈도우 크기 변경 시 캔버스 크기 자동 조정
-            window.addEventListener("resize", function () {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                
-            });
-
-            //페이지 로드시 첫번째 가이드 메세지 음성 출력
-            const firstMessage = $("#guideMessage").text();
+            // ✅ 페이지 로드시 첫 가이드 메시지 출력
+            const firstMessage = guideMessage.text();
             speakMessage(firstMessage);
 
-            // ✅ 4개의 좌표를 기록하고 선을 그림
-            let points = [];
-            const guideMessage = $("#guideMessage");
-            // const messages = [
-            //     "lower incisor tip",
-            //     "hinge point",
-            //     "occlusal point",
-            //     "symphysis lingual"
-            // ];
+            // ✅ 이미지 수신 후 처리
+            window.addEventListener("message", function (event) {
+                const message = event.data;
 
-            canvas.addEventListener("click", function (event) {
+                if (message.type === "PSA_IMAGE" && message.data) {
+                    console.log("📨 이미지 수신 완료");
+
+                    img = new Image();
+                    img.onload = function () {
+                        canvas = document.getElementById("psaCanvas");
+                        ctx = canvas.getContext("2d");
+
+                        drawResizedImage();
+
+                        // ✅ 리사이즈 이벤트: 이미지 비율 유지
+                        window.addEventListener("resize", drawResizedImage);
+
+                        // ✅ 캔버스 클릭 이벤트 등록
+                        canvas.addEventListener("click", handleCanvasClick);
+                    };
+
+                    img.src = message.data;
+                    console.log("📤 이미지 데이터 전송 완료");
+                }
+            });
+
+            // ✅ 이미지 비율 유지하며 다시 그리기
+            function drawResizedImage() {
+                if (!img || !canvas || !ctx) return;
+
+                const scale = Math.min(window.innerWidth / img.naturalWidth, window.innerHeight / img.naturalHeight);
+                canvas.width = img.naturalWidth * scale;
+                canvas.height = img.naturalHeight * scale;
+
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                // 이전에 찍은 좌표와 선을 다시 그릴 수 있다면 여기에 재렌더링 로직 추가 가능
+            }
+
+            // ✅ 클릭 이벤트 핸들러
+            function handleCanvasClick(event) {
+                if (!canvas || !ctx || !img) return;
+
                 if (points.length >= 4) {
                     guideMessage.hide();
                     return;
@@ -189,57 +213,69 @@
                 const rect = canvas.getBoundingClientRect();
                 const scaleX = canvas.width / img.naturalWidth;
                 const scaleY = canvas.height / img.naturalHeight;
-                
-                // 좌표를 캔버스 크기에 맞게 변환하여 저장
-                const realX = Math.round((event.clientX - rect.left) / scaleX);
-                const realY = Math.round((event.clientY - rect.top) / scaleY);
+
+                const realX = parseFloat(((event.clientX - rect.left) / scaleX).toFixed(2));
+                const realY = parseFloat(((event.clientY - rect.top) / scaleY).toFixed(2));
 
                 points.push([realX, realY]);
-                console.log("📍 변환된 클릭 좌표:", realX, realY);
+                console.log("📍 클릭된 좌표:", realX, realY);
+                console.log("📍 현재 좌표 목록:", points);
 
-                // 클릭한 위치에 빨간 점 표시 (캔버스 크기에 맞게 변환)
+                // 빨간 점 찍기
                 ctx.fillStyle = "red";
                 ctx.beginPath();
-                ctx.arc(realX * scaleX, realY * scaleY, 1, 0, Math.PI * 2);
+                ctx.arc(realX * scaleX, realY * scaleY, 1.5, 0, Math.PI * 2);
                 ctx.fill();
 
-                //점을 찍을 때마다 가이드 메시지 변경
-                const newMessage = messages[points.length];
+                // 가이드 메시지 업데이트
+                const newMessage = messages[points.length] || "";
                 guideMessage.text(newMessage);
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
                 speakMessage(newMessage);
 
-                if (points.length == 2) {
-                    // 두 번째 점이 찍히면 초록색 직선 자동 생성
-                    drawGreenLine(points, scaleX, scaleY,ctx);
-                } else if (points.length == 3){
-                    // 세 번째 점이 찍히면 빨간색 직선 자동 생성
+                // 선 그리기 처리
+                if (points.length === 2) {
+                    drawGreenLine(points, scaleX, scaleY, ctx);
+                } else if (points.length === 3) {
                     drawRedLine(points, scaleX, scaleY, ctx);
-                } else if (points.length == 4){
-                    // 네 번째 점이 찍히면 파란색 직선 자동 생성
-                    drawBlueLine(points, scaleX, scaleY, ctx);
+                } else if (points.length === 4) {
+                    const blue_result = drawBlueLine(points, scaleX, scaleY, ctx);
 
-                    //4번째 점이 찍히면 가이드 메세지 숨김
-                    guideMessage.hide();
+                    if (!blue_result || !blue_result.p_perp) {
+                        console.error("🚨 drawBlueLine()에서 p_perp 반환 실패");
+                        return;
+                    }
 
-                    // 🟢 파란색 선이 다 그려진 후 alert 메시지 실행
+                    const yellow_result = drawYellowCircles(ctx, points, scaleX, scaleY, blue_result.p_perp);
+                    const [cx, cy] = yellow_result.circleCenter;
+
+                    drawArrowFromYellowCircle(0, 0, ctx, cx, cy, scaleX, scaleY);
+
+                    console.log("📌 Guide Zone Distance:", blue_result.D1);
+                    console.log("📌 Buffer Zone Distance:", yellow_result.D2);
+
+                    // ✅ 계기판 UI 업데이트
+                    updateCarDashboard(blue_result, yellow_result);
+
+                    // ✅ 마지막 안내 메시지
+                    const finalMessage = "4개의 점이 모두 찍혔습니다.";
+                    guideMessage.text(finalMessage);
+                    speakMessage(finalMessage);
+
                     setTimeout(() => {
-                        alert("✅ 4개의 좌표가 선택되었습니다.");
-                        console.log("📌 최종 좌표 목록:", points);
-                        
-                        // 부모 창에 좌표 데이터 전송
-                        if (window.opener && typeof window.opener.logFromChild === "function") {
-                            window.opener.logFromChild(points);
-                        } else {
-                            alert("🚨 부모 창이 없습니다. 좌표 데이터를 보낼 수 없습니다.");
-                        }
-                    }, 100); // 100ms 지연 후 실행 (선이 그려질 시간을 확보)
+                        guideMessage.hide();
+                    }, 2000);
+
+                    showGaugeCanvas();
+
+                    // ✅ 부모 창으로 좌표 데이터 전송
+                    if (window.opener && typeof window.opener.logFromChild === "function") {
+                        window.opener.logFromChild(points);
+                    } else {
+                        console.warn("🚨 부모 창에 logFromChild 함수 없음");
+                    }
                 }
-
-                
-            });
-
-            
-
+            }
         });
         
         $("#saveButton").on("click", function () {
