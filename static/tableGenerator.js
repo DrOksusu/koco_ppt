@@ -1,3 +1,40 @@
+const data = [
+    { mean_degree: 81, name: "SNA", value: "", category: "pink" },
+    { mean_degree: 79, name: "SNB", value: "", category: "pink" },
+    { mean_degree: 91, name: "IMPA", value: "", category: "pink" },
+    { mean_degree: 106, name: "1 to SN", value: "", category: "pink" },
+    { mean_degree: 27, name: "FMA", value: "", category: "pink" },
+    { mean_degree: 27.5, name: "PMA", value: "", category: "pink" },
+    { mean_degree: 34, name: "SN-GoMe", value: "", category: "pink" },
+    { mean_degree: 81, name: "FA'B'", value: "", category: "pink" },
+    { mean_degree: 81, name: "FABA", value: "", category: "pink" },
+    { mean_degree: 52, name: "Y-angle", value: "", category: "pink" },
+    { mean_degree: 50, name: "UGA", value: "", category: "pink" },
+    { mean_degree: 75, name: "LGA", value: "", category: "pink" },
+    { mean_degree: 123, name: "S-A", value: "", category: "pink" },
+    { mean_degree: 53, name: "UIOP", value: "", category: "pink" },
+    { mean_degree: 17, name: "MOP", value: "", category: "pink" },
+    { mean_degree: 31, name: "FH<Ans", value: "", category: "pink" },
+    { mean_degree: 37, name: "FH<Pr", value: "", category: "pink" },
+    { mean_degree: 131, name: "Na-S-BaA", value: "", category: "pink" },
+    { mean_length: 3, name: "Incisor Overbite", value: "", category: "green" },
+    { mean_length: 3, name: "Incisor Overjet", value: "", category: "green" },
+    { mean_degree: 95, name: "NALA", value: "", category: "red" },
+    { mean_length: 20, name: "HR", value: "", category: "red" },
+    { mean: "없음", name: "Cal", value: "", category: "green" },
+    { mean_length: 69, name: "ACBL", value: "", category: "blue" },
+    { mean_length: 71, name: "MBL", value: "", category: "blue" },
+    { mean_length: null, name: "AFH", value: "", category: "blue" },
+    { mean_length: null, name: "PFH", value: "", category: "blue" },
+    { mean_length: 0, name: "E-line", value: "", category: "blue" },
+    { mean_length: 50, name: "Ramus height", value: "", category: "blue" },
+    { mean_length: 0, name: "Naperp-A", value: "", category: "blue" },
+    { mean_length: 54, name: "MxBL", value: "", category: "blue" },
+    { mean_length: 46, name: "PCBL", value: "", category: "blue" },
+    { mean_length: 25, name: "S-Por", value: "", category: "blue" }
+];
+
+
 document.addEventListener("DOMContentLoaded", function () {
     console.log("✅ 테이블 생성 스크립트 로드됨");
 
@@ -38,41 +75,7 @@ document.addEventListener("DOMContentLoaded", function () {
     };        
 
 
-    const data = [
-        { mean: 81, name: "SNA", value: "", category: "pink" },
-        { mean: 79, name: "SNB", value: "", category: "pink" },
-        { mean: 91, name: "IMPA", value: "", category: "pink" },
-        { mean: 106, name: "1 to SN", value: "", category: "pink" },
-        { mean: 27, name: "FMA", value: "", category: "pink" },
-        { mean: 27.5, name: "PMA", value: "", category: "pink" },
-        { mean: 34, name: "SN-GoMe", value: "", category: "pink" },
-        { mean: 81, name: "FA'B'", value: "", category: "pink" },
-        { mean: 81, name: "FABA", value: "", category: "pink" },
-        { mean: 52, name: "Y-angle", value: "", category: "pink" },
-        { mean: 50, name: "UGA", value: "", category: "pink" },
-        { mean: 75, name: "LGA", value: "", category: "pink" },
-        { mean: 123, name: "S-A", value: "", category: "pink" },
-        { mean: 53, name: "UIOP", value: "", category: "pink" },
-        { mean: 17, name: "MOP", value: "", category: "pink" },
-        { mean: 31, name: "FH<Ans", value: "", category: "pink" },
-        { mean: 37, name: "FH<Pr", value: "", category: "pink" },
-        { mean: 131, name: "Na-S-BaA", value: "", category: "pink" },
-        { mean: 3, name: "Incisor Overbite", value: "", category: "green" },
-        { mean: 3, name: "Incisor Overjet", value: "", category: "green" },
-        { mean: 95, name: "NALA", value: "", category: "red" },
-        { mean: "", name: "HR", value: "", category: "red" },
-        { mean: "", name: "Cal", value: "", category: "green" },
-        { mean: 69, name: "ACBL", value: "", category: "blue" },
-        { mean: 71, name: "MBL", value: "", category: "blue" },
-        { mean: "", name: "AFH", value: "", category: "blue" },
-        { mean: "", name: "PFH", value: "", category: "blue" },
-        { mean: 0, name: "E-line", value: "", category: "blue" },
-        { mean: 50, name: "Ramus height", value: "", category: "blue" },
-        { mean: 0, name: "Naperp-A", value: "", category: "blue" },
-        { mean: 54, name: "MxBL", value: "", category: "blue" },
-        { mean: 46, name: "PCBL", value: "", category: "blue" },
-        { mean: 25, name: "S-Por", value: "", category: "blue" }
-    ];
+    
 
     function generateTable() {
         const tableContainer = document.getElementById("tableContainer");
@@ -82,10 +85,10 @@ document.addEventListener("DOMContentLoaded", function () {
         table.innerHTML = `
             <thead>
                 <tr>
-                    <th>평균치</th>
-                    <th>필수 계측항목</th>
-                    <th>계측값</th>
-                </tr>
+                    <th style="width: 40%;">필수 계측항목</th>
+                    <th style="width: 20%;">평균치</th>
+                    <th style="width: 20%;">계측값</th>
+            </tr>
             </thead>
             <tbody></tbody>
         `;
@@ -97,13 +100,18 @@ document.addEventListener("DOMContentLoaded", function () {
     
             // ✅ `<` 및 `>` 기호 변환
             const safeName = row.name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
             const tip = tooltips[row.name] || "";
+
+            let meanValue = "";
+            if (row.mean_degree !== undefined && row.mean_degree !== "") {
+              meanValue = `${row.mean_degree}°`;
+            } else if (row.mean_length !== undefined && row.mean_length !== "") {
+              meanValue = `${row.mean_length}mm`;
+            }          
     
             tr.innerHTML = `
-                <td>${row.mean}</td>
-                
                 <td class="tooltip ${row.category}" data-tooltip="${tip}">${safeName}</td> <!-- ✅ HTML 엔티티 변환 적용 -->
+                <td>${meanValue}</td>               
                 <td class="value-cell" data-name="${row.name}">${row.value}</td> <!-- ✅ data-name 속성 유지 -->
             `;
             tableBody.appendChild(tr);
@@ -120,15 +128,44 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ✅ 부모 창의 테이블에서 '계측값' 업데이트 함수
+// function updateTableWithAngles(angleDictionary) {
+//     console.log("📌 계측값 업데이트 실행");
+
+//     // ✅ 모든 '계측값' 셀을 찾고, `data-name`을 기반으로 값 업데이트
+//     const valueCells = document.querySelectorAll(".value-cell");
+//     valueCells.forEach(cell => {
+//         const name = cell.getAttribute("data-name"); // ✅ 계측항목 이름 가져오기
+//         if (name in angleDictionary) {
+//             cell.textContent = angleDictionary[name]; // ✅ `angleDictionary` 값으로 업데이트
+//         }
+//     });
+
+//     console.log("✅ 테이블 업데이트 완료!");
+// }
+
 function updateTableWithAngles(angleDictionary) {
     console.log("📌 계측값 업데이트 실행");
 
-    // ✅ 모든 '계측값' 셀을 찾고, `data-name`을 기반으로 값 업데이트
+    // ✅ 이름 → 단위 맵을 미리 구성 (빠르게 단위 붙이기 위함)
+    const unitMap = {};
+    data.forEach(row => {
+        if (row.mean_degree !== undefined && row.mean_degree !== "") {
+            unitMap[row.name] = "°";
+        } else if (row.mean_length !== undefined && row.mean_length !== "") {
+            unitMap[row.name] = "mm";
+        } else {
+            unitMap[row.name] = ""; // 단위 없음
+        }
+    });
+
+    // ✅ 계측값 셀 찾아서 업데이트
     const valueCells = document.querySelectorAll(".value-cell");
     valueCells.forEach(cell => {
-        const name = cell.getAttribute("data-name"); // ✅ 계측항목 이름 가져오기
+        const name = cell.getAttribute("data-name");
         if (name in angleDictionary) {
-            cell.textContent = angleDictionary[name]; // ✅ `angleDictionary` 값으로 업데이트
+            const rawValue = angleDictionary[name];
+            const unit = unitMap[name] || "";
+            cell.textContent = rawValue !== "" ? `${rawValue}${unit}` : "";
         }
     });
 

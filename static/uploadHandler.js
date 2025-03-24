@@ -12,6 +12,24 @@ function dataURLtoBlob(dataURL) {
     return new Blob([u8arr], { type: mime });
 }
 
+document.querySelectorAll('.file-preview').forEach(preview => {
+    const bg = preview.style.backgroundImage;
+    preview.style.backgroundImage = 'none'; // 배경 제거
+    preview.style.position = 'relative';
+  
+    const overlay = document.createElement('div');
+    overlay.style.position = 'absolute';
+    overlay.style.inset = 0;
+    overlay.style.backgroundImage = bg;
+    overlay.style.backgroundSize = 'cover';
+    overlay.style.backgroundPosition = 'center';
+    overlay.style.opacity = '0.8'; // 투명도 조절
+    overlay.style.filter = 'brightness(0.6)'; // ✅ blur 제거!
+    overlay.style.zIndex = '-1';
+  
+    preview.appendChild(overlay);
+  });
+  
 
 document.addEventListener("DOMContentLoaded", function () {
     // 파일 업로드 처리
@@ -68,91 +86,72 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    $(document).ready(function () {
-        $("#drawPSALine").on("click", function (event) {
-            event.preventDefault();
-            console.log("🔥 PSA 선 그리기 버튼 클릭됨!");
+    $("#drawPSALine").on("click", function (event) {
+        event.preventDefault();
     
-            let fileInput = $("#lateral_ceph")[0];
+        const fileInput = $("#lateral_ceph")[0];
     
-            // ✅ localStorage 전체 비우기 (이전에 저장된 큰 파일들 포함 모두 삭제)
-            localStorage.clear();
-            console.log("🔥 localStorage 초기화 완료!");
+        if (!fileInput.files.length) {
+            alert("⚠️ lateral_ceph에 업로드된 이미지가 없습니다!");
+            return;
+        }
     
-            if (!fileInput.files.length) {
-                alert("⚠️ lateral_ceph에 업로드된 이미지가 없습니다!");
-                return;
-            }
+        const file = fileInput.files[0];
+        const reader = new FileReader();
     
-            const file = fileInput.files[0];
-            const reader = new FileReader();
+        reader.onload = function (e) {
+            const imageData = e.target.result;
     
-            reader.onload = function (e) {
-                try {
-                    localStorage.setItem("psaImage", e.target.result);
-                    localStorage.setItem("psaFile", e.target.result);
-                    console.log("✅ localStorage에 이미지 저장 완료!");
-                    window.open("/static/psa.html", "_blank", "width=700,height=700");
-                } catch (err) {
-                    console.error("💥 localStorage 저장 실패:", err);
-                    alert("⚠️ 이미지가 너무 커서 저장에 실패했습니다.");
-                }
+            // ✅ 새 창 열기
+            const newWindow = window.open("/static/psa.html", "_blank", "width=700,height=700,scrollbars=yes");
+    
+            // ✅ 새 창이 완전히 열린 후에 postMessage 전달
+            newWindow.onload = function () {
+                console.log("✅ 새 창이 로드됨!");
+                newWindow.postMessage({ type: "PSA_IMAGE", data: imageData }, "*");
+                console.log("✅ 이미지 데이터를 새 창으로 전송 완료!");
             };
+        };
     
-            reader.readAsDataURL(file);
-        });
+        reader.readAsDataURL(file);  // base64로 읽기
     });
     
     
     
-
+    
     $(document).ready(function () {
         $("#excel-create-btn").on("click", function (event) {
             event.preventDefault();
-            localStorage.removeItem("psaImage"); // ✅ 브라우저가 열릴 때 이미지 삭제
-            localStorage.removeItem("psaFile");  // ✅ 파일 정보도 삭제
-            console.log("🔥 PSA 선 그리기 버튼 클릭됨!");
+            console.log("🔥 PSA 엑셀 생성 버튼 클릭됨!");
     
-            let fileInput = $("#lateral_ceph")[0];
+            const fileInput = $("#lateral_ceph")[0];
     
-            // ✅ 1. `fileInput.files`가 비어있다면 `localStorage`에서 복구
-            if (!fileInput.files.length) {
-                console.warn("⚠️ `fileInput.files`이 비어 있음. localStorage에서 복구 시도");
-                const storedFile = localStorage.getItem("psaFile");
-                if (storedFile) {
-                    console.log("✅ localStorage에서 `psaFile` 복구됨!");
-                    const blob = dataURLtoBlob(storedFile);
-                    const file = new File([blob], "lateral_ceph.jpg", { type: "image/jpeg" });
-    
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
-                    fileInput.files = dataTransfer.files; // ✅ 파일 복원
-                }
-            }
-    
-            // ✅ 2. 파일이 여전히 없으면 경고
+            // ✅ 파일이 없는 경우 경고
             if (!fileInput.files.length) {
                 alert("⚠️ lateral_ceph에 업로드된 이미지가 없습니다!");
                 return;
             }
     
             const file = fileInput.files[0];
-            console.log("📂 PSA 선 그리기 파일 정보:", file);
+            console.log("📂 파일 선택됨:", file);
+    
             const reader = new FileReader();
     
             reader.onload = function (e) {
+                const imageData = e.target.result;
                 console.log("🔥 파일 읽기 완료!");
     
-                // ✅ 3. Base64 인코딩된 이미지 데이터를 localStorage에 저장
-                localStorage.setItem("psaImage", e.target.result);
-                localStorage.setItem("psaFile", e.target.result); // ✅ 파일 정보도 저장
-                console.log("🔥 PSA 선 그리기 이미지 데이터 저장 완료!");
+                // ✅ 새 창 열기
+                const newWindow = window.open("/static/create_excel.html", "_blank", "width=700,height=700,scrollbars=yes");
     
-                // ✅ 4. `psa.html` 새 창 열기
-                window.open("/static/create_excel.html", "_blank", "width=700,height=700,scrollbars=yes");
+                // ✅ 새 창이 로드된 후 이미지 데이터 전달
+                newWindow.onload = function () {
+                    newWindow.postMessage({ type: "PSA_IMAGE", data: imageData }, "*");
+                    console.log("✅ 이미지 데이터를 create_excel1.html로 전송 완료!");
+                };
             };
     
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(file);  // ✅ Base64 문자열로 읽기
         });
     });
     
