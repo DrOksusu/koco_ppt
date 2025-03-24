@@ -97,11 +97,11 @@
 
     <div id="canvas-container">
         <p id="error-message" style="color: red; display: none;">🚨 이미지 데이터를 찾을 수 없습니다!</p>
-        <div id="guideMessage" class="guide-message">Nasion(2)</div>
+        <div id="guideMessage" class="guide-message">Nasion</div>
         <canvas id="psaCanvas"></canvas>
     </div>
     <div id="button-container">                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
-        <button id="saveButton">이미지 저장</button>        
+        <button id="backButton">한 칸 전으로</button>        
         <button id="insertButton">엑셀 데이터 생성</button>
         <button id="resetButton">처음부터 다시하기</button>
     </div>
@@ -111,233 +111,231 @@
 
     <script>
 
-        $(document).ready(function () {
-            console.log("🚀 create_excel.html 로드됨");
+        // ✅ 전역 변수 선언
+        let scaleX = 1;
+        let scaleY = 1;
+        let canvas, ctx, img;
+        let landmarkCoordinates = {};
 
-            // ✅ landmark.png 이미지를 윈도우 폭의 1/4 크기로 조정하는 함수
+        // ✅ 랜드마크 이름 목록
+        const messages = [
+            "Nasion", "Sella", "Porion", "Orbitale", "Basion",
+            "ANS", "PNS", "A-Point", "B-Point", "Pogonion",
+            "Menton", "Corpus Lt.", "Ramus Down", "Ar",
+            "Mx.1 cr", "Mx.1 root", "Mn.1 cr", "Mn.1 root", "Mn.6 distal", "Pronasale",
+            "Columella", "Subnasale", "soft tissue A", "Upper lip", "Lower lip",
+            "soft tissue B", "soft tissue Pogonion", "Ruler Start", "Ruler End"
+        ];
+
+        $(document).ready(function () {
+            console.log("🚀 create_excel1.html 로드됨");
+
+            const guideMessage = $("#guideMessage");
+
+            // ✅ landmark 이미지 사이즈 조정
             function updateImageSize() {
                 const landmarkImage = document.getElementById("landmarkImage");
                 if (landmarkImage) {
-                    landmarkImage.style.width = (window.innerWidth * 0.4) + "px"; // ✅ 윈도우 폭의 40% 크기로 설정
+                    landmarkImage.style.width = (window.innerWidth * 0.3) + "px";
                 }
             }
-
-            // ✅ 윈도우 크기 변경 시 landmark.png 크기 업데이트
+            updateImageSize();
             window.addEventListener("resize", updateImageSize);
 
-            // ✅ 페이지 로드시 초기 크기 조정
-            updateImageSize();
-            
-            let messages = [
-                "Nasion(2)",
-                "Sella(1)",
-                "Basion",
-                "Porion(4)",
-                "Orbitale(3)",
-                "ANS(12)",
-                "PNS(13)",
-                "A-Point(5)",
-                "B-Point(6)"
-            ];
+            // ✅ 페이지 로드시 음성 출력
+            speakMessage(guideMessage.text());
 
-            let landmarkCoordinates = {}; // ✅ 좌표 저장 객체
+            // ✅ 이미지 postMessage로 수신 처리
+            window.addEventListener("message", function (event) {
+                const message = event.data;
 
-            // ✅ localStorage에서 이미지 데이터 가져오기
-            const imageSrc = localStorage.getItem("psaImage");
-            console.log("🖼 이미지 데이터:", imageSrc);
+                if (message.type === "PSA_IMAGE" && message.data) {
+                    console.log("📨 이미지 데이터 수신됨");
 
-            if (!imageSrc) {
-                console.error("🚨 이미지 데이터가 localStorage에 없습니다!");
-                $("#error-message").show();
-                return;
-            }
+                    img = new Image();
+                    img.onload = function () {
+                        canvas = document.getElementById("psaCanvas");
+                        ctx = canvas.getContext("2d");
 
-            // ✅ Canvas 요소 설정
-            const canvas = document.getElementById("psaCanvas");
-            console.log("🖼 Canvas 요소:", canvas);
-            const ctx = canvas.getContext("2d");
-            console.log("🎨 Canvas Context:", ctx);
-            const img = new Image();
-            console.log("✅ Canvas 요소 설정 완료");
+                        resizeAndDrawImage();
 
-            img.onload = function () {
+                        // ✅ 윈도우 크기 변경 시 이미지 다시 그림
+                        window.addEventListener("resize", resizeAndDrawImage);
+
+                        // ✅ 캔버스 클릭 이벤트 등록
+                        canvas.addEventListener("click", handleCanvasClick);
+                    };
+
+                    img.src = message.data;
+                }
+            });
+
+            // ✅ 이미지 비율 유지하여 그리기
+            function resizeAndDrawImage() {
+                if (!canvas || !ctx || !img) return;
+
                 const winWidth = window.innerWidth;
                 const winHeight = window.innerHeight;
                 const imgWidth = img.naturalWidth;
                 const imgHeight = img.naturalHeight;
 
-                let scale = Math.min(winWidth / imgWidth, winHeight / imgHeight);
+                const scale = Math.min(winWidth / imgWidth, winHeight / imgHeight);
                 canvas.width = imgWidth * scale;
                 canvas.height = imgHeight * scale;
 
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            };
+            }
 
-            img.src = imageSrc;
+            // ✅ 클릭 이벤트 처리
+            function handleCanvasClick(event) {
+                if (!canvas || !ctx || !img) return;
 
-            // ✅ 윈도우 크기 변경 시 캔버스 크기 자동 조정
-            window.addEventListener("resize", function () {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            });
-
-            // ✅ 페이지 로드시 첫번째 가이드 메시지 음성 출력
-            const guideMessage = $("#guideMessage");
-            speakMessage(guideMessage.text());
-
-            canvas.addEventListener("click", function (event) {
-                if (Object.keys(landmarkCoordinates).length >= 9) {
+                if (Object.keys(landmarkCoordinates).length >= 29) {
                     guideMessage.hide();
                     return;
                 }
 
                 const rect = canvas.getBoundingClientRect();
-                const scaleX = img.naturalWidth / rect.width;
-                const scaleY = img.naturalHeight / rect.height;
+                scaleX = img.naturalWidth / rect.width;
+                scaleY = img.naturalHeight / rect.height;
 
                 const realX = Math.round((event.clientX - rect.left) * scaleX);
                 const realY = Math.round((event.clientY - rect.top) * scaleY);
 
-                // ✅ 랜드마크 이름 가져오기
                 const rawLandmarkName = messages[Object.keys(landmarkCoordinates).length];
-                const landmarkName = rawLandmarkName.replace(/\(\d+\)/g, ""); // ✅ 숫자와 괄호 제거
+                const landmarkName = rawLandmarkName.replace(/\(\d+\)/g, "");
 
-
-                // ✅ 딕셔너리에 키-값 형태로 저장
                 landmarkCoordinates[landmarkName] = { x: realX, y: realY };
                 console.log(`📍 ${landmarkName} 좌표:`, realX, realY);
 
-                // ✅ 클릭한 위치에 빨간 점 표시
+                // 빨간 점 표시
                 ctx.fillStyle = "red";
                 ctx.beginPath();
-                ctx.arc(realX / scaleX, realY / scaleY, 3, 0, Math.PI * 2);
+                ctx.arc(realX / scaleX, realY / scaleY, 1.5, 0, Math.PI * 2);
                 ctx.fill();
 
-                // ✅ 가이드 메시지 변경 및 음성 안내 (이제 올바른 순서로 실행됨)
-                const nextIndex = Object.keys(landmarkCoordinates).length; // ✅ 현재 저장된 개수 기준으로 다음 인덱스 계산
-                if (nextIndex < 9) {
-                    const nextMessage = messages[nextIndex]; // ✅ 다음 랜드마크 가져오기
-                    guideMessage.text(nextMessage); // ✅ 가이드 메시지 업데이트
-                    speakMessage(nextMessage.replace(/\(\d+\)/g, "")); // ✅ 숫자 제거 후 음성 출력
+                // 다음 메시지 안내
+                const nextIndex = Object.keys(landmarkCoordinates).length;
+                if (nextIndex < messages.length) {
+                    const nextMessage = messages[nextIndex];
+                    guideMessage.text(nextMessage);
+                    if (nextMessage) {
+                        speakMessage(nextMessage.replace(/\(\d+\)/g, ""));
+                    }
                 } else {
                     guideMessage.hide();
                 }
-                
-                // ✅ 9개 좌표가 선택되었을 때 딕셔너리 반환
-                if (Object.keys(landmarkCoordinates).length === 9) {
-                    setTimeout(() => {
-                        alert("✅ 9개의 좌표가 선택되었습니다.");
-                        console.log("📌 최종 좌표 목록 (딕셔너리 형태):", landmarkCoordinates);
 
-                        // ✅ 부모 창으로 좌표 데이터 전송
+                // ✅ 마지막 좌표 찍은 경우
+                if (Object.keys(landmarkCoordinates).length === 29) {
+                    setTimeout(() => {
+                        alert("✅ 29개의 좌표가 선택되었습니다.");
+                        console.log("📌 좌표 목록:", landmarkCoordinates);
+
+                        const excel_dict = getAngleDictionary(landmarkCoordinates);
+                        const excel_add = calculateAdditionalAngles(excel_dict, landmarkCoordinates);
+
+                        console.log("📐 계측값:", excel_dict);
+                        console.log("📐 추가 계측값:", excel_add);
+
                         if (window.opener && typeof window.opener.logFromChild === "function") {
-                            window.opener.logFromChild(landmarkCoordinates);
+                            const combinedData = {
+                                landmarkCoordinates,
+                                excel_dict,
+                                excel_add
+                            };
+                            window.opener.logFromChild(combinedData);
+                            console.log("📤 부모 창으로 데이터 전송 완료:", combinedData);
                         } else {
-                            alert("🚨 부모 창이 없습니다. 좌표 데이터를 보낼 수 없습니다.");
+                            alert("🚨 부모 창이 없습니다.");
                         }
                     }, 100);
                 }
-            });
+            }
         });
 
-                
-                $("#saveButton").on("click", function () {
-                    alert("기능 개발 중입니다.");
+            $("#backButton").on("click", function () {
+                if (Object.keys(landmarkCoordinates).length === 0) {
+                    alert("🚨 되돌릴 좌표가 없습니다.");
                     return;
-                    // ✅ 캔버스를 이미지 데이터 URL로 변환
-                    const dataURL = $("#psaCanvas")[0].toDataURL("image/png");
+                }
 
-                    // ✅ 이미지 다운로드 링크 생성
-                    const link = $("<a>")
-                        .attr("href", dataURL)
-                        .attr("download", "psa_drawing.png")
-                        .appendTo("body");
+                // ✅ 마지막으로 저장된 좌표 삭제
+                const keys = Object.keys(landmarkCoordinates); // 현재 저장된 좌표 키 배열
+                const lastKey = keys[keys.length - 1]; // 마지막 키 가져오기
+                delete landmarkCoordinates[lastKey]; // 마지막 좌표 삭제
+                console.log(`❌ 마지막 좌표 삭제: ${lastKey}`);
 
-                    link[0].click();
-                    link.remove();
+                // ✅ 캔버스 다시 그리기 (이미지 리셋 후 다시 점 찍기)
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-                    console.log("📥 캔버스 이미지 저장 완료");
+                // ✅ 남아있는 좌표 다시 표시
+                Object.entries(landmarkCoordinates).forEach(([key, coord]) => {
+                    ctx.fillStyle = "red";
+                    ctx.beginPath();
+                    ctx.arc(coord.x / scaleX, coord.y / scaleY, 3, 0, Math.PI * 2);
+                    ctx.fill();
                 });
 
-                $("#insertButton").on("click", function () {
-                    alert("기능 개발 중입니다.");
-                    return;
-                    // ✅ 캔버스를 PNG 이미지로 변환
-                    const canvas = $("#psaCanvas")[0];
-                    canvas.toBlob((blob) => {
-                        // ✅ Blob 데이터로부터 File 객체 생성
-                        const file = new File([blob], "processed_psa.jpg", { type: "image/jpeg" });
+                // ✅ 가이드 메시지를 이전 메시지로 변경
+                const prevIndex = Object.keys(landmarkCoordinates).length; // 현재 남아 있는 개수
+                if (prevIndex < messages.length) {
+                    guideMessage.text(messages[prevIndex]); // ✅ 가이드 메시지 업데이트
+                    speakMessage(messages[prevIndex]); // ✅ 음성 안내
+                }      
+            });
 
-                        // ✅ 부모 창이 존재하는지 확인
-                        if (window.opener && !window.opener.closed) {
-                            // ✅ 부모 창의 PSA 미리보기 박스 (`xrayPreview4`) 가져오기
-                            const psaBox = window.opener.document.getElementById("xrayPreview4");
-                            const psaInput = window.opener.document.getElementById("psa"); // input[type=file]
+            $("#insertButton").on("click", function () {
+                console.log("📌 `엑셀데이터 생성 버튼` 클릭됨!");
 
-                            if (psaBox) {
-                                // ✅ 기존 내용 삭제 후 새 이미지 삽입
-                                psaBox.innerHTML = ""; // 기존 내용 제거
-                                const imgElement = document.createElement("img");
-                                imgElement.src = URL.createObjectURL(blob);
-                                imgElement.alt = "삽입된 PSA 이미지";
-                                imgElement.style.width = "100%";
-                                imgElement.style.height = "100%";
-                                imgElement.style.objectFit = "cover";
+                // ✅ SNA, SNB 내각 계산 후 `angleDictionary` 생성
+                const angleDictionary = getAngleDictionary(landmarkCoordinates);
+                console.log("📌 angleDictionary 생성 완료:", angleDictionary);
 
-                                // ✅ 삭제 버튼 추가
-                                const deleteBtn = document.createElement("button");
-                                deleteBtn.innerText = "X";
-                                deleteBtn.classList.add("delete-btn");
-                                deleteBtn.addEventListener("click", function () {
-                                    psaBox.innerHTML = "📂 PSA"; // 초기 상태로 되돌리기
-                                    if (psaInput) psaInput.value = ""; // 파일도 제거
-                                });
+                // ✅ 부모 창이 존재하는지 확인
+                if (window.opener && !window.opener.closed) {
+                    console.log("🚀 부모 창이 열려 있습니다. 데이터 전송!");
 
-                                // ✅ PSA 박스에 추가
-                                psaBox.appendChild(imgElement);
-                                psaBox.appendChild(deleteBtn);
-
-                                console.log("✅ PSA 이미지가 부모 창의 미리보기 박스(xrayPreview4)에 삽입되었습니다!");
-                                alert("✅ psa 이미지가 삽입되었습니다!");
-                                window.close(); // 자식 창 닫기
-                            } else {
-                                alert("🚨 부모 창에 'xrayPreview4'라는 ID를 가진 요소를 찾을 수 없습니다!");
-                            }
-
-                            // ✅ 파일 입력 필드 (`<input type="file" id="psa">`)에 파일 추가
-                            if (psaInput) {
-                                const dataTransfer = new DataTransfer();
-                                dataTransfer.items.add(file);
-                                psaInput.files = dataTransfer.files; // ✅ input 요소에 파일 추가
-                            }
-                        } else {
-                            alert("🚨 부모 창이 닫혀 있습니다! 이미지를 삽입할 수 없습니다.");
-                        }
-                    }, "image/jpeg");
-                });
-
-                $("#resetButton").on("click", function () {
-                    console.log("🔄 다시 시작하기 버튼 클릭됨");
-
-                    // ✅ 부모 창이 존재하는지 확인
-                    if (window.opener && !window.opener.closed) {
-                        console.log("🚀 부모 창이 존재합니다. 엑셀 창을 다시 엽니다.");
-
-                        // ✅ 부모 창에서 PSA 선 그리기 버튼을 실행
-                        window.opener.$("#excel-create-btn").trigger("click");
-
-                        // ✅ 현재 창 닫기 (부모 창에서 창이 열리도록 한 후 닫음)
+                    // ✅ 부모 창에서 `updateTableWithAngles()` 함수가 존재하는지 확인 후 실행
+                    if (typeof window.opener.updateTableWithAngles === "function") {
+                        window.opener.updateTableWithAngles(angleDictionary); // ✅ 부모 창 테이블 업데이트 실행
+                        // ✅ 300ms(0.3초) 후 `alert()` 실행
                         setTimeout(() => {
-                            window.close();
-                        }, 100); // 100ms 딜레이 후 닫기 (부모 창 코드 실행 보장)
+                            alert("✅ 계측값이 부모 창에 업데이트되었습니다!");
+                        }, 300);
                     } else {
-                        console.error("🚨 부모 창이 존재하지 않거나 닫혀 있습니다. 현재 창을 닫습니다.");
-                        window.close();
+                        alert("🚨 부모 창에 `updateTableWithAngles` 함수가 없습니다!");
                     }
-                });
+                } else {
+                    alert("🚨 부모 창이 닫혀 있습니다! 데이터를 보낼 수 없습니다.");
+                }
+            });
 
+                    
 
+            $("#resetButton").on("click", function () {
+                console.log("🔄 다시 시작하기 버튼 클릭됨");
+
+                // ✅ 부모 창이 존재하는지 확인
+                if (window.opener && !window.opener.closed) {
+                    console.log("🚀 부모 창이 존재합니다. 엑셀 창을 다시 엽니다.");
+
+                    // ✅ 부모 창에서 PSA 선 그리기 버튼을 실행
+                    window.opener.$("#excel-create-btn").trigger("click");
+
+                    // ✅ 현재 창 닫기 (부모 창에서 창이 열리도록 한 후 닫음)
+                    setTimeout(() => {
+                        window.close();
+                    }, 100); // 100ms 딜레이 후 닫기 (부모 창 코드 실행 보장)
+                } else {
+                    console.error("🚨 부모 창이 존재하지 않거나 닫혀 있습니다. 현재 창을 닫습니다.");
+                    window.close();
+                }
+            });
+
+                
+        
     </script>
 
 </body>
