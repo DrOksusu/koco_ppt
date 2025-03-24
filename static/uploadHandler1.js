@@ -89,6 +89,7 @@ document.addEventListener("DOMContentLoaded", function () {
     
             // ✅ 새 창이 완전히 열린 후에 postMessage 전달
             newWindow.onload = function () {
+                console.log("✅ 새 창이 로드됨!");
                 newWindow.postMessage({ type: "PSA_IMAGE", data: imageData }, "*");
                 console.log("✅ 이미지 데이터를 새 창으로 전송 완료!");
             };

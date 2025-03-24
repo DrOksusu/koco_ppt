@@ -359,7 +359,7 @@ function getAngleDictionary(landmarkCoordinates) {
         "Incisor Overbite" : (calculateXYDifference(landmarkCoordinates, "Mn.1 cr", "Mx.1 cr")).y_diff,
         "Incisor Overjet" : (calculateXYDifference(landmarkCoordinates, "Mn.1 cr", "Mx.1 cr")).x_diff,
         "NALA" : calculateAngle(landmarkCoordinates, "Columella", "Subnasale", "soft tissue A"),
-        "HR" : "10",
+        "HR" : "20",
         "Cal" : calculateScaleFactor(landmarkCoordinates),
         "ACBL" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Sella", "Nasion"),
         "MBL" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Menton", "Go"),
@@ -372,10 +372,10 @@ function getAngleDictionary(landmarkCoordinates) {
         "PCBL" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Sella", "Basion"),
         "S-Por" : calculateScaledDistanceFromKeys(landmarkCoordinates, "Sella", "Porion"),
        
-        "MAB" : calculateIntersectionAngle(landmarkCoordinates, "Menton", "Go", "A-Point", "B-Point"),
+        "MAB" : Math.round((180-(calculateIntersectionAngle(landmarkCoordinates, "Menton", "Go", "A-Point", "B-Point")))*10)/10,
         "ACBA" : calculateIntersectionAngle(landmarkCoordinates, "Sella", "Nasion", "Porion", "Orbitale"),
         "FH<B" : Math.round((180-(calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Sella", "Basion")))*10)/10,
-        "PCBA" : Math.round((180-(calculateAngle(landmarkCoordinates, "Nasion", "Sella", "Basion")))*10)/10,
+        "PCBA" : calculateAngle(landmarkCoordinates, "Nasion", "Sella", "Basion"),
         "FUIA" : Math.round((180-(calculateIntersectionAngle(landmarkCoordinates, "Porion", "Orbitale", "Mx.1 cr", "Mx.1 root")))*10)/10,
         "AB<LOP" : calculateIntersectionAngle(landmarkCoordinates, "A-Point", "B-Point", "Mn.1 cr", "Mn.6 distal"),             
 

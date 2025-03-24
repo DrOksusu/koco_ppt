@@ -142,6 +142,7 @@
             "occlusal point",
             "symphysis lingual"
         ];
+        console.log("📜 가이드 메시지 목록:", messages);
 
         $(document).ready(function () {
             console.log("🚀 psa1.html 로드됨");
@@ -168,6 +169,7 @@
 
                 if (message.type === "PSA_IMAGE" && message.data) {
                     console.log("📨 이미지 수신 완료");
+                    console.log("📨 이미지 데이터:", message.data);
 
                     img = new Image();
                     img.onload = function () {
@@ -277,7 +279,7 @@
                 }
             }
         });
-        
+
         $("#saveButton").on("click", function () {
             // ✅ 캔버스를 이미지 데이터 URL로 변환
             const dataURL = $("#psaCanvas")[0].toDataURL("image/png");
