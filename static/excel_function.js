@@ -161,7 +161,7 @@ function calculateScaleFactor(landmarkCoordinates) {
     const distance = Math.sqrt(dx * dx + dy * dy);  // 유클리드 거리 공식 적용
 
     // ✅ 4. 변환 비율 계산 및 소수점 세 자리 반올림
-    const scaleFactor = Math.round((10 / distance) * 100) / 100;   
+    const scaleFactor = Math.round((20 / distance) * 100) / 100;   
 
     
 
