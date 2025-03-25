@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 console.log("🔥 파일 읽기 완료!");
     
                 // ✅ 새 창 열기
-                const newWindow = window.open("/static/create_excel.html", "_blank", "width=700,height=700,scrollbars=yes");
+                const newWindow = window.open("/static/create_excel1.html", "_blank", "width=700,height=700,scrollbars=yes");
     
                 // ✅ 새 창이 로드된 후 이미지 데이터 전달
                 newWindow.onload = function () {

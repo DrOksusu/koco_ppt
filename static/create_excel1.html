@@ -1,342 +1,429 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>엑셀 데이터 생성</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="/static/excel_function.js"></script>
     <script src="/static/psa_function.js"></script>
-    
+
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            width: 100vw;
-            margin: 0;
-            background-color: #f0f0f0;
-            overflow: hidden;
-        }
-        #image-container {
-            position: absolute;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        img {
-            max-width: 100vw;
-            max-height: 100vh;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-            border: none;
-        }
-        .marker {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            background-color: red;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 9999;
-        }
-        .guide-message {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 5px 10px;
-            font-size: 14px;
-            border-radius: 5px;
-            z-index: 10000;
-        }
-        #button-container {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: row; /* 👉 버튼을 가로로 정렬 */
-            gap: 10px; /* 버튼 간격 추가 */
-        }
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+        background-color: #f0f0f0;
+        overflow: hidden;
+      }
+      #image-container {
+        position: absolute;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      img {
+        max-width: 100vw;
+        max-height: 100vh;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border: none;
+      }
+      .marker {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background-color: red;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+      }
+      .guide-message {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 5px 10px;
+        font-size: 14px;
+        border-radius: 5px;
+        z-index: 10000;
+      }
+      #button-container {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: row; /* 👉 버튼을 가로로 정렬 */
+        gap: 10px; /* 버튼 간격 추가 */
+      }
 
-        #saveButton, #insertButton {
-            position: relative; /* ✅ 버튼의 위치 문제 해결 */
-            background-color: #007bff;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            z-index: 10000;
-        }
+      #saveButton,
+      #insertButton {
+        position: relative; /* ✅ 버튼의 위치 문제 해결 */
+        background-color: #007bff;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        z-index: 10000;
+      }
 
-        #saveButton:hover, #insertButton:hover {
-            background-color: #0056b3;
-        }
+      #saveButton:hover,
+      #insertButton:hover {
+        background-color: #0056b3;
+      }
 
-        #landmarkImage {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 25vw; /* 윈도우 폭의 1/4 크기로 설정 */
-            height: auto;
-            z-index: 10001; /* 다른 요소 위에 배치 */
-            border: 2px solid black; /* 테두리 추가 (디버깅용, 필요하면 제거 가능) */
-        }
-
+      #landmarkImage {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 25vw; /* 윈도우 폭의 1/4 크기로 설정 */
+        height: auto;
+        z-index: 10001; /* 다른 요소 위에 배치 */
+        border: 2px solid black; /* 테두리 추가 (디버깅용, 필요하면 제거 가능) */
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <div id="canvas-container">
-        <p id="error-message" style="color: red; display: none;">🚨 이미지 데이터를 찾을 수 없습니다!</p>
-        <div id="guideMessage" class="guide-message">Nasion</div>
-        <canvas id="psaCanvas"></canvas>
+      <p id="error-message" style="color: red; display: none">
+        🚨 이미지 데이터를 찾을 수 없습니다!
+      </p>
+      <div id="guideMessage" class="guide-message">Nasion</div>
+      <canvas id="psaCanvas"></canvas>
     </div>
-    <div id="button-container">                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
-        <button id="backButton">한 칸 전으로</button>        
-        <button id="insertButton">엑셀 데이터 생성</button>
-        <button id="resetButton">처음부터 다시하기</button>
+    <div id="button-container">
+      <button id="backButton">한 칸 전으로</button>
+      <button id="insertButton">엑셀 데이터 생성</button>
+      <button id="resetButton">처음부터 다시하기</button>
     </div>
     <!-- ✅ 좌측 상단에 landmark.png 추가 -->
-    <img id="landmarkImage" src="/static/landmark.png" alt="Landmark Image">
-
+    <img id="landmarkImage" src="/static/landmark.png" alt="Landmark Image" />
 
     <script>
+      // ✅ 전역 변수 선언
+      let scaleX = 1;
+      let scaleY = 1;
+      let canvas, ctx, img;
+      let landmarkCoordinates = {};
 
-        // ✅ 전역 변수 선언
-        let scaleX = 1;
-        let scaleY = 1;
-        let canvas, ctx, img;
-        let landmarkCoordinates = {};
+      // ✅ 랜드마크 이름 목록
+      const messages = [
+        "Nasion",
+        "Sella",
+        "Porion",
+        "Orbitale",
+        "Basion",
+        "ANS",
+        "PNS",
+        "A-Point",
+        "B-Point",
+        "Pogonion",
+        "Menton",
+        "Corpus Lt.",
+        "Ramus Down",
+        "Ar",
+        "Mx.1 cr",
+        "Mx.1 root",
+        "Mn.1 cr",
+        "Mn.1 root",
+        "Mn.6 distal",
+        "Pronasale",
+        "Columella",
+        "Subnasale",
+        "soft tissue A",
+        "Upper lip",
+        "Lower lip",
+        "soft tissue B",
+        "soft tissue Pogonion",
+        "Ruler Start",
+        "Ruler End",
+      ];
 
-        // ✅ 랜드마크 이름 목록
-        const messages = [
-            "Nasion", "Sella", "Porion", "Orbitale", "Basion",
-            "ANS", "PNS", "A-Point", "B-Point", "Pogonion",
-            "Menton", "Corpus Lt.", "Ramus Down", "Ar",
-            "Mx.1 cr", "Mx.1 root", "Mn.1 cr", "Mn.1 root", "Mn.6 distal", "Pronasale",
-            "Columella", "Subnasale", "soft tissue A", "Upper lip", "Lower lip",
-            "soft tissue B", "soft tissue Pogonion", "Ruler Start", "Ruler End"
-        ];
+      $(document).ready(function () {
+        console.log("🚀 create_excel1.html 로드됨");
 
-        $(document).ready(function () {
-            console.log("🚀 create_excel1.html 로드됨");
+        const guideMessage = $("#guideMessage");
 
-            const guideMessage = $("#guideMessage");
+        // ✅ landmark 이미지 사이즈 조정
+        function updateImageSize() {
+          const landmarkImage = document.getElementById("landmarkImage");
+          if (landmarkImage) {
+            landmarkImage.style.width = window.innerWidth * 0.3 + "px";
+          }
+        }
+        updateImageSize();
+        window.addEventListener("resize", updateImageSize);
 
-            // ✅ landmark 이미지 사이즈 조정
-            function updateImageSize() {
-                const landmarkImage = document.getElementById("landmarkImage");
-                if (landmarkImage) {
-                    landmarkImage.style.width = (window.innerWidth * 0.3) + "px";
-                }
-            }
-            updateImageSize();
-            window.addEventListener("resize", updateImageSize);
+        // ✅ 페이지 로드시 음성 출력
+        speakMessage(guideMessage.text());
 
-            // ✅ 페이지 로드시 음성 출력
-            speakMessage(guideMessage.text());
+        // ✅ 돋보기 캔버스 생성
+        const magnifierCanvas = document.createElement("canvas");
+        magnifierCanvas.width = 150;
+        magnifierCanvas.height = 150;
+        magnifierCanvas.style.position = "absolute";
+        magnifierCanvas.style.border = "2px solid black";
+        magnifierCanvas.style.borderRadius = "50%";
+        magnifierCanvas.style.pointerEvents = "none";
+        magnifierCanvas.style.zIndex = 10;
+        magnifierCanvas.style.display = "none"; // 처음엔 숨김
+        document.body.appendChild(magnifierCanvas);
+        const magnifierCtx = magnifierCanvas.getContext("2d");
 
-            // ✅ 이미지 postMessage로 수신 처리
-            window.addEventListener("message", function (event) {
-                const message = event.data;
+        // ✅ 이미지 수신
+        window.addEventListener("message", function (event) {
+          const message = event.data;
 
-                if (message.type === "PSA_IMAGE" && message.data) {
-                    console.log("📨 이미지 데이터 수신됨");
+          if (message.type === "PSA_IMAGE" && message.data) {
+            console.log("📨 이미지 데이터 수신됨");
 
-                    img = new Image();
-                    img.onload = function () {
-                        canvas = document.getElementById("psaCanvas");
-                        ctx = canvas.getContext("2d");
+            img = new Image();
+            img.onload = function () {
+              canvas = document.getElementById("psaCanvas");
+              ctx = canvas.getContext("2d");
 
-                        resizeAndDrawImage();
+              //커서를 십자가 모양으로 변경
+              canvas.style.cursor = "crosshair";
 
-                        // ✅ 윈도우 크기 변경 시 이미지 다시 그림
-                        window.addEventListener("resize", resizeAndDrawImage);
+              resizeAndDrawImage();
 
-                        // ✅ 캔버스 클릭 이벤트 등록
-                        canvas.addEventListener("click", handleCanvasClick);
-                    };
+              // 🔥 초기 스케일 계산
+              const rect = canvas.getBoundingClientRect();
+              scaleX = img.naturalWidth / rect.width;
+              scaleY = img.naturalHeight / rect.height;
 
-                    img.src = message.data;
-                }
-            });
+              window.addEventListener("resize", resizeAndDrawImage);
+              canvas.addEventListener("click", handleCanvasClick);
 
-            // ✅ 이미지 비율 유지하여 그리기
-            function resizeAndDrawImage() {
-                if (!canvas || !ctx || !img) return;
+              // ✅ 마우스 움직일 때 돋보기 효과
+              canvas.addEventListener("mousemove", function (event) {
+                // 확대 배율 줄이기 (예: 1.5배로 줄이기)
+                const zoom = 0.8;
 
-                const winWidth = window.innerWidth;
-                const winHeight = window.innerHeight;
-                const imgWidth = img.naturalWidth;
-                const imgHeight = img.naturalHeight;
+                // 돋보기 캔버스 크기
+                const magnifierSize = 150;
+                const size = magnifierSize / 2;
 
-                const scale = Math.min(winWidth / imgWidth, winHeight / imgHeight);
-                canvas.width = imgWidth * scale;
-                canvas.height = imgHeight * scale;
-
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            }
-
-            // ✅ 클릭 이벤트 처리
-            function handleCanvasClick(event) {
-                if (!canvas || !ctx || !img) return;
-
-                if (Object.keys(landmarkCoordinates).length >= 29) {
-                    guideMessage.hide();
-                    return;
-                }
-
+                // 마우스 좌표 (커서 기준)
                 const rect = canvas.getBoundingClientRect();
-                scaleX = img.naturalWidth / rect.width;
-                scaleY = img.naturalHeight / rect.height;
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
 
-                const realX = Math.round((event.clientX - rect.left) * scaleX);
-                const realY = Math.round((event.clientY - rect.top) * scaleY);
+                // 원본 이미지의 정확한 좌표
+                const realX = mouseX * scaleX;
+                const realY = mouseY * scaleY;
 
-                const rawLandmarkName = messages[Object.keys(landmarkCoordinates).length];
-                const landmarkName = rawLandmarkName.replace(/\(\d+\)/g, "");
+                // ✅ 돋보기 캔버스 위치 정확하게 커서 중앙에 맞추기
+                magnifierCanvas.style.left = `${event.clientX - size}px`;
+                magnifierCanvas.style.top = `${event.clientY - size}px`;
+                magnifierCanvas.style.display = "block";
 
-                landmarkCoordinates[landmarkName] = { x: realX, y: realY };
-                console.log(`📍 ${landmarkName} 좌표:`, realX, realY);
+                // ✅ 확대 이미지 그리기
+                magnifierCtx.clearRect(0, 0, magnifierSize, magnifierSize);
+                magnifierCtx.drawImage(
+                  img,
+                  realX - size / zoom,
+                  realY - size / zoom,
+                  (size * 2) / zoom,
+                  (size * 2) / zoom,
+                  0,
+                  0,
+                  magnifierSize,
+                  magnifierSize
+                );
+              });
 
-                // 빨간 점 표시
-                ctx.fillStyle = "red";
-                ctx.beginPath();
-                ctx.arc(realX / scaleX, realY / scaleY, 1.5, 0, Math.PI * 2);
-                ctx.fill();
+              // ✅ 캔버스를 벗어나면 돋보기 숨김
+              canvas.addEventListener("mouseleave", () => {
+                magnifierCanvas.style.display = "none";
+              });
+            };
 
-                // 다음 메시지 안내
-                const nextIndex = Object.keys(landmarkCoordinates).length;
-                if (nextIndex < messages.length) {
-                    const nextMessage = messages[nextIndex];
-                    guideMessage.text(nextMessage);
-                    if (nextMessage) {
-                        speakMessage(nextMessage.replace(/\(\d+\)/g, ""));
-                    }
-                } else {
-                    guideMessage.hide();
-                }
-
-                // ✅ 마지막 좌표 찍은 경우
-                if (Object.keys(landmarkCoordinates).length === 29) {
-                    setTimeout(() => {
-                        alert("✅ 29개의 좌표가 선택되었습니다.");
-                        console.log("📌 좌표 목록:", landmarkCoordinates);
-
-                        const excel_dict = getAngleDictionary(landmarkCoordinates);
-                        const excel_add = calculateAdditionalAngles(excel_dict, landmarkCoordinates);
-
-                        console.log("📐 계측값:", excel_dict);
-                        console.log("📐 추가 계측값:", excel_add);
-
-                        if (window.opener && typeof window.opener.logFromChild === "function") {
-                            const combinedData = {
-                                landmarkCoordinates,
-                                excel_dict,
-                                excel_add
-                            };
-                            window.opener.logFromChild(combinedData);
-                            console.log("📤 부모 창으로 데이터 전송 완료:", combinedData);
-                        } else {
-                            alert("🚨 부모 창이 없습니다.");
-                        }
-                    }, 100);
-                }
-            }
+            img.src = message.data;
+          }
         });
 
-            $("#backButton").on("click", function () {
-                if (Object.keys(landmarkCoordinates).length === 0) {
-                    alert("🚨 되돌릴 좌표가 없습니다.");
-                    return;
-                }
+        // ✅ 이미지 비율 유지하여 그리기
+        function resizeAndDrawImage() {
+          if (!canvas || !ctx || !img) return;
 
-                // ✅ 마지막으로 저장된 좌표 삭제
-                const keys = Object.keys(landmarkCoordinates); // 현재 저장된 좌표 키 배열
-                const lastKey = keys[keys.length - 1]; // 마지막 키 가져오기
-                delete landmarkCoordinates[lastKey]; // 마지막 좌표 삭제
-                console.log(`❌ 마지막 좌표 삭제: ${lastKey}`);
+          const winWidth = window.innerWidth;
+          const winHeight = window.innerHeight;
+          const imgWidth = img.naturalWidth;
+          const imgHeight = img.naturalHeight;
 
-                // ✅ 캔버스 다시 그리기 (이미지 리셋 후 다시 점 찍기)
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const scale = Math.min(winWidth / imgWidth, winHeight / imgHeight);
+          canvas.width = imgWidth * scale;
+          canvas.height = imgHeight * scale;
 
-                // ✅ 남아있는 좌표 다시 표시
-                Object.entries(landmarkCoordinates).forEach(([key, coord]) => {
-                    ctx.fillStyle = "red";
-                    ctx.beginPath();
-                    ctx.arc(coord.x / scaleX, coord.y / scaleY, 3, 0, Math.PI * 2);
-                    ctx.fill();
-                });
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        }
 
-                // ✅ 가이드 메시지를 이전 메시지로 변경
-                const prevIndex = Object.keys(landmarkCoordinates).length; // 현재 남아 있는 개수
-                if (prevIndex < messages.length) {
-                    guideMessage.text(messages[prevIndex]); // ✅ 가이드 메시지 업데이트
-                    speakMessage(messages[prevIndex]); // ✅ 음성 안내
-                }      
-            });
+        // ✅ 클릭 이벤트 처리
+        function handleCanvasClick(event) {
+          if (!canvas || !ctx || !img) return;
 
-            $("#insertButton").on("click", function () {
-                console.log("📌 `엑셀데이터 생성 버튼` 클릭됨!");
+          if (Object.keys(landmarkCoordinates).length >= 29) {
+            guideMessage.hide();
+            return;
+          }
 
-                // ✅ SNA, SNB 내각 계산 후 `angleDictionary` 생성
-                const angleDictionary = getAngleDictionary(landmarkCoordinates);
-                console.log("📌 angleDictionary 생성 완료:", angleDictionary);
+          const rect = canvas.getBoundingClientRect();
+          scaleX = img.naturalWidth / rect.width;
+          scaleY = img.naturalHeight / rect.height;
 
-                // ✅ 부모 창이 존재하는지 확인
-                if (window.opener && !window.opener.closed) {
-                    console.log("🚀 부모 창이 열려 있습니다. 데이터 전송!");
+          const realX = Math.round((event.clientX - rect.left) * scaleX);
+          const realY = Math.round((event.clientY - rect.top) * scaleY);
 
-                    // ✅ 부모 창에서 `updateTableWithAngles()` 함수가 존재하는지 확인 후 실행
-                    if (typeof window.opener.updateTableWithAngles === "function") {
-                        window.opener.updateTableWithAngles(angleDictionary); // ✅ 부모 창 테이블 업데이트 실행
-                        // ✅ 300ms(0.3초) 후 `alert()` 실행
-                        setTimeout(() => {
-                            alert("✅ 계측값이 부모 창에 업데이트되었습니다!");
-                        }, 300);
-                    } else {
-                        alert("🚨 부모 창에 `updateTableWithAngles` 함수가 없습니다!");
-                    }
-                } else {
-                    alert("🚨 부모 창이 닫혀 있습니다! 데이터를 보낼 수 없습니다.");
-                }
-            });
+          const rawLandmarkName =
+            messages[Object.keys(landmarkCoordinates).length];
+          const landmarkName = rawLandmarkName.replace(/\(\d+\)/g, "");
 
-                    
+          landmarkCoordinates[landmarkName] = { x: realX, y: realY };
+          console.log(`📍 ${landmarkName} 좌표:`, realX, realY);
 
-            $("#resetButton").on("click", function () {
-                console.log("🔄 다시 시작하기 버튼 클릭됨");
+          // 빨간 점 표시
+          ctx.fillStyle = "red";
+          ctx.beginPath();
+          ctx.arc(realX / scaleX, realY / scaleY, 1.5, 0, Math.PI * 2);
+          ctx.fill();
 
-                // ✅ 부모 창이 존재하는지 확인
-                if (window.opener && !window.opener.closed) {
-                    console.log("🚀 부모 창이 존재합니다. 엑셀 창을 다시 엽니다.");
+          // 다음 메시지 안내
+          const nextIndex = Object.keys(landmarkCoordinates).length;
+          if (nextIndex < messages.length) {
+            const nextMessage = messages[nextIndex];
+            guideMessage.text(nextMessage);
+            if (nextMessage) {
+              speakMessage(nextMessage.replace(/\(\d+\)/g, ""));
+            }
+          } else {
+            guideMessage.hide();
+          }
 
-                    // ✅ 부모 창에서 PSA 선 그리기 버튼을 실행
-                    window.opener.$("#excel-create-btn").trigger("click");
+          // ✅ 마지막 좌표 찍은 경우
+          if (Object.keys(landmarkCoordinates).length === 29) {
+            setTimeout(() => {
+              alert("✅ 29개의 좌표가 선택되었습니다.");
+              console.log("📌 좌표 목록:", landmarkCoordinates);
 
-                    // ✅ 현재 창 닫기 (부모 창에서 창이 열리도록 한 후 닫음)
-                    setTimeout(() => {
-                        window.close();
-                    }, 100); // 100ms 딜레이 후 닫기 (부모 창 코드 실행 보장)
-                } else {
-                    console.error("🚨 부모 창이 존재하지 않거나 닫혀 있습니다. 현재 창을 닫습니다.");
-                    window.close();
-                }
-            });
+              const excel_dict = getAngleDictionary(landmarkCoordinates);
+              const excel_add = calculateAdditionalAngles(
+                excel_dict,
+                landmarkCoordinates
+              );
 
-                
-        
+              console.log("📐 계측값:", excel_dict);
+              console.log("📐 추가 계측값:", excel_add);
+
+              if (
+                window.opener &&
+                typeof window.opener.logFromChild === "function"
+              ) {
+                const combinedData = {
+                  landmarkCoordinates,
+                  excel_dict,
+                  excel_add,
+                };
+                window.opener.logFromChild(combinedData);
+                console.log("📤 부모 창으로 데이터 전송 완료:", combinedData);
+              } else {
+                alert("🚨 부모 창이 없습니다.");
+              }
+            }, 100);
+          }
+        }
+      });
+
+      $("#backButton").on("click", function () {
+        if (Object.keys(landmarkCoordinates).length === 0) {
+          alert("🚨 되돌릴 좌표가 없습니다.");
+          return;
+        }
+
+        // ✅ 마지막으로 저장된 좌표 삭제
+        const keys = Object.keys(landmarkCoordinates); // 현재 저장된 좌표 키 배열
+        const lastKey = keys[keys.length - 1]; // 마지막 키 가져오기
+        delete landmarkCoordinates[lastKey]; // 마지막 좌표 삭제
+        console.log(`❌ 마지막 좌표 삭제: ${lastKey}`);
+
+        // ✅ 캔버스 다시 그리기 (이미지 리셋 후 다시 점 찍기)
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // ✅ 남아있는 좌표 다시 표시
+        Object.entries(landmarkCoordinates).forEach(([key, coord]) => {
+          ctx.fillStyle = "red";
+          ctx.beginPath();
+          ctx.arc(coord.x / scaleX, coord.y / scaleY, 3, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        // ✅ 가이드 메시지를 이전 메시지로 변경
+        const prevIndex = Object.keys(landmarkCoordinates).length; // 현재 남아 있는 개수
+        if (prevIndex < messages.length) {
+          guideMessage.text(messages[prevIndex]); // ✅ 가이드 메시지 업데이트
+          speakMessage(messages[prevIndex]); // ✅ 음성 안내
+        }
+      });
+
+      $("#insertButton").on("click", function () {
+        console.log("📌 `엑셀데이터 생성 버튼` 클릭됨!");
+
+        // ✅ SNA, SNB 내각 계산 후 `angleDictionary` 생성
+        const angleDictionary = getAngleDictionary(landmarkCoordinates);
+        console.log("📌 angleDictionary 생성 완료:", angleDictionary);
+
+        // ✅ 부모 창이 존재하는지 확인
+        if (window.opener && !window.opener.closed) {
+          console.log("🚀 부모 창이 열려 있습니다. 데이터 전송!");
+
+          // ✅ 부모 창에서 `updateTableWithAngles()` 함수가 존재하는지 확인 후 실행
+          if (typeof window.opener.updateTableWithAngles === "function") {
+            window.opener.updateTableWithAngles(angleDictionary); // ✅ 부모 창 테이블 업데이트 실행
+            // ✅ 300ms(0.3초) 후 `alert()` 실행
+            setTimeout(() => {
+              alert("✅ 계측값이 부모 창에 업데이트되었습니다!");
+            }, 300);
+          } else {
+            alert("🚨 부모 창에 `updateTableWithAngles` 함수가 없습니다!");
+          }
+        } else {
+          alert("🚨 부모 창이 닫혀 있습니다! 데이터를 보낼 수 없습니다.");
+        }
+      });
+
+      $("#resetButton").on("click", function () {
+        console.log("🔄 다시 시작하기 버튼 클릭됨");
+
+        // ✅ 부모 창이 존재하는지 확인
+        if (window.opener && !window.opener.closed) {
+          console.log("🚀 부모 창이 존재합니다. 엑셀 창을 다시 엽니다.");
+
+          // ✅ 부모 창에서 PSA 선 그리기 버튼을 실행
+          window.opener.$("#excel-create-btn").trigger("click");
+
+          // ✅ 현재 창 닫기 (부모 창에서 창이 열리도록 한 후 닫음)
+          setTimeout(() => {
+            window.close();
+          }, 100); // 100ms 딜레이 후 닫기 (부모 창 코드 실행 보장)
+        } else {
+          console.error(
+            "🚨 부모 창이 존재하지 않거나 닫혀 있습니다. 현재 창을 닫습니다."
+          );
+          window.close();
+        }
+      });
     </script>
-
-</body>
+  </body>
 </html>

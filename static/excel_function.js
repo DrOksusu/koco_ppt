@@ -1,3 +1,4 @@
+
 function calculateAngle(landmarkCoordinates, key1, key2, key3) {
     /**
      * 세 개의 랜드마크 키를 받아 key2를 기준으로 내각을 계산하는 함수
