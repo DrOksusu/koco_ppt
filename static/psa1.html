@@ -111,7 +111,7 @@
 
     <div id="canvas-container" style="position: relative;">
         <p id="error-message" style="color: red; display: none;">🚨 이미지 데이터를 찾을 수 없습니다!</p>
-        <div id="guideMessage" class="guide-message">lower incisor tip</div>
+        <div id="guideMessage" class="guide-message">Porion</div>
         <canvas id="psaCanvas"></canvas>
         
         <!-- ✅ 왼쪽 상단에 배치할 캔버스 -->
@@ -137,8 +137,10 @@
 
         // ✅ 가이드 메시지 목록
         const messages = [
-            "lower incisor point",
+            "Porion",
+            "Orbitale",    
             "hinge point",
+            "lower incisor tip",
             "occlusal point",
             "symphysis lingual"
         ];
@@ -207,7 +209,7 @@
             function handleCanvasClick(event) {
                 if (!canvas || !ctx || !img) return;
 
-                if (points.length >= 4) {
+                if (points.length >= 6) {
                     guideMessage.hide();
                     return;
                 }
@@ -236,17 +238,21 @@
                 speakMessage(newMessage);
 
                 // 선 그리기 처리
+                // 선 그리기 처리
                 if (points.length === 2) {
-                    drawGreenLine(points, scaleX, scaleY, ctx);
-                } else if (points.length === 3) {
-                    drawRedLine(points, scaleX, scaleY, ctx);
+                    drawBlackLine(points, scaleX, scaleY, ctx); // ✅ 검정색 선 그리기
+                    drawBlackDashedLine(points, scaleX, scaleY, ctx); // ✅ 검정색 점선 그리기
                 } else if (points.length === 4) {
+                    drawGreenLine(points, scaleX, scaleY, ctx);
+                } else if (points.length === 5) {
+                    drawRedLine(points, scaleX, scaleY, ctx);
+                } else if (points.length === 6) {
                     const blue_result = drawBlueLine(points, scaleX, scaleY, ctx);
 
                     if (!blue_result || !blue_result.p_perp) {
                         console.error("🚨 drawBlueLine()에서 p_perp 반환 실패");
                         return;
-                    }
+                    }   
 
                     const yellow_result = drawYellowCircles(ctx, points, scaleX, scaleY, blue_result.p_perp);
                     const [cx, cy] = yellow_result.circleCenter;
@@ -260,7 +266,7 @@
                     updateCarDashboard(blue_result, yellow_result);
 
                     // ✅ 마지막 안내 메시지
-                    const finalMessage = "4개의 점이 모두 찍혔습니다.";
+                    const finalMessage = "랜트마크가 모두 표시되었습니다.";
                     guideMessage.text(finalMessage);
                     speakMessage(finalMessage);
 
