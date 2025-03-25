@@ -3,6 +3,8 @@ import shutil
 import subprocess
 from flask import request
 import sys
+import os
+from PIL import Image, ExifTags
 from config import UPLOAD_FOLDER
 if sys.platform == "win32":
     import comtypes.client
@@ -12,9 +14,39 @@ if sys.platform == "win32":
 
 
 
+# def save_uploaded_file(uploaded_file, filename, default_img=None):
+#     """
+#     파일을 저장하고, 저장되지 않으면 기본 이미지를 반환하는 함수.
+
+#     :param uploaded_file: Flask의 request.files에서 전달된 파일 객체
+#     :param filename: 저장할 파일 이름
+#     :param default_img: 기본 이미지 경로 (선택 사항)
+#     :return: 저장된 파일 경로 또는 기본 이미지 경로
+#     """
+#     if not uploaded_file or uploaded_file.filename == '':
+#         print(f"🚨 업로드된 파일이 없음, 기본 이미지 사용: {default_img}")
+#         return default_img if default_img else None  # 기본 이미지가 없으면 None 반환
+
+#     file_path = os.path.join(UPLOAD_FOLDER, filename)
+#     file_path = os.path.normpath(file_path)  # Windows에서 발생하는 \\ 이슈 방지
+
+#     try:
+#         uploaded_file.seek(0)  # 스트림 위치 초기화
+#         uploaded_file.save(file_path)
+        
+#         if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
+#             print(f"✅ {file_path} 파일 저장 완료 ({os.path.getsize(file_path)} bytes)")
+#             return file_path
+#         else:
+#             print(f"🚨 {file_path} 파일이 저장되지 않음, 기본 이미지 사용")
+#             return default_img if default_img else None
+#     except Exception as e:
+#         print(f"❌ 파일 저장 중 오류 발생: {e}, 기본 이미지 사용")
+#         return default_img if default_img else None
 def save_uploaded_file(uploaded_file, filename, default_img=None):
     """
-    파일을 저장하고, 저장되지 않으면 기본 이미지를 반환하는 함수.
+    파일을 저장하고, EXIF 회전 정보를 보정하여 저장된 파일 경로를 반환.
+    파일이 없거나 오류 발생 시 기본 이미지 경로를 반환.
 
     :param uploaded_file: Flask의 request.files에서 전달된 파일 객체
     :param filename: 저장할 파일 이름
@@ -23,24 +55,49 @@ def save_uploaded_file(uploaded_file, filename, default_img=None):
     """
     if not uploaded_file or uploaded_file.filename == '':
         print(f"🚨 업로드된 파일이 없음, 기본 이미지 사용: {default_img}")
-        return default_img if default_img else None  # 기본 이미지가 없으면 None 반환
+        return default_img if default_img else None
 
     file_path = os.path.join(UPLOAD_FOLDER, filename)
-    file_path = os.path.normpath(file_path)  # Windows에서 발생하는 \\ 이슈 방지
+    file_path = os.path.normpath(file_path)  # Windows 경로 정리
 
     try:
-        uploaded_file.seek(0)  # 스트림 위치 초기화
-        uploaded_file.save(file_path)
-        
+        uploaded_file.seek(0)
+        img = Image.open(uploaded_file)
+
+        # ✅ EXIF 회전 보정 시도
+        try:
+            exif = img._getexif()
+            if exif is not None:
+                for tag, value in exif.items():
+                    decoded = ExifTags.TAGS.get(tag, tag)
+                    if decoded == "Orientation":
+                        orientation = value
+                        if orientation == 3:
+                            img = img.rotate(180, expand=True)
+                        elif orientation == 6:
+                            img = img.rotate(270, expand=True)
+                        elif orientation == 8:
+                            img = img.rotate(90, expand=True)
+                        print(f"↪️ EXIF 회전 보정 적용됨: {orientation}")
+                        break
+        except Exception as exif_error:
+            print(f"⚠️ EXIF 정보 없음 또는 처리 실패: {exif_error}")
+
+        # ✅ 회전 보정된 이미지를 저장
+        img.save(file_path)
+        img.close()
+
         if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
-            print(f"✅ {file_path} 파일 저장 완료 ({os.path.getsize(file_path)} bytes)")
+            print(f"✅ {file_path} 저장 완료 ({os.path.getsize(file_path)} bytes)")
             return file_path
         else:
-            print(f"🚨 {file_path} 파일이 저장되지 않음, 기본 이미지 사용")
+            print(f"🚨 파일 저장 실패, 기본 이미지 사용")
             return default_img if default_img else None
+
     except Exception as e:
-        print(f"❌ 파일 저장 중 오류 발생: {e}, 기본 이미지 사용")
+        print(f"❌ 파일 저장 중 오류: {e}, 기본 이미지 사용")
         return default_img if default_img else None
+
 
 def convert_ppt_to_pdf(input_ppt, output_pdf):
     """
