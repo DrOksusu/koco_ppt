@@ -1008,126 +1008,229 @@ def create_seventh_slide(prs, default_img):
 
 
 
+# def create_eighth_slide(prs, default_img):
+#     """
+#     자세사진 4장을 8번째 슬라이드에 가로로 나란히 정렬하여 추가하는 함수.
+#     빈 사진이 있으면 기본 이미지('./static/default_image.jpg')로 대체.
+
+#     :param prs: 프레젠테이션 객체
+#     :param default_img: 기본 이미지 파일 경로
+#     """
+#     print("📂 8번째 슬라이드 생성 시작...", flush=True, file=sys.stderr)
+#     print(f"✅ default_img 값: {default_img}")  # default_img 값 확인
+
+#     # 파일 저장 후 경로 리스트 만들기
+#     photo_paths = []
+#     for idx in range(4):  # 4개의 자세사진을 가져옴
+#         uploaded_file = request.files.get(f'posturePhoto{idx+1}')  # Flask에서 파일 가져오기
+#         #print(f"📂 업로드된 파일 목록: {list(request.files.keys())}")
+#         saved_path = save_uploaded_file(uploaded_file, f'posturePhoto_{idx+1}.jpg', default_img)
+#         photo_paths.append(saved_path)  # 정상적으로 저장된 파일만 추가
+
+#     print(f"🔍 최종 photo_paths: {photo_paths}")  # 디버깅용 출력
+
+#     # 8번째 슬라이드 가져오기
+#     temp_slide_7 = prs.slides[7]
+#     shape_s_7 = temp_slide_7.shapes
+
+#     # 슬라이드 크기 설정
+#     slide_width = 10  # 슬라이드 너비 (인치)
+#     slide_height = 7.5  # 슬라이드 높이 (인치)
+#     print("slide_width:", slide_width, flush=True, file=sys.stderr)
+#     print("slide_height:", slide_height, flush=True, file=sys.stderr)
+
+#     # 첫 번째 이미지를 불러와 비율 계산
+#     img_sample = Image.open(photo_paths[0])
+#     aspect_ratio = img_sample.size[0] / img_sample.size[1]  # 가로/세로 비율
+#     print("aspect_ratio:", aspect_ratio, flush=True, file=sys.stderr)
+
+#     # 한 줄에 4개 가로 배치 설정
+#     num_images = 4  # 4개의 이미지 배치
+#     img_height = 3  # 모든 이미지의 높이 동일하게 설정
+#     img_width = img_height * aspect_ratio  # 가로 크기는 비율 유지
+#     print("img_width:", img_width, flush=True, file=sys.stderr)
+
+#     # 전체 가로 폭에서 이미지 4장을 중앙 정렬하기 위해 여백 계산
+#     total_width = img_width * num_images # 전체 이미지 폭
+#     left_start = (slide_width - total_width) / 2  # 좌측 여백 계산
+#     print("total_width:", total_width, flush=True, file=sys.stderr)
+#     print("left_start:", left_start, flush=True, file=sys.stderr)
+
+#     #return # 여기서 함수 종료
+
+#     # 이미지 삽입
+#     for idx, img_path in enumerate(photo_paths):
+#         left = Inches(left_start + idx * img_width)  # 가로 위치 (가로로 나란히 정렬)        
+#         top = Inches((slide_height - img_height) / 2) # 슬라이드 중앙 정렬
+#         print(f"left: {left}, top: {top}", flush=True, file=sys.stderr)
+#         print(f"img_path: {img_path}", flush=True, file=sys.stderr)
+
+#         try:
+#             shape_s_7.add_picture(img_path, left, top, width=Inches(img_width), height=Inches(img_height))
+#             print(f"✅ PowerPoint에 이미지 추가 성공: {img_path}", flush=True, file=sys.stderr)
+#         except Exception as e:
+#             print(f"❌ PowerPoint 이미지 추가 실패: {img_path}, 오류: {e}", flush=True, file=sys.stderr)
+
+#     print("✅ 8번째 슬라이드에 자세사진 추가 완료!")
+
 def create_eighth_slide(prs, default_img):
     """
     자세사진 4장을 8번째 슬라이드에 가로로 나란히 정렬하여 추가하는 함수.
-    빈 사진이 있으면 기본 이미지('./static/default_image.jpg')로 대체.
-
-    :param prs: 프레젠테이션 객체
-    :param default_img: 기본 이미지 파일 경로
-    """
+    각 사진의 너비는 2.25인치로 고정, 높이는 원본 비율 유지.
+    슬라이드 왼쪽 여백 0.5인치, 오른쪽 여백 0.5인치.
+    """    
     print("📂 8번째 슬라이드 생성 시작...", flush=True, file=sys.stderr)
-    print(f"✅ default_img 값: {default_img}")  # default_img 값 확인
 
-    # 파일 저장 후 경로 리스트 만들기
+    # 자세 사진 파일 경로 리스트 만들기
     photo_paths = []
-    for idx in range(4):  # 4개의 자세사진을 가져옴
-        uploaded_file = request.files.get(f'posturePhoto{idx+1}')  # Flask에서 파일 가져오기
-        #print(f"📂 업로드된 파일 목록: {list(request.files.keys())}")
+    for idx in range(4):
+        uploaded_file = request.files.get(f'posturePhoto{idx+1}')
         saved_path = save_uploaded_file(uploaded_file, f'posturePhoto_{idx+1}.jpg', default_img)
-        photo_paths.append(saved_path)  # 정상적으로 저장된 파일만 추가
-
-    print(f"🔍 최종 photo_paths: {photo_paths}")  # 디버깅용 출력
+        photo_paths.append(saved_path)
 
     # 8번째 슬라이드 가져오기
-    temp_slide_7 = prs.slides[7]
-    shape_s_7 = temp_slide_7.shapes
+    slide = prs.slides[7]
+    shape_s_7 = slide.shapes
 
-    # 슬라이드 크기 설정
-    slide_width = 10  # 슬라이드 너비 (인치)
-    slide_height = 7.5  # 슬라이드 높이 (인치)
-    print("slide_width:", slide_width, flush=True, file=sys.stderr)
-    print("slide_height:", slide_height, flush=True, file=sys.stderr)
+    # ✅ 기본 세팅
+    fixed_width_inch = 2.25
+    left_margin_inch = 0.5
+    slide_height_inch = prs.slide_height.inches  # 보통 7.5 inch
 
-    # 첫 번째 이미지를 불러와 비율 계산
-    img_sample = Image.open(photo_paths[0])
-    aspect_ratio = img_sample.size[0] / img_sample.size[1]  # 가로/세로 비율
-    print("aspect_ratio:", aspect_ratio, flush=True, file=sys.stderr)
-
-    # 한 줄에 4개 가로 배치 설정
-    num_images = 4  # 4개의 이미지 배치
-    img_height = 3  # 모든 이미지의 높이 동일하게 설정
-    img_width = img_height * aspect_ratio  # 가로 크기는 비율 유지
-    print("img_width:", img_width, flush=True, file=sys.stderr)
-
-    # 전체 가로 폭에서 이미지 4장을 중앙 정렬하기 위해 여백 계산
-    total_width = img_width * num_images # 전체 이미지 폭
-    left_start = (slide_width - total_width) / 2  # 좌측 여백 계산
-    print("total_width:", total_width, flush=True, file=sys.stderr)
-    print("left_start:", left_start, flush=True, file=sys.stderr)
-
-    #return # 여기서 함수 종료
-
-    # 이미지 삽입
+    # ✅ 이미지 삽입
     for idx, img_path in enumerate(photo_paths):
-        left = Inches(left_start + idx * img_width)  # 가로 위치 (가로로 나란히 정렬)        
-        top = Inches((slide_height - img_height) / 2) # 슬라이드 중앙 정렬
-        print(f"left: {left}, top: {top}", flush=True, file=sys.stderr)
-        print(f"img_path: {img_path}", flush=True, file=sys.stderr)
-
         try:
-            shape_s_7.add_picture(img_path, left, top, width=Inches(img_width), height=Inches(img_height))
-            print(f"✅ PowerPoint에 이미지 추가 성공: {img_path}", flush=True, file=sys.stderr)
-        except Exception as e:
-            print(f"❌ PowerPoint 이미지 추가 실패: {img_path}, 오류: {e}", flush=True, file=sys.stderr)
+            # 이미지 열어서 비율 계산
+            with Image.open(img_path) as img:
+                img_width_px, img_height_px = img.size
+                aspect_ratio = img_height_px / img_width_px  # 세로 / 가로
 
-    print("✅ 8번째 슬라이드에 자세사진 추가 완료!")
+                # 고정된 가로 길이 → 세로 계산
+                img_width = Inches(fixed_width_inch)
+                img_height = Inches(fixed_width_inch * aspect_ratio)
+
+                # 위치 계산
+                left = Inches(left_margin_inch + idx * fixed_width_inch)
+                top = Inches((slide_height_inch - fixed_width_inch * aspect_ratio) / 2)
+
+                shape_s_7.add_picture(img_path, left, top, width=img_width, height=img_height)
+                print(f"✅ 이미지 {idx+1} 추가 완료: {img_path}", flush=True, file=sys.stderr)
+
+        except Exception as e:
+            print(f"❌ 이미지 추가 실패: {img_path} | 오류: {e}", flush=True, file=sys.stderr)
+
+    print("✅ 8번째 슬라이드 이미지 배치 완료!", flush=True, file=sys.stderr)
+
+
+
+# def create_ninth_slide(prs, default_img):
+#     """
+#     자세 사진 4장을 9번째 슬라이드에 가로로 나란히 정렬하여 추가하는 함수.
+#     빈 사진이 있으면 기본 이미지('./static/default_image.jpg')로 대체.    
+#     """
+#     # 파일 저장 후 경로 리스트 만들기
+#     photo_paths = []
+#     for idx in range(5,9):  # 4개의 자세사진을 가져옴
+#         uploaded_file = request.files.get(f'posturePhoto{idx+1}')  # Flask에서 파일 가져오기
+#         #print(f"📂 업로드된 파일 목록: {list(request.files.keys())}")
+#         saved_path = save_uploaded_file(uploaded_file, f'posturePhoto_{idx+1}.jpg', default_img)
+#         photo_paths.append(saved_path)  # 정상적으로 저장된 파일만 추가
+
+#     print(f"🔍 최종 photo_paths: {photo_paths}")  # 디버깅용 출력
+
+#     # 9번째 슬라이드 가져오기
+#     temp_slide_8 = prs.slides[8]
+#     shape_s_8 = temp_slide_8.shapes
+
+#     # 슬라이드 크기 설정
+#     slide_width = 10  # 슬라이드 너비 (인치)
+#     slide_height = 7.5  # 슬라이드 높이 (인치)
+#     print("slide_width:", slide_width, flush=True, file=sys.stderr)
+#     print("slide_height:", slide_height, flush=True, file=sys.stderr)
+
+#     # 첫 번째 이미지를 불러와 비율 계산
+#     img_sample = Image.open(photo_paths[0])
+#     aspect_ratio = img_sample.size[0] / img_sample.size[1]  # 가로/세로 비율
+#     print("aspect_ratio:", aspect_ratio, flush=True, file=sys.stderr)
+
+#     # 한 줄에 4개 가로 배치 설정
+#     num_images = 4  # 4개의 이미지 배치
+#     img_height = 3  # 모든 이미지의 높이 동일하게 설정
+#     img_width = img_height * aspect_ratio  # 가로 크기는 비율 유지
+#     print("img_width:", img_width, flush=True, file=sys.stderr)
+
+#     # 전체 가로 폭에서 이미지 4장을 중앙 정렬하기 위해 여백 계산
+#     total_width = img_width * num_images # 전체 이미지 폭
+#     left_start = (slide_width - total_width) / 2  # 좌측 여백 계산
+#     print("total_width:", total_width, flush=True, file=sys.stderr)
+#     print("left_start:", left_start, flush=True, file=sys.stderr)
+
+#     #return # 여기서 함수 종료
+
+#     # 이미지 삽입
+#     for idx, img_path in enumerate(photo_paths):
+#         left = Inches(left_start + idx * img_width)  # 가로 위치 (가로로 나란히 정렬)        
+#         top = Inches((slide_height - img_height) / 2) # 슬라이드 중앙 정렬
+#         print(f"left: {left}, top: {top}", flush=True, file=sys.stderr)
+#         print(f"img_path: {img_path}", flush=True, file=sys.stderr)
+
+#         try:
+#             shape_s_8.add_picture(img_path, left, top, width=Inches(img_width), height=Inches(img_height))
+#             print(f"✅ PowerPoint에 이미지 추가 성공: {img_path}", flush=True, file=sys.stderr)
+#         except Exception as e:
+#             print(f"❌ PowerPoint 이미지 추가 실패: {img_path}, 오류: {e}", flush=True, file=sys.stderr)
+
+#     print("✅ 9번째 슬라이드에 자세사진 추가 완료!")
+
+
 
 def create_ninth_slide(prs, default_img):
     """
-    자세 사진 4장을 9번째 슬라이드에 가로로 나란히 정렬하여 추가하는 함수.
-    빈 사진이 있으면 기본 이미지('./static/default_image.jpg')로 대체.    
+    자세사진 5~8번을 9번째 슬라이드에 가로로 나란히 정렬하여 추가하는 함수.
+    각 사진의 너비는 2.25인치로 고정, 높이는 원본 비율 유지.
+    슬라이드 왼쪽 여백 0.5인치, 오른쪽 여백 0.5인치.
+    
+    :param prs: 프레젠테이션 객체
+    :param default_img: 기본 이미지 경로
     """
-    # 파일 저장 후 경로 리스트 만들기
+    
+    print("📂 9번째 슬라이드 생성 시작...", flush=True, file=sys.stderr)
+
+    # ✅ 자세 사진 5~8번 (index: 5,6,7,8 → 파일명: posturePhoto5 ~ posturePhoto8)
     photo_paths = []
-    for idx in range(5,9):  # 4개의 자세사진을 가져옴
-        uploaded_file = request.files.get(f'posturePhoto{idx+1}')  # Flask에서 파일 가져오기
-        #print(f"📂 업로드된 파일 목록: {list(request.files.keys())}")
-        saved_path = save_uploaded_file(uploaded_file, f'posturePhoto_{idx+1}.jpg', default_img)
-        photo_paths.append(saved_path)  # 정상적으로 저장된 파일만 추가
+    for idx in range(5, 9):  # 5,6,7,8
+        uploaded_file = request.files.get(f'posturePhoto{idx}')
+        saved_path = save_uploaded_file(uploaded_file, f'posturePhoto_{idx}.jpg', default_img)
+        photo_paths.append(saved_path)
 
-    print(f"🔍 최종 photo_paths: {photo_paths}")  # 디버깅용 출력
+    # ✅ 9번째 슬라이드 가져오기 (슬라이드는 0-based index → 인덱스 8)
+    slide = prs.slides[8]
+    shape_s_8 = slide.shapes
 
-    # 9번째 슬라이드 가져오기
-    temp_slide_8 = prs.slides[8]
-    shape_s_8 = temp_slide_8.shapes
+    # ✅ 고정된 이미지 가로 너비 및 마진 설정
+    fixed_width_inch = 2.25
+    left_margin_inch = 0.5
+    slide_height_inch = prs.slide_height.inches  # 보통 7.5인치
 
-    # 슬라이드 크기 설정
-    slide_width = 10  # 슬라이드 너비 (인치)
-    slide_height = 7.5  # 슬라이드 높이 (인치)
-    print("slide_width:", slide_width, flush=True, file=sys.stderr)
-    print("slide_height:", slide_height, flush=True, file=sys.stderr)
-
-    # 첫 번째 이미지를 불러와 비율 계산
-    img_sample = Image.open(photo_paths[0])
-    aspect_ratio = img_sample.size[0] / img_sample.size[1]  # 가로/세로 비율
-    print("aspect_ratio:", aspect_ratio, flush=True, file=sys.stderr)
-
-    # 한 줄에 4개 가로 배치 설정
-    num_images = 4  # 4개의 이미지 배치
-    img_height = 3  # 모든 이미지의 높이 동일하게 설정
-    img_width = img_height * aspect_ratio  # 가로 크기는 비율 유지
-    print("img_width:", img_width, flush=True, file=sys.stderr)
-
-    # 전체 가로 폭에서 이미지 4장을 중앙 정렬하기 위해 여백 계산
-    total_width = img_width * num_images # 전체 이미지 폭
-    left_start = (slide_width - total_width) / 2  # 좌측 여백 계산
-    print("total_width:", total_width, flush=True, file=sys.stderr)
-    print("left_start:", left_start, flush=True, file=sys.stderr)
-
-    #return # 여기서 함수 종료
-
-    # 이미지 삽입
-    for idx, img_path in enumerate(photo_paths):
-        left = Inches(left_start + idx * img_width)  # 가로 위치 (가로로 나란히 정렬)        
-        top = Inches((slide_height - img_height) / 2) # 슬라이드 중앙 정렬
-        print(f"left: {left}, top: {top}", flush=True, file=sys.stderr)
-        print(f"img_path: {img_path}", flush=True, file=sys.stderr)
-
+    # ✅ 이미지 삽입
+    for i, img_path in enumerate(photo_paths):
         try:
-            shape_s_8.add_picture(img_path, left, top, width=Inches(img_width), height=Inches(img_height))
-            print(f"✅ PowerPoint에 이미지 추가 성공: {img_path}", flush=True, file=sys.stderr)
-        except Exception as e:
-            print(f"❌ PowerPoint 이미지 추가 실패: {img_path}, 오류: {e}", flush=True, file=sys.stderr)
+            with Image.open(img_path) as img:
+                img_width_px, img_height_px = img.size
+                aspect_ratio = img_height_px / img_width_px
 
-    print("✅ 9번째 슬라이드에 자세사진 추가 완료!")
+                # 고정된 가로 너비 → 세로는 비율로 계산
+                img_width = Inches(fixed_width_inch)
+                img_height = Inches(fixed_width_inch * aspect_ratio)
+
+                # 위치 계산 (가로 정렬, 세로 중앙)
+                left = Inches(left_margin_inch + i * fixed_width_inch)
+                top = Inches((slide_height_inch - (fixed_width_inch * aspect_ratio)) / 2)
+
+                shape_s_8.add_picture(img_path, left, top, width=img_width, height=img_height)
+                print(f"✅ 이미지 {i+5} 추가 완료: {img_path}", flush=True, file=sys.stderr)
+
+        except Exception as e:
+            print(f"❌ 이미지 추가 실패: {img_path} | 오류: {e}", flush=True, file=sys.stderr)
+
+    print("✅ 9번째 슬라이드 이미지 배치 완료!", flush=True, file=sys.stderr)
