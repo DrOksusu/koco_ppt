@@ -45,48 +45,54 @@ if sys.platform == "win32":
 #         return default_img if default_img else None
 def save_uploaded_file(uploaded_file, filename, default_img=None):
     """
-    파일을 저장하고, EXIF 회전 정보를 보정하여 저장된 파일 경로를 반환.
-    파일이 없거나 오류 발생 시 기본 이미지 경로를 반환.
-
-    :param uploaded_file: Flask의 request.files에서 전달된 파일 객체
-    :param filename: 저장할 파일 이름
-    :param default_img: 기본 이미지 경로 (선택 사항)
-    :return: 저장된 파일 경로 또는 기본 이미지 경로
+    업로드된 파일을 저장하고, 이미지인 경우 EXIF 회전 정보를 보정하여 저장.
+    이미지가 아닌 경우에는 원본 그대로 저장.
+    오류 발생 시 기본 이미지 경로를 반환.
     """
     if not uploaded_file or uploaded_file.filename == '':
         print(f"🚨 업로드된 파일이 없음, 기본 이미지 사용: {default_img}")
         return default_img if default_img else None
 
     file_path = os.path.join(UPLOAD_FOLDER, filename)
-    file_path = os.path.normpath(file_path)  # Windows 경로 정리
+    file_path = os.path.normpath(file_path)
 
     try:
         uploaded_file.seek(0)
-        img = Image.open(uploaded_file)
 
-        # ✅ EXIF 회전 보정 시도
-        try:
-            exif = img._getexif()
-            if exif is not None:
-                for tag, value in exif.items():
-                    decoded = ExifTags.TAGS.get(tag, tag)
-                    if decoded == "Orientation":
-                        orientation = value
-                        if orientation == 3:
-                            img = img.rotate(180, expand=True)
-                        elif orientation == 6:
-                            img = img.rotate(270, expand=True)
-                        elif orientation == 8:
-                            img = img.rotate(90, expand=True)
-                        print(f"↪️ EXIF 회전 보정 적용됨: {orientation}")
-                        break
-        except Exception as exif_error:
-            print(f"⚠️ EXIF 정보 없음 또는 처리 실패: {exif_error}")
+        # ✅ mimetype으로 이미지 여부 판별
+        if uploaded_file.mimetype.startswith("image/"):
+            img = Image.open(uploaded_file)
 
-        # ✅ 회전 보정된 이미지를 저장
-        img.save(file_path)
-        img.close()
+            # ✅ EXIF 회전 보정
+            try:
+                exif = img._getexif()
+                if exif is not None:
+                    for tag, value in exif.items():
+                        decoded = ExifTags.TAGS.get(tag, tag)
+                        if decoded == "Orientation":
+                            orientation = value
+                            if orientation == 3:
+                                img = img.rotate(180, expand=True)
+                            elif orientation == 6:
+                                img = img.rotate(270, expand=True)
+                            elif orientation == 8:
+                                img = img.rotate(90, expand=True)
+                            print(f"↪️ EXIF 회전 보정 적용됨: {orientation}")
+                            break
+            except Exception as exif_error:
+                print(f"⚠️ EXIF 정보 없음 또는 처리 실패: {exif_error}")
 
+            # ✅ 이미지 저장
+            img.save(file_path)
+            img.close()
+
+        else:
+            # ✅ 이미지가 아닌 경우: 원본 그대로 저장
+            uploaded_file.seek(0)
+            uploaded_file.save(file_path)
+            print("📎 이미지가 아닌 일반 파일, 그대로 저장됨.")
+
+        # ✅ 저장 성공 확인
         if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
             print(f"✅ {file_path} 저장 완료 ({os.path.getsize(file_path)} bytes)")
             return file_path

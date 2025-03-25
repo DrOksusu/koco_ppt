@@ -64,6 +64,7 @@ def create_ppt(request):
 
     
     excel_file = request.files['excel_data']
+    print("excel_file:",excel_file, flush=True, file=sys.stderr)
     ceph_dict_raw = request.form.get('excel_dict')
     ceph_add_raw= request.form.get('excel_add')
     print("ceph_dict_raw:",ceph_dict_raw, flush=True, file=sys.stderr)
