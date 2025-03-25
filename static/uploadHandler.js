@@ -103,7 +103,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const imageData = e.target.result;
     
             // ✅ 새 창 열기
-            const newWindow = window.open("/static/psa.html", "_blank", "width=700,height=700,scrollbars=yes");
+            const newWindow = window.open("/static/psa1.html", "_blank", "width=700,height=700,scrollbars=yes");
     
             // ✅ 새 창이 완전히 열린 후에 postMessage 전달
             newWindow.onload = function () {

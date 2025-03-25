@@ -32,12 +32,79 @@ function calculateDistance(p1, p2) {
     return Math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2).toFixed(2);
 }
 
-// ✅ 초록색 직선 그리는 함수
-window.drawGreenLine = function(points, scaleX, scaleY, ctx) {
+// ✅ 검은색 직선 그리는 함수 (첫 번째와 두 번째 점 연결, 첫 점 방향으로 연장)
+window.drawBlackLine = function(points, scaleX, scaleY, ctx) {
     if (points.length < 2) return;
 
     const p1 = [points[0][0] * scaleX, points[0][1] * scaleY];
     const p2 = [points[1][0] * scaleX, points[1][1] * scaleY];
+
+    // ✅ 방향 벡터 계산
+    const dx = p2[0] - p1[0];
+    const dy = p2[1] - p1[1];
+
+    // ✅ 첫 번째 점 방향으로 50% 연장된 지점 계산
+    const extendedP1 = [p1[0] - dx * 0.5, p1[1] - dy * 0.5];
+
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(extendedP1[0], extendedP1[1]); // 연장된 지점에서 시작
+    ctx.lineTo(p2[0], p2[1]); // 두 번째 점까지 선 긋기
+    ctx.stroke();
+}
+
+window.drawBlackDashedLine = function (points, scaleX, scaleY, ctx) {
+    if (points.length < 2) return;
+
+    const p1 = [points[0][0] * scaleX, points[0][1] * scaleY];
+    const p2 = [points[1][0] * scaleX, points[1][1] * scaleY];
+
+    const dx = p1[0] - p2[0];
+    const dy = p1[1] - p2[1];
+    const length = Math.sqrt(dx * dx + dy * dy);
+
+    const ux = dx / length;
+    const uy = dy / length;
+
+    // ✅ 6.5도 반시계 방향 회전
+    const angle = (6.5 * Math.PI) / 180;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+
+    const rx = ux * cos - uy * sin;
+    const ry = ux * sin + uy * cos;
+
+    // ✅ 회전된 벡터를 기준 벡터에 대해 대칭시키기 (데칼코마니 효과)
+    const dot = rx * ux + ry * uy;
+    const reflectedX = 2 * dot * ux - rx;
+    const reflectedY = 2 * dot * uy - ry;
+
+    const lineLength = length * 1.1;
+    const endX = p2[0] + reflectedX * lineLength;
+    const endY = p2[1] + reflectedY * lineLength;
+
+    // ✅ 점선 그리기
+    ctx.save();
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+
+    ctx.beginPath();
+    ctx.moveTo(p2[0], p2[1]); // 기준 실선 끝점에서 시작
+    ctx.lineTo(endX, endY);   // 데칼코마니 방향으로
+    ctx.stroke();
+
+    ctx.restore();
+};
+
+
+// ✅ 초록색 직선 그리는 함수
+window.drawGreenLine = function(points, scaleX, scaleY, ctx) {
+    if (points.length < 2) return;
+
+    const p1 = [points[2][0] * scaleX, points[2][1] * scaleY];
+    const p2 = [points[3][0] * scaleX, points[3][1] * scaleY];
 
     ctx.strokeStyle = "green";
     ctx.lineWidth = 1;
@@ -51,8 +118,8 @@ window.drawGreenLine = function(points, scaleX, scaleY, ctx) {
 window.drawRedLine = function(points, scaleX, scaleY, ctx) {
     if (points.length < 3) return;
 
-    const p1 = [points[0][0] * scaleX, points[0][1] * scaleY];
-    const p3 = [points[2][0] * scaleX, points[2][1] * scaleY];
+    const p1 = [points[3][0] * scaleX, points[3][1] * scaleY];
+    const p3 = [points[4][0] * scaleX, points[4][1] * scaleY];
 
     const dx = p3[0] - p1[0];
     const dy = p3[1] - p1[1];
@@ -71,9 +138,9 @@ window.drawRedLine = function(points, scaleX, scaleY, ctx) {
 window.drawBlueLine = function(points, scaleX, scaleY, ctx) {
     if (points.length < 4) return;
 
-    const p1 = [points[0][0] * scaleX, points[0][1] * scaleY]; // 첫 번째 점
-    const p3 = [points[2][0] * scaleX, points[2][1] * scaleY]; // 세 번째 점
-    const p4 = [points[3][0] * scaleX, points[3][1] * scaleY]; // 네 번째 점 (수선을 내릴 점)
+    const p1 = [points[3][0] * scaleX, points[3][1] * scaleY]; // 네 번째 점 lower incisor tip
+    const p3 = [points[4][0] * scaleX, points[4][1] * scaleY]; // 다섯번째 점 occlusal point
+    const p4 = [points[5][0] * scaleX, points[5][1] * scaleY]; // 네 번째 점 (수선을 내릴 점)
 
     const dx = p3[0] - p1[0];
     const dy = p3[1] - p1[1];
@@ -133,7 +200,7 @@ window.drawBlueLine = function(points, scaleX, scaleY, ctx) {
     console.log("points[0]:", points[0]);
 
      // ✅ P1과 P_perp (같은 좌표계) 사이의 거리 D1 계산
-     const D1 = calculateDistance(points[0], p_perp_scaled);
+     const D1 = calculateDistance(points[3], p_perp_scaled);
      console.log("📏 D1 (P1 - P_perp 거리):", D1);
 
     // ✅ P_perp (원래 좌표계로 변환된 값 반환)
@@ -142,16 +209,16 @@ window.drawBlueLine = function(points, scaleX, scaleY, ctx) {
 
 
 function drawYellowCircles(ctx, points, scaleX, scaleY, p_perp) {
-    if (points.length < 4) {
+    if (points.length < 6) {
         console.error("❌ 최소 4개의 좌표가 필요합니다.");
         return { intersection: null, D2: 0 };
     }
 
     console.log("📍 points:", points);
 
-    let p1_x = points[0][0], p1_y = points[0][1];
-    let a = points[0][0], b = points[0][1]; // 첫 번째 클릭한 좌표
-    let c = points[1][0], d = points[1][1]; // 두 번째 클릭한 좌표
+    let p1_x = points[3][0], p1_y = points[3][1];
+    let a = points[2][0], b = points[2][1]; // hinge point
+    let c = points[3][0], d = points[3][1]; // lower incisor tip
 
     let x0 = Math.round((a + c) / 2 - (Math.sqrt(3) * (d - b)) / 2);
     let y0 = Math.round((b + d) / 2 + (Math.sqrt(3) * (c - a)) / 2);
@@ -172,8 +239,8 @@ function drawYellowCircles(ctx, points, scaleX, scaleY, p_perp) {
     ctx.arc(x * scaleX, y * scaleY, radius * scaleX, 0, Math.PI * 2);
     ctx.stroke();
 
-    let x1_red = points[0][0], y1_red = points[0][1];
-    let x2_red = points[2][0], y2_red = points[2][1];
+    let x1_red = points[3][0], y1_red = points[3][1];
+    let x2_red = points[4][0], y2_red = points[4][1];
 
     let dx = x2_red - x1_red;
     let dy = y2_red - y1_red;
@@ -205,6 +272,7 @@ function drawYellowCircles(ctx, points, scaleX, scaleY, p_perp) {
     let y_intersect2 = m_red * x_intersect2 + b_red;
 
     let intersections = [[x_intersect1, y_intersect1], [x_intersect2, y_intersect2]];
+    console.log("🟡 빨간색 선과 노란색 원의 교차점:", intersections)
 
     // ✅ 첫 번째 점(P1)과 거의 같은 좌표를 제거 (미세한 오차 고려)
     intersections = intersections.filter(p => !(
