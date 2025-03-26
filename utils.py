@@ -82,6 +82,12 @@ def save_uploaded_file(uploaded_file, filename, default_img=None):
             except Exception as exif_error:
                 print(f"⚠️ EXIF 정보 없음 또는 처리 실패: {exif_error}")
 
+            # ✅ JPEG 저장 호환성을 위한 모드 변환
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+                print("🎨 RGBA 또는 P 모드 → RGB로 변환됨")
+            
+            
             # ✅ 이미지 저장
             img.save(file_path)
             img.close()
