@@ -355,7 +355,8 @@ function na_perp_a(landmarkCoordinates) {
     Math.abs(A * Apoint.x + B * Apoint.y + C) / Math.sqrt(A * A + B * B);
 
   // ✅ 6. A-point가 수선의 어느 쪽에 있는지 판단하여 부호 결정
-  const sign = Apoint.x > Nasion.x ? 1 : -1;
+  const xOnLine = (Apoint.y - C + A * Apoint.x) / (A * A + 1); // 수직선과 만나는 x좌표
+  const sign = Apoint.x < xOnLine ? -1 : 1;
   return (Math.round(distance * scaleFactor * 10) / 10) * sign; // 소수 첫째 자리에서 반올림
 }
 
