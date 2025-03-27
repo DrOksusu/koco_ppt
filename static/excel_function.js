@@ -354,9 +354,12 @@ function na_perp_a(landmarkCoordinates) {
   const distance =
     Math.abs(A * Apoint.x + B * Apoint.y + C) / Math.sqrt(A * A + B * B);
 
-  // ✅ 6. A-point가 수선의 어느 쪽에 있는지 판단하여 부호 결정
-  const xOnLine = (Apoint.y - C + A * Apoint.x) / (A * A + 1); // 수직선과 만나는 x좌표
-  const sign = Apoint.x < xOnLine ? -1 : 1;
+  // ✅ 방향 판단: 벡터 내적 사용
+  const dx = Apoint.x - Nasion.x;
+  const dy = Apoint.y - Nasion.y;
+  const dot = dx * A + dy * B;
+  const sign = dot < 0 ? -1 : 1;
+  console.log("📏 수직 거리:", distance * scaleFactor * sign);
   return (Math.round(distance * scaleFactor * 10) / 10) * sign; // 소수 첫째 자리에서 반올림
 }
 
@@ -663,17 +666,19 @@ function calculateAdditionalAngles(angles, landmarkCoordinates) {
     angles.MAB !== undefined ? Math.round((angles.MAB + PPA) * 10) / 10 : null;
 
   // ✅ HGI / VGI 계산 (상수 주석 추가)
-  const HGI =
+  const rawHGI =
     0.2 *
     ((angles.MBL - angles.ACBL) * 2 + // 하악-상악 길이 차이 보정
       (angles.UGA - 50) + // 상악 기울기 보정
       0.5 * (angles.PCBA - 64)); // 하악 뒤쪽 각도 보정
+  const HGI = Math.round(rawHGI * 10) / 10;
 
-  const VGI =
+  const rawVGI =
     0.2 *
     ((FHR - 60) * 2 - // 얼굴 높이 보정
       (angles.LGA - 75) + // 하악 각도
       0.5 * (angles.ACBA - 7)); // 하악 중심 각도
+  const VGI = Math.round(rawVGI * 10) / 10;
 
   // ✅ AB<LOP 각도 → 라디안 변환 후 코사인
   const a = (3.5 / 4.4) * Math.cos((angles["AB<LOP"] * Math.PI) / 180);
@@ -690,10 +695,14 @@ function calculateAdditionalAngles(angles, landmarkCoordinates) {
   console.log("📏 IAPDI:", IAPDI);
 
   // ✅ APDL 계산
-  const APDL = 0.8 * (APDI - IAPDI);
-  const IODI =
+  const rawAPDL = 0.8 * (APDI - IAPDI);
+  const APDL = Math.round(rawAPDL * 10) / 10;
+
+  const rawIODI =
     80 - 0.3 * angles.PMA - (0.776 - 0.008 * angles.FMA) * (angles.FABA - 80);
-  const VDL = 0.4849 * (ODI - IODI);
+  const IODI = Math.round(rawIODI * 10) / 10;
+  const rawVDL = 0.4849 * (ODI - IODI);
+  const VDL = Math.round(rawVDL * 10) / 10;
   // EI 계산
 
   const IIA = calculateIntersectionAngle(
@@ -703,8 +712,8 @@ function calculateAdditionalAngles(angles, landmarkCoordinates) {
     "Mn.1 cr",
     "Mn.1 root"
   );
-  const EI = ODI + APDI + (IIA - 125) / 5 - (angles.UL + angles["E-line"]);
-  console.log("📏 EI:", EI);
+  const rawEI = ODI + APDI + (IIA - 125) / 5 - (angles.UL + angles["E-line"]);
+  const EI = Math.round(rawEI * 10) / 10;
 
   //IODI 계산
 
