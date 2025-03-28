@@ -435,13 +435,18 @@ function getAngleDictionary(landmarkCoordinates) {
       "Mn.1 cr",
       "Mn.1 root"
     ),
-    PMA: calculateIntersectionAngle(
-      landmarkCoordinates,
-      "ANS",
-      "PNS",
-      "Go",
-      "Menton"
-    ),
+    PMA:
+      Math.round(
+        (180 -
+          calculateIntersectionAngle(
+            landmarkCoordinates,
+            "ANS",
+            "PNS",
+            "Go",
+            "Menton"
+          )) *
+          10
+      ) / 10,
     "SN-GoMe": calculateIntersectionAngle(
       landmarkCoordinates,
       "Sella",
