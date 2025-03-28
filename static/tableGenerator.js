@@ -167,9 +167,11 @@ function generateDiagnosisTable() {
   const indicators = [
     { name: "HGI", mean: "" },
     { name: "VGI", mean: "" },
+    { name: "APDI", mean: "" },
+    { name: "ODI", mean: "" },
     { name: "IAPDI", mean: "" },
-    { name: "2APDL", mean: "" },
     { name: "IODI", mean: "" },
+    { name: "2APDL", mean: "" },
     { name: "VDL", mean: "" },
     { name: "CFD", mean: "" },
     { name: "EI", mean: "" },
