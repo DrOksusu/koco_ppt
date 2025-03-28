@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   function generateTable() {
-    const tableContainer = document.getElementById("tableContainer");
+    const tableContainer = document.getElementById("tableContainer1");
     tableContainer.innerHTML = ""; // ✅ 기존 테이블 초기화
 
     const table = document.createElement("table");
@@ -117,24 +117,13 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // // ✅ 테이블 초기 생성
+  console.log(
+    "📌 container1 존재 여부:",
+    document.getElementById("tableContainer1")
+  );
   generateTable();
+  generateDiagnosisTable();
 });
-
-// ✅ 부모 창의 테이블에서 '계측값' 업데이트 함수
-// function updateTableWithAngles(angleDictionary) {
-//     console.log("📌 계측값 업데이트 실행");
-
-//     // ✅ 모든 '계측값' 셀을 찾고, `data-name`을 기반으로 값 업데이트
-//     const valueCells = document.querySelectorAll(".value-cell");
-//     valueCells.forEach(cell => {
-//         const name = cell.getAttribute("data-name"); // ✅ 계측항목 이름 가져오기
-//         if (name in angleDictionary) {
-//             cell.textContent = angleDictionary[name]; // ✅ `angleDictionary` 값으로 업데이트
-//         }
-//     });
-
-//     console.log("✅ 테이블 업데이트 완료!");
-// }
 
 function updateTableWithAngles(angleDictionary) {
   console.log("📌 계측값 업데이트 실행");
@@ -152,7 +141,10 @@ function updateTableWithAngles(angleDictionary) {
   });
 
   // ✅ 계측값 셀 찾아서 업데이트
-  const valueCells = document.querySelectorAll(".value-cell");
+
+  const container = document.getElementById("tableContainer1");
+  const valueCells = container.querySelectorAll(".value-cell");
+
   valueCells.forEach((cell) => {
     const name = cell.getAttribute("data-name");
     if (name in angleDictionary) {
@@ -162,5 +154,65 @@ function updateTableWithAngles(angleDictionary) {
     }
   });
 
-  console.log("✅ 테이블 업데이트 완료!");
+  console.log("✅ 계측값 업데이트 완료!");
+}
+
+function generateDiagnosisTable() {
+  const tableContainer = document.getElementById("tableContainer2");
+  if (!tableContainer) {
+    console.error("❌ tableContainer2를 찾을 수 없습니다.");
+    return;
+  }
+
+  const indicators = [
+    { name: "HGI", mean: "" },
+    { name: "VGI", mean: "" },
+    { name: "IAPDI", mean: "" },
+    { name: "2APDL", mean: "" },
+    { name: "IODI", mean: "" },
+    { name: "VDL", mean: "" },
+    { name: "CFD", mean: "" },
+    { name: "EI", mean: "" },
+  ];
+
+  const table = document.createElement("table");
+  table.innerHTML = `
+      <thead>
+        <tr>
+          <th style="width: 40%;">진단 지표</th>
+          <th style="width: 20%;">평균값</th>
+          <th style="width: 20%;">결과값</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `;
+
+  const tbody = table.querySelector("tbody");
+
+  indicators.forEach((item) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+        <td>${item.name}</td>
+        <td>${item.mean}</td>
+        <td class="diagnosis-value" data-name="${item.name}"></td>
+      `;
+    tbody.appendChild(tr);
+  });
+
+  tableContainer.appendChild(table);
+}
+
+function updateDiagnosisTable(additionalAngles) {
+  const cells = document.querySelectorAll(".diagnosis-value");
+  cells.forEach((cell) => {
+    let name = cell.getAttribute("data-name");
+
+    // ✅ '2APDL' 셀은 'APDL' 키와 연결되도록 예외 처리
+    const lookupKey = name === "2APDL" ? "APDL" : name;
+
+    // ✅ matching 되는 값이 있을 경우 셀에 출력
+    if (lookupKey in additionalAngles) {
+      cell.textContent = additionalAngles[lookupKey];
+    }
+  });
 }

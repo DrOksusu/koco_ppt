@@ -437,8 +437,8 @@ function getAngleDictionary(landmarkCoordinates) {
     ),
     PMA: calculateIntersectionAngle(
       landmarkCoordinates,
-      "Porion",
-      "Orbitale",
+      "ANS",
+      "PNS",
       "Go",
       "Menton"
     ),
@@ -715,6 +715,8 @@ function calculateAdditionalAngles(angles, landmarkCoordinates) {
   const rawEI = ODI + APDI + (IIA - 125) / 5 - (angles.UL + angles["E-line"]);
   const EI = Math.round(rawEI * 10) / 10;
 
+  const CFD = Math.round((ODI + APDI - IAPDI - IODI) * 10) / 10;
+
   //IODI 계산
 
   // ✅ 최종 결과 반환
@@ -734,6 +736,7 @@ function calculateAdditionalAngles(angles, landmarkCoordinates) {
     VDL,
     EI,
     IIA,
+    CFD,
   };
 
   return additionalAngles;

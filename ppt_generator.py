@@ -65,11 +65,10 @@ def create_ppt(request):
     
     excel_file = request.files['excel_data']
     print("excel_file:",excel_file, flush=True, file=sys.stderr)
-    ceph_dict_raw = request.form.get('excel_dict')
-    ceph_add_raw= request.form.get('excel_add')
+    ceph_dict_raw = request.form.get('totalData')
+    # ceph_add_raw= request.form.get('excel_add')
     print("ceph_dict_raw:",ceph_dict_raw, flush=True, file=sys.stderr)
-    print("ceph_add_raw:",ceph_add_raw, flush=True, file=sys.stderr)
-
+    
    # 2. JSON 문자열 → 파이썬 객체로 파싱
     try:
         # ceph_dict_raw가 None이 아니고 문자열일 경우만 파싱 시도
@@ -80,39 +79,12 @@ def create_ppt(request):
             ceph = []  # 기본 빈 리스트로 설정
             print("⚠️ ceph_dict_raw가 None이거나 비어있습니다. 빈 리스트로 대체합니다.", flush=True, file=sys.stderr)
 
-        # ceph_add_raw도 마찬가지로 체크
-        if ceph_add_raw:
-            ceph_add = json.loads(ceph_add_raw)  # 딕셔너리 형태
-            print("ceph_add:", ceph_add, flush=True, file=sys.stderr)
-        else:
-            ceph_add = {}  # 기본 빈 딕셔너리로 설정
-            print("⚠️ ceph_add_raw가 None이거나 비어있습니다. 빈 딕셔너리로 대체합니다.", flush=True, file=sys.stderr)
-
+       
     except json.JSONDecodeError:
         print("🚨 JSON 변환 오류: ceph_dict_raw 또는 ceph_add_raw가 올바른 JSON 형식이 아닙니다.", flush=True, file=sys.stderr)
         ceph = []
         ceph_add = {}
-
-    # 3. 리스트 또는 딕셔너리에 ceph_add를 병합
-    try:
-        if isinstance(ceph, list):
-            if ceph_add:  # ceph_add가 None이 아니고 비어있지 않을 때만
-                ceph.append(ceph_add)
-                print("✅ 리스트에 ceph_add 추가 (append).", flush=True, file=sys.stderr)
-            else:
-                print("⚠️ ceph_add가 비어 있어 리스트에 추가하지 않음.", flush=True, file=sys.stderr)
-
-        elif isinstance(ceph, dict):
-            if ceph_add:  # ceph_add가 유효한 딕셔너리일 경우
-                ceph.update(ceph_add)
-                print("✅ 딕셔너리에 ceph_add 병합 (update).", flush=True, file=sys.stderr)
-            else:
-                print("⚠️ ceph_add가 비어 있어 딕셔너리에 병합하지 않음.", flush=True, file=sys.stderr)
-
-        else:
-            print("🚨 ceph의 자료형이 리스트나 딕셔너리가 아닙니다. 병합 생략.", flush=True, file=sys.stderr)
-
-        print("ceph:", ceph, flush=True, file=sys.stderr)
+   
 
     except Exception as e:
         print(f"🚨 ceph 병합 중 오류 발생: {e}", flush=True, file=sys.stderr)
@@ -159,11 +131,11 @@ def create_ppt(request):
         print("🚨 엑셀 파일과 ceph_dict 둘 다 없습니다.", flush=True, file=sys.stderr)
         HGI, VGI = None, None  # 값이 없으면 이후 슬라이드에서 참고하지 않도록
         print("HGI:",HGI, flush=True, file=sys.stderr)
-        print("VGI:",VGI, flush=True, file=sys.stderr)
-        
+        print("VGI:",VGI, flush=True, file=sys.stderr)       
     
     
-        # 두 번째 슬라이드 만들기 (PSA 파일이 있을 경우만)
+
+    #### 두 번째 슬라이드 만들기 (PSA 파일이 있을 경우만)
     print("두번째 슬라이드 시작",flush=True, file=sys.stderr)
     create_second_slide(prs, HGI, VGI, psa_name_path)       
 
@@ -225,7 +197,7 @@ def create_ppt(request):
 def create_first_slide(prs, ceph, id_photo_path, df_raw = None):   # 2️⃣ Ceph 데이터 정리 및 딕셔너리 생성
     
       
-    print("📌 Ceph 데이터:", ceph)   
+      
 
     # 🔹 키 변형을 매핑하는 딕셔너리 (예: "PSA" ↔ "psa" ↔ "Psa")
     alias_map = {        
@@ -242,13 +214,19 @@ def create_first_slide(prs, ceph, id_photo_path, df_raw = None):   # 2️⃣ Cep
         "L.Lip E-line" : "E-line",
         "Overbite" : "Incisor Overbite",
         "Overjet" : "Incisor Overjet",
+        "APDL" : "2APDL",
 
     }
     print("📌 Alias 매핑:", alias_map)
 
     # 📌 ceph 딕셔너리를 alias_map을 적용하여 변형
     ceph_standardized = {alias_map.get(k, k): v for k, v in ceph.items()}
+    ceph = ceph_standardized.copy()  # 원본 보호를 위해 복사본 사용
+    # 딕셔너리 값을 변수처럼 globals()에 추가
+
     print("📌 Ceph 데이터 (표준화 적용):", ceph_standardized)  
+
+    
 
     # 3️⃣ PPT 불러오기
     
@@ -267,7 +245,7 @@ def create_first_slide(prs, ceph, id_photo_path, df_raw = None):   # 2️⃣ Cep
         print("🔑 표준화된 키:", standardized_key)
 
         # ✅ ceph_standardized에 존재하면 해당 값 입력, 없으면 "자료없음" 입력
-        table.cell(i, 1).text = str(ceph_standardized.get(standardized_key, "자료없음"))        
+        table.cell(i, 1).text = str(ceph.get(standardized_key, "자료없음"))        
         
         # 텍스트 스타일 적용
         TextFrame(table.cell(i, 1), font_size=Pt(7), font_bold=False, ft_color=True)  # 🔹 텍스트 스타일 적용
@@ -287,37 +265,48 @@ def create_first_slide(prs, ceph, id_photo_path, df_raw = None):   # 2️⃣ Cep
         # ✅ ceph 값이 없으면 기본값 사용
         def get_ceph_value(key):
             return ceph.get(key, DEFAULT_VALUES.get(key, 0))
+        
+        print("📌 Ceph 데이터:", ceph)
+        
 
-        # ✅ 값 계산
-        cosvalue = math.cos(math.radians(get_ceph_value('AB<LOP')))
-        a = 3.5 / 4.4 * cosvalue
-        pmaval = get_ceph_value('PMA')
-        apdival = get_ceph_value('APDI')
+        # # ✅ 값 계산
+        # cosvalue = math.cos(math.radians(get_ceph_value('AB<LOP')))
+        # a = 3.5 / 4.4 * cosvalue
+        # pmaval = get_ceph_value('PMA')
+        # apdival = get_ceph_value('APDI')
 
-        if apdival >= 81:
-            IAPDI = 95 - 0.5 * pmaval if pmaval < 27.5 else 81
-        else:
-            IAPDI = 81 - a * (pmaval - 27.5)
+        # if apdival >= 81:
+        #     IAPDI = 95 - 0.5 * pmaval if pmaval < 27.5 else 81
+        # else:
+        #     IAPDI = 81 - a * (pmaval - 27.5)
 
-        IAPDI = round(IAPDI, 2)
+        #IAPDI = round(IAPDI, 2)
+        IAPDI = ceph.get('IAPDI', 0)
+        print("IAPDI:",IAPDI, flush=True, file=sys.stderr)        
 
-        HGI = round(0.2 * ((get_ceph_value('MBL') - get_ceph_value('ACBL')) * 2 +
-                            (get_ceph_value('UGA') - 50) +
-                            0.5 * (get_ceph_value('PCBA') - 64)), 2)
+        # HGI = round(0.2 * ((get_ceph_value('MBL') - get_ceph_value('ACBL')) * 2 +
+        #                     (get_ceph_value('UGA') - 50) +
+        #                     0.5 * (get_ceph_value('PCBA') - 64)), 2)
+        HGI = ceph.get('HGI', 0)
 
-        VGI = round(0.2 * ((get_ceph_value('FHR') - 60) * 2 -
-                            (get_ceph_value('LGA') - 75) +
-                            0.5 * (get_ceph_value('ACBA') - 7)), 2)
+        # VGI = round(0.2 * ((get_ceph_value('FHR') - 60) * 2 -
+        #                     (get_ceph_value('LGA') - 75) +
+        #                     0.5 * (get_ceph_value('ACBA') - 7)), 2)
+        VGI = ceph.get('VGI', 0)
 
-        APDL = round(0.4 * (get_ceph_value('APDI') - IAPDI), 2)
+        # APDL = round(0.4 * (get_ceph_value('APDI') - IAPDI), 2)
+        APDL = (ceph.get('2APDL', 0))/2
 
-        IODI = round(((80 - 0.3 * get_ceph_value('PMA') -
-                    (0.776 - 0.008 * get_ceph_value('FMA')) *
-                    (get_ceph_value('FABA') - 80))), 2)
+        # IODI = round(((80 - 0.3 * get_ceph_value('PMA') -
+        #             (0.776 - 0.008 * get_ceph_value('FMA')) *
+        #             (get_ceph_value('FABA') - 80))), 2)
+        IODI = ceph.get('IODI', 0)
 
-        VDL = round(0.4849 * (get_ceph_value('ODI') - IODI), 2)
+        # VDL = round(0.4849 * (get_ceph_value('ODI') - IODI), 2)
+        VDL = ceph.get('VDL', 0)
 
-        CFD = round(get_ceph_value('APDI') + get_ceph_value('ODI') - IAPDI - IODI, 2)
+        # CFD = round(get_ceph_value('APDI') + get_ceph_value('ODI') - IAPDI - IODI, 2)
+        CFD = ceph.get('CFD', 0)
 
         # ✅ 고정 변수 설정
         fixed_var_dict = {
@@ -442,7 +431,7 @@ def create_first_slide(prs, ceph, id_photo_path, df_raw = None):   # 2️⃣ Cep
         print("🚨 전체 코드 실행 중 오류 발생! 이 블록을 건너뜁니다.", flush=True)
         print(traceback.format_exc(), flush=True)
         return None, None  # 오류 발생 시 기본값 반환
-
+    
 def create_second_slide(prs, HGI, VGI, default_img):
      
      """

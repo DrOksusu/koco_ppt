@@ -322,9 +322,11 @@
                 excel_dict,
                 landmarkCoordinates
               );
+              const totalData = { ...excel_dict, ...excel_add };
 
               console.log("📐 계측값:", excel_dict);
               console.log("📐 추가 계측값:", excel_add);
+              console.log("📐 전체 계측값:", totalData);
 
               if (
                 window.opener &&
@@ -332,8 +334,7 @@
               ) {
                 const combinedData = {
                   landmarkCoordinates,
-                  excel_dict,
-                  excel_add,
+                  totalData,
                 };
                 window.opener.logFromChild(combinedData);
                 console.log("📤 부모 창으로 데이터 전송 완료:", combinedData);
@@ -342,6 +343,42 @@
               }
             }, 100);
           }
+        }
+      });
+
+      $("#insertButton").on("click", function () {
+        console.log("📌 `엑셀데이터 생성 버튼` 클릭됨!");
+
+        //✅ SNA, SNB 내각 계산 후 `angleDictionary` 생성
+        const angleDictionary = getAngleDictionary(landmarkCoordinates);
+        const additionalAngles = calculateAdditionalAngles(
+          angleDictionary,
+          landmarkCoordinates
+        );
+        const totalData = { ...angleDictionary, ...additionalAngles };
+        //const totalData = { ...exced_add, ...excel_dict };
+
+        console.log("📌 angleDictionary 생성 완료:", angleDictionary);
+        console.log("📌 additionalAngles 생성 완료:", additionalAngles);
+        console.log("📌 totalData 생성 완료:", totalData);
+
+        // ✅ 부모 창이 존재하는지 확인
+        if (window.opener && !window.opener.closed) {
+          console.log("🚀 부모 창이 열려 있습니다. 데이터 전송!");
+
+          // ✅ 부모 창에서 `updateTableWithAngles()` 함수가 존재하는지 확인 후 실행
+          if (typeof window.opener.updateTableWithAngles === "function") {
+            window.opener.updateTableWithAngles(totalData); // ✅ 부모 창 테이블 업데이트 실행
+            window.opener.updateDiagnosisTable(totalData); // ✅ 부모 창 진단 테이블 업데이트 실행
+            // ✅ 300ms(0.3초) 후 `alert()` 실행
+            setTimeout(() => {
+              alert("✅ 계측값이 부모 창에 업데이트되었습니다!");
+            }, 300);
+          } else {
+            alert("🚨 부모 창에 `updateTableWithAngles` 함수가 없습니다!");
+          }
+        } else {
+          alert("🚨 부모 창이 닫혀 있습니다! 데이터를 보낼 수 없습니다.");
         }
       });
 
@@ -374,32 +411,6 @@
         if (prevIndex < messages.length) {
           guideMessage.text(messages[prevIndex]); // ✅ 가이드 메시지 업데이트
           speakMessage(messages[prevIndex]); // ✅ 음성 안내
-        }
-      });
-
-      $("#insertButton").on("click", function () {
-        console.log("📌 `엑셀데이터 생성 버튼` 클릭됨!");
-
-        // ✅ SNA, SNB 내각 계산 후 `angleDictionary` 생성
-        const angleDictionary = getAngleDictionary(landmarkCoordinates);
-        console.log("📌 angleDictionary 생성 완료:", angleDictionary);
-
-        // ✅ 부모 창이 존재하는지 확인
-        if (window.opener && !window.opener.closed) {
-          console.log("🚀 부모 창이 열려 있습니다. 데이터 전송!");
-
-          // ✅ 부모 창에서 `updateTableWithAngles()` 함수가 존재하는지 확인 후 실행
-          if (typeof window.opener.updateTableWithAngles === "function") {
-            window.opener.updateTableWithAngles(angleDictionary); // ✅ 부모 창 테이블 업데이트 실행
-            // ✅ 300ms(0.3초) 후 `alert()` 실행
-            setTimeout(() => {
-              alert("✅ 계측값이 부모 창에 업데이트되었습니다!");
-            }, 300);
-          } else {
-            alert("🚨 부모 창에 `updateTableWithAngles` 함수가 없습니다!");
-          }
-        } else {
-          alert("🚨 부모 창이 닫혀 있습니다! 데이터를 보낼 수 없습니다.");
         }
       });
 
