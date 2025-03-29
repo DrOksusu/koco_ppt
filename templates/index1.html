@@ -428,8 +428,8 @@
     // let psaData = JSON.parse(localStorage.getItem("psaData")) || {};
     // let excelDictData = JSON.parse(localStorage.getItem("excelDictData")) || {};
 
-    let psaData = {};
-    let excelDictData = {};
+    window.psaData = {};
+    window.excelDictData = {};
 
     function logFromChild(data) {
       console.log("📌 자식 창에서 받은 데이터:", data);
@@ -438,6 +438,7 @@
         if (Array.isArray(data) && data.length === 4) {
           // ✅ PSA 좌표 데이터인 경우 (4개의 좌표로 구성된 배열)
           psaData = { psa_coordinates: data }; // 객체 형태로 저장
+          localStorage.clear();
           localStorage.setItem("psaData", JSON.stringify(psaData));
           console.log("📌 PSA 데이터 저장 완료:", psaData);
         } else {
