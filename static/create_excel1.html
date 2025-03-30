@@ -150,10 +150,12 @@
         "Ruler End",
       ];
 
+      let $guideMessage; // 전역 선언
+
       $(document).ready(function () {
         console.log("🚀 create_excel1.html 로드됨");
 
-        const guideMessage = $("#guideMessage");
+        $guideMessage = $("#guideMessage");
 
         // ✅ landmark 이미지 사이즈 조정
         function updateImageSize() {
@@ -165,8 +167,53 @@
         updateImageSize();
         window.addEventListener("resize", updateImageSize);
 
+        $("#landmarkImage").on("dblclick", function () {
+          const imageUrl = $(this).attr("src");
+
+          const popup = window.open(
+            "",
+            "_blank",
+            "width=1000,height=800,resizable=yes,scrollbars=no"
+          );
+
+          popup.document.write(`
+                <!DOCTYPE html>
+                <html lang="ko">
+                <head>
+                  <meta charset="UTF-8" />
+                  <title>Landmark 이미지 확대보기</title>
+                  <style>
+                    html, body {
+                      margin: 0;
+                      padding: 0;
+                      width: 100%;
+                      height: 100%;
+                      background-color: #000;
+                      overflow: hidden; /* ✅ 확대된 이미지 잘려도 스크롤 없이 표시 */
+                    }
+                    body {
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                    }
+                    img {
+                      max-width: none;
+                      max-height: none;
+                      width: 110vw;   /* ✅ 가로 110% */
+                      height: 110vh;  /* ✅ 세로 110% */
+                      object-fit: contain;
+                    }
+                  </style>
+                </head>
+                <body>
+                  <img src="${imageUrl}" alt="Landmark Image 확대보기" />
+                </body>
+                </html>
+              `);
+        });
+
         // ✅ 페이지 로드시 음성 출력
-        speakMessage(guideMessage.text());
+        speakMessage($guideMessage.text());
 
         // ✅ 돋보기 캔버스 생성
         const magnifierCanvas = document.createElement("canvas");
@@ -275,7 +322,7 @@
           if (!canvas || !ctx || !img) return;
 
           if (Object.keys(landmarkCoordinates).length >= 29) {
-            guideMessage.hide();
+            $guideMessage.hide();
             return;
           }
 
@@ -303,12 +350,12 @@
           const nextIndex = Object.keys(landmarkCoordinates).length;
           if (nextIndex < messages.length) {
             const nextMessage = messages[nextIndex];
-            guideMessage.text(nextMessage);
+            $guideMessage.text(nextMessage);
             if (nextMessage) {
               speakMessage(nextMessage.replace(/\(\d+\)/g, ""));
             }
           } else {
-            guideMessage.hide();
+            $guideMessage.hide();
           }
 
           // ✅ 마지막 좌표 찍은 경우
@@ -356,27 +403,72 @@
           landmarkCoordinates
         );
         const totalData = { ...angleDictionary, ...additionalAngles };
-        //const totalData = { ...exced_add, ...excel_dict };
 
         console.log("📌 angleDictionary 생성 완료:", angleDictionary);
         console.log("📌 additionalAngles 생성 완료:", additionalAngles);
         console.log("📌 totalData 생성 완료:", totalData);
 
-        // ✅ 부모 창이 존재하는지 확인
+        // ✅ 부모 창이 열려 있는지 확인
         if (window.opener && !window.opener.closed) {
           console.log("🚀 부모 창이 열려 있습니다. 데이터 전송!");
 
-          // ✅ 부모 창에서 `updateTableWithAngles()` 함수가 존재하는지 확인 후 실행
           if (typeof window.opener.updateTableWithAngles === "function") {
-            window.opener.updateTableWithAngles(totalData); // ✅ 부모 창 테이블 업데이트 실행
-            window.opener.updateDiagnosisTable(totalData); // ✅ 부모 창 진단 테이블 업데이트 실행
-            // ✅ 300ms(0.3초) 후 `alert()` 실행
+            window.opener.updateTableWithAngles(totalData);
+            window.opener.updateDiagnosisTable(totalData);
+
             setTimeout(() => {
               alert("✅ 계측값이 부모 창에 업데이트되었습니다!");
             }, 300);
           } else {
             alert("🚨 부모 창에 `updateTableWithAngles` 함수가 없습니다!");
           }
+
+          // ✅ 이제 캔버스를 landmarks 미리보기 박스에 이미지로 삽입
+          const canvas = $("#psaCanvas")[0];
+          canvas.toBlob((blob) => {
+            const file = new File([blob], "processed_landmarks.jpg", {
+              type: "image/jpeg",
+            });
+
+            // ✅ 부모 창 요소들
+            const landmarkBox =
+              window.opener.document.getElementById("xrayPreview5");
+            const landmarkInput =
+              window.opener.document.getElementById("landmarks");
+
+            if (landmarkBox) {
+              // ✅ 기존 내용 초기화
+              landmarkBox.innerHTML = "";
+
+              const imgElement = document.createElement("img");
+              imgElement.src = URL.createObjectURL(blob);
+              imgElement.alt = "삽입된 Landmarks 이미지";
+              imgElement.style.width = "100%";
+              imgElement.style.height = "100%";
+              imgElement.style.objectFit = "cover";
+
+              const deleteBtn = document.createElement("button");
+              deleteBtn.innerText = "X";
+              deleteBtn.classList.add("delete-btn");
+              deleteBtn.addEventListener("click", function () {
+                landmarkBox.innerHTML = "📂 Landmarks";
+                if (landmarkInput) landmarkInput.value = "";
+              });
+
+              landmarkBox.appendChild(imgElement);
+              landmarkBox.appendChild(deleteBtn);
+
+              console.log("✅ Landmarks 이미지가 부모 창에 삽입되었습니다!");
+            } else {
+              alert("🚨 부모 창에 'xrayPreview5' 요소가 없습니다!");
+            }
+
+            if (landmarkInput) {
+              const dataTransfer = new DataTransfer();
+              dataTransfer.items.add(file);
+              landmarkInput.files = dataTransfer.files;
+            }
+          }, "image/jpeg");
         } else {
           alert("🚨 부모 창이 닫혀 있습니다! 데이터를 보낼 수 없습니다.");
         }
@@ -388,29 +480,32 @@
           return;
         }
 
-        // ✅ 마지막으로 저장된 좌표 삭제
-        const keys = Object.keys(landmarkCoordinates); // 현재 저장된 좌표 키 배열
-        const lastKey = keys[keys.length - 1]; // 마지막 키 가져오기
-        delete landmarkCoordinates[lastKey]; // 마지막 좌표 삭제
+        // ✅ 마지막 좌표 삭제
+        const keys = Object.keys(landmarkCoordinates);
+        const lastKey = keys[keys.length - 1];
+        delete landmarkCoordinates[lastKey];
         console.log(`❌ 마지막 좌표 삭제: ${lastKey}`);
 
-        // ✅ 캔버스 다시 그리기 (이미지 리셋 후 다시 점 찍기)
+        // ✅ 이미지 다시 그리기
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-        // ✅ 남아있는 좌표 다시 표시
+        // ✅ 남은 좌표 다시 표시
         Object.entries(landmarkCoordinates).forEach(([key, coord]) => {
           ctx.fillStyle = "red";
           ctx.beginPath();
-          ctx.arc(coord.x / scaleX, coord.y / scaleY, 3, 0, Math.PI * 2);
+          ctx.arc(coord.x / scaleX, coord.y / scaleY, 1.5, 0, Math.PI * 2);
           ctx.fill();
         });
 
-        // ✅ 가이드 메시지를 이전 메시지로 변경
-        const prevIndex = Object.keys(landmarkCoordinates).length; // 현재 남아 있는 개수
+        // ✅ guideMessage 업데이트
+        const prevIndex = Object.keys(landmarkCoordinates).length; // 💡 여기가 중요!
         if (prevIndex < messages.length) {
-          guideMessage.text(messages[prevIndex]); // ✅ 가이드 메시지 업데이트
-          speakMessage(messages[prevIndex]); // ✅ 음성 안내
+          const message = messages[prevIndex];
+          if (message) {
+            $guideMessage.text(message);
+            speakMessage(message);
+          }
         }
       });
 

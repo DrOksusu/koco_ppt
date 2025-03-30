@@ -135,16 +135,15 @@
       let canvas, ctx, img;
       let points = [];
 
-      // ✅ 가이드 메시지 목록
+      // ✅ 자동으로 찍을 랜드마크 이름
       const messages = [
         "Porion",
         "Orbitale",
-        "hinge point",
-        "lower incisor tip",
-        "occlusal point",
-        "symphysis lingual",
+        "hinge point", // ← 사용자 클릭
+        "Mn.1 cr",
+        "Mn.6 distal",
+        "symphysis lingual", // ← 사용자 클릭
       ];
-      console.log("📜 가이드 메시지 목록:", messages);
 
       $(document).ready(function () {
         console.log("🚀 psa1.html 로드됨");
@@ -161,6 +160,7 @@
         updateImageSize();
         window.addEventListener("resize", updateImageSize);
 
+        // ✅ landmark 이미지 더블클릭 시 팝업 확대
         $("#psa_landmark_image").on("dblclick", function () {
           const imageUrl = $(this).attr("src");
 
@@ -171,52 +171,47 @@
           );
 
           popup.document.write(`
-              <!DOCTYPE html>
-              <html lang="ko">
-              <head>
-                <meta charset="UTF-8" />
-                <title>Landmark 이미지 확대보기</title>
-                <style>
-                  html, body {
-                    margin: 0;
-                    padding: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-color: #000;
-                    overflow: hidden; /* ✅ 확대된 이미지 잘려도 스크롤 없이 표시 */
-                  }
-                  body {
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                  }
-                  img {
-                    max-width: none;
-                    max-height: none;
-                    width: 110vw;   /* ✅ 가로 110% */
-                    height: 110vh;  /* ✅ 세로 110% */
-                    object-fit: contain;
-                  }
-                </style>
-              </head>
-              <body>
-                <img src="${imageUrl}" alt="Landmark Image 확대보기" />
-              </body>
-              </html>
-            `);
+      <!DOCTYPE html>
+      <html lang="ko">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Landmark 이미지 확대보기</title>
+        <style>
+          html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
+          }
+          body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+          img {
+            max-width: none;
+            max-height: none;
+            width: 110vw;
+            height: 110vh;
+            object-fit: contain;
+          }
+        </style>
+      </head>
+      <body>
+        <img src="${imageUrl}" alt="Landmark Image 확대보기" />
+      </body>
+      </html>
+    `);
         });
 
-        // ✅ 페이지 로드시 첫 가이드 메시지 출력
-        const firstMessage = guideMessage.text();
-        speakMessage(firstMessage);
-
-        // ✅ 이미지 수신 후 처리
+        // ✅ 이미지 수신
         window.addEventListener("message", function (event) {
           const message = event.data;
 
           if (message.type === "PSA_IMAGE" && message.data) {
             console.log("📨 이미지 수신 완료");
-            console.log("📨 이미지 데이터:", message.data);
 
             img = new Image();
             img.onload = function () {
@@ -225,19 +220,18 @@
 
               drawResizedImage();
 
-              // ✅ 리사이즈 이벤트: 이미지 비율 유지
               window.addEventListener("resize", drawResizedImage);
-
-              // ✅ 캔버스 클릭 이벤트 등록
               canvas.addEventListener("click", handleCanvasClick);
+
+              // ✅ 자동 찍기 시도!
+              tryAutoMarkNextPoint();
             };
 
             img.src = message.data;
-            console.log("📤 이미지 데이터 전송 완료");
           }
         });
 
-        // ✅ 이미지 비율 유지하며 다시 그리기
+        // ✅ 이미지 리사이징
         function drawResizedImage() {
           if (!img || !canvas || !ctx) return;
 
@@ -249,14 +243,54 @@
           canvas.height = img.naturalHeight * scale;
 
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-          // 이전에 찍은 좌표와 선을 다시 그릴 수 있다면 여기에 재렌더링 로직 추가 가능
         }
 
-        // ✅ 클릭 이벤트 핸들러
+        // ✅ 자동 찍기 함수
+        function tryAutoMarkNextPoint() {
+          const nextIndex = points.length;
+          const landmarkName = messages[nextIndex];
+
+          const coordinates =
+            window.opener && window.opener.landmarkCoordinates
+              ? window.opener.landmarkCoordinates
+              : null;
+
+          if (coordinates && coordinates[landmarkName]) {
+            const coord = coordinates[landmarkName];
+            const scaleX = canvas.width / img.naturalWidth;
+            const scaleY = canvas.height / img.naturalHeight;
+
+            const x = coord.x * scaleX;
+            const y = coord.y * scaleY;
+
+            ctx.fillStyle = "red";
+            ctx.beginPath();
+            ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            points.push([coord.x, coord.y]);
+            console.log(`✅ 자동 표시: ${landmarkName}`, coord);
+
+            // ✅ 선 그리기 조건 자동 처리 추가!
+            if (points.length === 2) {
+              drawBlackLine(points, scaleX, scaleY, ctx);
+              drawBlackDashedLine(points, scaleX, scaleY, ctx);
+            } else if (points.length === 4) {
+              drawGreenLine(points, scaleX, scaleY, ctx);
+            } else if (points.length === 5) {
+              drawRedLine(points, scaleX, scaleY, ctx);
+            }
+
+            tryAutoMarkNextPoint();
+          } else {
+            const message = landmarkName || "";
+            guideMessage.text(message);
+            speakMessage(message);
+          }
+        }
+        // ✅ 클릭 이벤트
         function handleCanvasClick(event) {
           if (!canvas || !ctx || !img) return;
-
           if (points.length >= 6) {
             guideMessage.hide();
             return;
@@ -274,33 +308,24 @@
           );
 
           points.push([realX, realY]);
-          console.log("📍 클릭된 좌표:", realX, realY);
-          console.log("📍 현재 좌표 목록:", points);
 
-          // 빨간 점 찍기
           ctx.fillStyle = "red";
           ctx.beginPath();
           ctx.arc(realX * scaleX, realY * scaleY, 1.5, 0, Math.PI * 2);
           ctx.fill();
 
-          // 가이드 메시지 업데이트
-          const newMessage = messages[points.length] || "";
-          guideMessage.text(newMessage);
-          if ("speechSynthesis" in window) window.speechSynthesis.cancel();
-          speakMessage(newMessage);
+          tryAutoMarkNextPoint(); // 클릭 후 다음 자동 점도 확인
 
-          // 선 그리기 처리
-          // 선 그리기 처리
+          // ✅ 선 그리기 처리 (원래 로직 그대로 유지)
           if (points.length === 2) {
-            drawBlackLine(points, scaleX, scaleY, ctx); // ✅ 검정색 선 그리기
-            drawBlackDashedLine(points, scaleX, scaleY, ctx); // ✅ 검정색 점선 그리기
+            drawBlackLine(points, scaleX, scaleY, ctx);
+            drawBlackDashedLine(points, scaleX, scaleY, ctx);
           } else if (points.length === 4) {
             drawGreenLine(points, scaleX, scaleY, ctx);
           } else if (points.length === 5) {
             drawRedLine(points, scaleX, scaleY, ctx);
           } else if (points.length === 6) {
             const blue_result = drawBlueLine(points, scaleX, scaleY, ctx);
-
             if (!blue_result || !blue_result.p_perp) {
               console.error("🚨 drawBlueLine()에서 p_perp 반환 실패");
               return;
@@ -317,10 +342,10 @@
 
             try {
               if (window.opener && !window.opener.closed) {
-                const angleData = window.opener.excelDictData; // 부모창의 변수 접근 시도
-                console.log("📦 부모창의 angleDictionary:", angleData);
+                const angleData = window.opener.excelDictData;
                 HGI = angleData.totalData.HGI;
                 VGI = angleData.totalData.VGI;
+
                 drawArrowFromYellowCircle(
                   HGI,
                   VGI,
@@ -332,18 +357,12 @@
                 );
               }
             } catch (e) {
-              console.warn("⚠️ 부모창 데이터 접근 중 오류 발생:", e.message);
-              // 오류 발생해도 앱이 멈추지 않고 여기서 조용히 넘어감
+              console.warn("⚠️ 부모창 데이터 접근 오류:", e.message);
             }
 
-            console.log("📌 Guide Zone Distance:", blue_result.D1);
-            console.log("📌 Buffer Zone Distance:", yellow_result.D2);
-
-            // ✅ 계기판 UI 업데이트
             updateCarDashboard(blue_result, yellow_result);
 
-            // ✅ 마지막 안내 메시지
-            const finalMessage = "랜트마크가 모두 표시되었습니다.";
+            const finalMessage = "랜드마크가 모두 표시되었습니다.";
             guideMessage.text(finalMessage);
             speakMessage(finalMessage);
 
@@ -353,7 +372,6 @@
 
             showGaugeCanvas();
 
-            // ✅ 부모 창으로 좌표 데이터 전송
             if (
               window.opener &&
               typeof window.opener.logFromChild === "function"
@@ -364,6 +382,10 @@
             }
           }
         }
+
+        // ✅ 첫 가이드 메시지 출력
+        const firstMessage = messages[0];
+        guideMessage.text(firstMessage);
       });
 
       $("#saveButton").on("click", function () {

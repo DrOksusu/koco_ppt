@@ -124,6 +124,12 @@ document.addEventListener("DOMContentLoaded", function () {
     reader.readAsDataURL(file); // base64로 읽기
   });
 
+  //drawPSOline 버튼 클릭시 alert창 띄우기
+  $("#drawPSOLine").on("click", function (event) {
+    event.preventDefault();
+    alert("개발 중입니다.");
+  });
+
   $(document).ready(function () {
     $("#excel-create-btn").on("click", function (event) {
       event.preventDefault();
