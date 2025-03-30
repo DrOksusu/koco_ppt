@@ -134,7 +134,7 @@ def create_ppt(request):
         print("VGI:",VGI, flush=True, file=sys.stderr)       
     
     
-
+    sys.exit()
     #### 두 번째 슬라이드 만들기 (PSA 파일이 있을 경우만)
     print("두번째 슬라이드 시작",flush=True, file=sys.stderr)
     create_second_slide(prs, HGI, VGI, psa_name_path)       
