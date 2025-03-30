@@ -215,16 +215,21 @@
         // ✅ 페이지 로드시 음성 출력
         speakMessage($guideMessage.text());
 
+        const magnifierSize = 300;
         // ✅ 돋보기 캔버스 생성
         const magnifierCanvas = document.createElement("canvas");
-        magnifierCanvas.width = 150;
-        magnifierCanvas.height = 150;
+        magnifierCanvas.width = magnifierSize;
+        magnifierCanvas.height = magnifierSize;
+        magnifierCanvas.style.width = `${magnifierSize}px`; // 추가!
+        magnifierCanvas.style.height = `${magnifierSize}px`; // 추가!
         magnifierCanvas.style.position = "absolute";
         magnifierCanvas.style.border = "2px solid black";
         magnifierCanvas.style.borderRadius = "50%";
         magnifierCanvas.style.pointerEvents = "none";
         magnifierCanvas.style.zIndex = 10;
         magnifierCanvas.style.display = "none"; // 처음엔 숨김
+        // 마우스 이동 시 돋보기 위치 조정
+
         document.body.appendChild(magnifierCanvas);
         const magnifierCtx = magnifierCanvas.getContext("2d");
 
@@ -256,10 +261,10 @@
               // ✅ 마우스 움직일 때 돋보기 효과
               canvas.addEventListener("mousemove", function (event) {
                 // 확대 배율 줄이기 (예: 1.5배로 줄이기)
-                const zoom = 0.5;
+                const zoom = 0.7;
 
                 // 돋보기 캔버스 크기
-                const magnifierSize = 150;
+
                 const size = magnifierSize / 2;
 
                 // 마우스 좌표 (커서 기준)

@@ -127,7 +127,35 @@ document.addEventListener("DOMContentLoaded", function () {
   //drawPSOline 버튼 클릭시 alert창 띄우기
   $("#drawPSOLine").on("click", function (event) {
     event.preventDefault();
-    alert("개발 중입니다.");
+    const fileInput = $("#lateral_ceph")[0];
+
+    if (!fileInput.files.length) {
+      alert("⚠️ lateral_ceph에 업로드된 이미지가 없습니다!");
+      return;
+    }
+
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      const imageData = e.target.result;
+
+      // ✅ 새 창 열기
+      const newWindow = window.open(
+        "/static/pso.html",
+        "_blank",
+        "width=700,height=700,scrollbars=yes"
+      );
+
+      // ✅ 새 창이 완전히 열린 후에 postMessage 전달
+      newWindow.onload = function () {
+        console.log("✅ 새 창이 로드됨!");
+        newWindow.postMessage({ type: "PSA_IMAGE", data: imageData }, "*");
+        console.log("✅ 이미지 데이터를 새 창으로 전송 완료!");
+      };
+    };
+
+    reader.readAsDataURL(file); // base64로 읽기
   });
 
   $(document).ready(function () {
