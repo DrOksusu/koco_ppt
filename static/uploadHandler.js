@@ -1,3 +1,5 @@
+console.log("📢 uploadHandler.js 로딩됨!");
+
 function dataURLtoBlob(dataURL) {
   const arr = dataURL.split(",");
   const mime = arr[0].match(/:(.*?);/)[1]; // MIME 타입 추출
@@ -62,10 +64,74 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (!dropZone || !fileInput) return;
 
-    dropZone.addEventListener("click", () => fileInput.click());
-    fileInput.addEventListener("change", () =>
-      handleFilePreview(fileInput, dropZone)
-    );
+    let clickTimer = null;
+
+    dropZone.addEventListener("click", (e) => {
+      console.log("🖱️ click 이벤트 발생");
+
+      // 이미 타이머가 있다면 → 더블클릭으로 판단
+      if (clickTimer) {
+        clearTimeout(clickTimer);
+        clickTimer = null;
+        console.log("💥 더블클릭으로 판단됨 → 파일창 열지 않음");
+        return;
+      }
+
+      // 클릭 후 300ms 안에 또 클릭 들어오면 → 더블클릭으로 판단
+      clickTimer = setTimeout(() => {
+        console.log("✅ 단일 클릭 → 파일창 열기");
+        fileInput.click(); // 👉 여기서만 실제 파일창 열림
+        clickTimer = null;
+      }, 300); // 300ms 이내에 또 클릭이 들어오면 cancel
+    });
+
+    dropZone.addEventListener("dblclick", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("🔥 dblclick 이벤트 실행됨!");
+
+      const img = dropZone.querySelector("img");
+      if (!img || !img.src) {
+        console.warn("📭 이미지가 없습니다. 확대 안 함");
+        return;
+      }
+
+      const popup = window.open(
+        "",
+        "_blank",
+        "width=1000,height=800,resizable=yes,scrollbars=no"
+      );
+
+      popup.document.write(`
+          <!DOCTYPE html>
+          <html lang="ko">
+          <head>
+            <meta charset="UTF-8">
+            <title>확대 이미지</title>
+            <style>
+              html, body {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                background: black;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+              }
+              img {
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+              }
+            </style>
+          </head>
+          <body>
+            <img src="${img.src}" alt="확대 이미지" />
+          </body>
+          </html>
+        `);
+    });
 
     dropZone.addEventListener("dragover", (e) => {
       console.log("🔥 dragover event fired!");
@@ -210,4 +276,50 @@ document.addEventListener("DOMContentLoaded", function () {
     setupDropZone(`oralPhotoPreview${i}`, `oralPhoto${i}`);
   for (let i = 1; i <= 8; i++)
     setupDropZone(`posturePhotoPreview${i}`, `posturePhoto${i}`);
+});
+
+$(document).on("dblclick", ".file-preview img", function (e) {
+  const imageUrl = this.src;
+  if (!imageUrl) return;
+
+  console.log("🔥 img 더블클릭 발생!");
+
+  const popup = window.open(
+    "",
+    "_blank",
+    "width=1000,height=800,resizable=yes,scrollbars=no"
+  );
+
+  popup.document.write(`
+      <!DOCTYPE html>
+      <html lang="ko">
+      <head>
+        <meta charset="UTF-8" />
+        <title>이미지 확대 보기</title>
+        <style>
+          html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+          img {
+            max-width: none;
+            max-height: none;
+            width: 110vw;
+            height: 110vh;
+            object-fit: contain;
+          }
+        </style>
+      </head>
+      <body>
+        <img src="${imageUrl}" alt="확대 이미지 보기" />
+      </body>
+      </html>
+    `);
 });

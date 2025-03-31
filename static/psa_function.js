@@ -12,8 +12,8 @@ window.speakMessage = function (message) {
   }
 };
 
-// ✅ dataURL을 Blob으로 변환하는 함수 추가
-window.dataURLtoBlob = function () {
+// ✅ dataURL을 인자로 받도록 수정
+window.dataURLtoBlob = function (dataURL) {
   let arr = dataURL.split(","),
     mime = arr[0].match(/:(.*?);/)[1],
     bstr = atob(arr[1]),

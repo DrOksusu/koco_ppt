@@ -1,385 +1,486 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>PSA 선 그리기</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="/static/psa_function.js"></script>
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            width: 100vw;
-            margin: 0;
-            background-color: #f0f0f0;
-            overflow: hidden;
-        }
-        #image-container {
-            position: absolute;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        img {
-            max-width: 100vw;
-            max-height: 100vh;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-            border: none;
-        }
-        .marker {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            background-color: red;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 9999;
-        }
-        .guide-message {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 5px 10px;
-            font-size: 14px;
-            border-radius: 5px;
-            z-index: 10000;
-        }
-        
-        #button-container {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: row; /* 👉 버튼을 가로로 정렬 */
-            gap: 10px; /* 버튼 간격 추가 */
-        }
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+        background-color: #f0f0f0;
+        overflow: hidden;
+      }
+      #image-container {
+        position: absolute;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      img {
+        max-width: 100vw;
+        max-height: 100vh;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border: none;
+      }
+      .marker {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background-color: red;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+      }
+      .guide-message {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 5px 10px;
+        font-size: 14px;
+        border-radius: 5px;
+        z-index: 10000;
+      }
 
-        #saveButton, #insertButton {
-            position: relative; /* ✅ 버튼의 위치 문제 해결 */
-            background-color: #007bff;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            z-index: 10000;
-        }
+      #button-container {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: row; /* 👉 버튼을 가로로 정렬 */
+        gap: 10px; /* 버튼 간격 추가 */
+      }
 
-        #saveButton:hover, #insertButton:hover {
-            background-color: #0056b3;
-        }
+      #saveButton,
+      #insertButton {
+        position: relative; /* ✅ 버튼의 위치 문제 해결 */
+        background-color: #007bff;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        z-index: 10000;
+      }
 
-        #gaugeCanvas {
-            position: absolute;  /* 절대 위치 설정 */
-            top: 1px; /* 상단에서 10px 떨어진 위치 */
-            left: 1px; /* 왼쪽에서 10px 떨어진 위치 */
-            width: 40%; /* 전체 이미지의 40% 크기로 설정 */
-            height: 30%; /* 높이도 동일하게 40% */
-            background-color: #f9f9f9;
-            border: 1px solid #ccc;
-            display : none;
-            z-index : 10000;
-        }
+      #saveButton:hover,
+      #insertButton:hover {
+        background-color: #0056b3;
+      }
 
-        #psa_landmark_image {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 25vw; /* 윈도우 폭의 1/4 크기로 설정 */
-            height: auto;
-            z-index: 5000; /* 다른 요소 위에 배치 */
-            border: 2px solid black; /* 테두리 추가 (디버깅용, 필요하면 제거 가능) */
-        }
+      #gaugeCanvas {
+        position: absolute; /* 절대 위치 설정 */
+        top: 1px; /* 상단에서 10px 떨어진 위치 */
+        left: 1px; /* 왼쪽에서 10px 떨어진 위치 */
+        width: 40%; /* 전체 이미지의 40% 크기로 설정 */
+        height: 30%; /* 높이도 동일하게 40% */
+        background-color: #f9f9f9;
+        border: 1px solid #ccc;
+        display: none;
+        z-index: 10000;
+      }
 
-
-
-
+      #psa_landmark_image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 25vw; /* 윈도우 폭의 1/4 크기로 설정 */
+        height: auto;
+        z-index: 5000; /* 다른 요소 위에 배치 */
+        border: 2px solid black; /* 테두리 추가 (디버깅용, 필요하면 제거 가능) */
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <div id="canvas-container" style="position: relative">
+      <p id="error-message" style="color: red; display: none">
+        🚨 이미지 데이터를 찾을 수 없습니다!
+      </p>
+      <div id="guideMessage" class="guide-message">Porion</div>
+      <canvas id="psaCanvas"></canvas>
 
-    <div id="canvas-container" style="position: relative;">
-        <p id="error-message" style="color: red; display: none;">🚨 이미지 데이터를 찾을 수 없습니다!</p>
-        <div id="guideMessage" class="guide-message">Porion</div>
-        <canvas id="psaCanvas"></canvas>
-        
-        <!-- ✅ 왼쪽 상단에 배치할 캔버스 -->
-        <canvas id="gaugeCanvas" width="300" height="80"></canvas>
+      <!-- ✅ 왼쪽 상단에 배치할 캔버스 -->
+      <canvas id="gaugeCanvas" width="300" height="80"></canvas>
     </div>
-    
-    <div id="button-container">                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
-        <button id="saveButton">이미지 저장</button>        
-        <button id="insertButton">이미지 삽입</button>
-        <button id="resetButton">처음부터 다시하기</button>
+
+    <div id="button-container">
+      <button id="saveButton">이미지 저장</button>
+      <button id="insertButton">이미지 삽입</button>
+      <button id="resetButton">처음부터 다시하기</button>
     </div>
     <!-- ✅ 좌측 상단에 landmark.png 추가 -->
-    <img id="psa_landmark_image" src="/static/psa_diagram.png" alt="Landmark Image">
+    <img
+      id="psa_landmark_image"
+      src="/static/psa_diagram.png"
+      alt="Landmark Image"
+    />
     <!-- <canvas id="gaugeCanvas" width="600" height="200" style="background-color: #f9f9f9; border: 1px solid #ccc;"></canvas> -->
 
-
-    
     <script>
-    
-        // ✅ 전역 변수 선언
-        let canvas, ctx, img;
-        let points = [];
+      // ✅ 전역 변수 선언
+      let canvas, ctx, img;
+      let points = [];
 
-        // ✅ 가이드 메시지 목록
-        const messages = [
-            "Porion",
-            "Orbitale",    
-            "hinge point",
-            "lower incisor tip",
-            "occlusal point",
-            "symphysis lingual"
-        ];
-        console.log("📜 가이드 메시지 목록:", messages);
+      // ✅ 자동으로 찍을 랜드마크 이름
+      const messages = [
+        "Porion",
+        "Orbitale",
+        "hinge point", // ← 사용자 클릭
+        "Mn.1 cr",
+        "Mn.6 distal",
+        "symphysis lingual", // ← 사용자 클릭
+      ];
 
-        $(document).ready(function () {
-            console.log("🚀 psa1.html 로드됨");
+      $(document).ready(function () {
+        console.log("🚀 psa1.html 로드됨");
 
-            const guideMessage = $("#guideMessage");
+        const $guideMessage = $("#guideMessage");
 
-            // ✅ landmark 이미지 크기 조절
-            function updateImageSize() {
-                const landmarkImage = document.getElementById("psa_landmark_image");
-                if (landmarkImage) {
-                    landmarkImage.style.width = (window.innerWidth * 0.3) + "px";
-                }
+        // ✅ landmark 이미지 크기 조절
+        function updateImageSize() {
+          const landmarkImage = document.getElementById("psa_landmark_image");
+          if (landmarkImage) {
+            landmarkImage.style.width = window.innerWidth * 0.3 + "px";
+          }
+        }
+        updateImageSize();
+        window.addEventListener("resize", updateImageSize);
+
+        // ✅ landmark 이미지 더블클릭 시 팝업 확대
+        $("#psa_landmark_image").on("dblclick", function () {
+          const imageUrl = $(this).attr("src");
+
+          const popup = window.open(
+            "",
+            "_blank",
+            "width=1000,height=800,resizable=yes,scrollbars=no"
+          );
+
+          popup.document.write(`
+      <!DOCTYPE html>
+      <html lang="ko">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Landmark 이미지 확대보기</title>
+        <style>
+          html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
+          }
+          body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+          img {
+            max-width: none;
+            max-height: none;
+            width: 110vw;
+            height: 110vh;
+            object-fit: contain;
+          }
+        </style>
+      </head>
+      <body>
+        <img src="${imageUrl}" alt="Landmark Image 확대보기" />
+      </body>
+      </html>
+    `);
+        });
+
+        // ✅ 이미지 수신
+        window.addEventListener("message", function (event) {
+          const message = event.data;
+
+          if (message.type === "PSA_IMAGE" && message.data) {
+            console.log("📨 이미지 수신 완료");
+
+            img = new Image();
+            img.onload = function () {
+              canvas = document.getElementById("psaCanvas");
+              ctx = canvas.getContext("2d");
+
+              drawResizedImage();
+
+              window.addEventListener("resize", drawResizedImage);
+              canvas.addEventListener("click", handleCanvasClick);
+
+              // ✅ 자동 찍기 시도!
+              tryAutoMarkNextPoint();
+            };
+
+            img.src = message.data;
+          }
+        });
+
+        // ✅ 이미지 리사이징
+        function drawResizedImage() {
+          if (!img || !canvas || !ctx) return;
+
+          const scale = Math.min(
+            window.innerWidth / img.naturalWidth,
+            window.innerHeight / img.naturalHeight
+          );
+          canvas.width = img.naturalWidth * scale;
+          canvas.height = img.naturalHeight * scale;
+
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        }
+
+        // ✅ 자동 찍기 함수
+        function tryAutoMarkNextPoint() {
+          const nextIndex = points.length;
+          const landmarkName = messages[nextIndex];
+
+          const coordinates =
+            window.opener && window.opener.landmarkCoordinates
+              ? window.opener.landmarkCoordinates
+              : null;
+
+          if (coordinates && coordinates[landmarkName]) {
+            const coord = coordinates[landmarkName];
+            const scaleX = canvas.width / img.naturalWidth;
+            const scaleY = canvas.height / img.naturalHeight;
+
+            const x = coord.x * scaleX;
+            const y = coord.y * scaleY;
+
+            ctx.fillStyle = "red";
+            ctx.beginPath();
+            ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            points.push([coord.x, coord.y]);
+            console.log(`✅ 자동 표시: ${landmarkName}`, coord);
+
+            // ✅ 선 그리기 조건 자동 처리 추가!
+            if (points.length === 2) {
+              drawBlackLine(points, scaleX, scaleY, ctx);
+              drawBlackDashedLine(points, scaleX, scaleY, ctx);
+            } else if (points.length === 4) {
+              drawGreenLine(points, scaleX, scaleY, ctx);
+            } else if (points.length === 5) {
+              drawRedLine(points, scaleX, scaleY, ctx);
             }
-            updateImageSize();
-            window.addEventListener("resize", updateImageSize);
 
-            // ✅ 페이지 로드시 첫 가이드 메시지 출력
-            const firstMessage = guideMessage.text();
-            speakMessage(firstMessage);
+            tryAutoMarkNextPoint();
+          } else {
+            const message = landmarkName || "";
+            $guideMessage.text(message);
+            speakMessage(message);
+          }
+        }
+        // ✅ 클릭 이벤트
+        function handleCanvasClick(event) {
+          if (!canvas || !ctx || !img) return;
+          if (points.length >= 6) {
+            $guideMessage.hide();
+            return;
+          }
 
-            // ✅ 이미지 수신 후 처리
-            window.addEventListener("message", function (event) {
-                const message = event.data;
+          const rect = canvas.getBoundingClientRect();
+          const scaleX = canvas.width / img.naturalWidth;
+          const scaleY = canvas.height / img.naturalHeight;
 
-                if (message.type === "PSA_IMAGE" && message.data) {
-                    console.log("📨 이미지 수신 완료");
-                    console.log("📨 이미지 데이터:", message.data);
+          const realX = parseFloat(
+            ((event.clientX - rect.left) / scaleX).toFixed(2)
+          );
+          const realY = parseFloat(
+            ((event.clientY - rect.top) / scaleY).toFixed(2)
+          );
 
-                    img = new Image();
-                    img.onload = function () {
-                        canvas = document.getElementById("psaCanvas");
-                        ctx = canvas.getContext("2d");
+          points.push([realX, realY]);
 
-                        drawResizedImage();
+          ctx.fillStyle = "red";
+          ctx.beginPath();
+          ctx.arc(realX * scaleX, realY * scaleY, 1.5, 0, Math.PI * 2);
+          ctx.fill();
 
-                        // ✅ 리사이즈 이벤트: 이미지 비율 유지
-                        window.addEventListener("resize", drawResizedImage);
+          tryAutoMarkNextPoint(); // 클릭 후 다음 자동 점도 확인
 
-                        // ✅ 캔버스 클릭 이벤트 등록
-                        canvas.addEventListener("click", handleCanvasClick);
-                    };
+          // ✅ 선 그리기 처리 (원래 로직 그대로 유지)
+          if (points.length === 2) {
+            drawBlackLine(points, scaleX, scaleY, ctx);
+            drawBlackDashedLine(points, scaleX, scaleY, ctx);
+          } else if (points.length === 4) {
+            drawGreenLine(points, scaleX, scaleY, ctx);
+          } else if (points.length === 5) {
+            drawRedLine(points, scaleX, scaleY, ctx);
+          } else if (points.length === 6) {
+            const blue_result = drawBlueLine(points, scaleX, scaleY, ctx);
+            if (!blue_result || !blue_result.p_perp) {
+              console.error("🚨 drawBlueLine()에서 p_perp 반환 실패");
+              return;
+            }
 
-                    img.src = message.data;
-                    console.log("📤 이미지 데이터 전송 완료");
-                }
+            const yellow_result = drawYellowCircles(
+              ctx,
+              points,
+              scaleX,
+              scaleY,
+              blue_result.p_perp
+            );
+            const [cx, cy] = yellow_result.circleCenter;
+
+            try {
+              if (window.opener && !window.opener.closed) {
+                const angleData = window.opener.excelDictData;
+                HGI = angleData.totalData.HGI;
+                VGI = angleData.totalData.VGI;
+
+                drawArrowFromYellowCircle(
+                  HGI,
+                  VGI,
+                  ctx,
+                  cx,
+                  cy,
+                  scaleX,
+                  scaleY
+                );
+              }
+            } catch (e) {
+              console.warn("⚠️ 부모창 데이터 접근 오류:", e.message);
+            }
+
+            updateCarDashboard(blue_result, yellow_result);
+
+            const finalMessage = "랜드마크가 모두 표시되었습니다.";
+            $guideMessage.text(finalMessage);
+            speakMessage(finalMessage);
+
+            setTimeout(() => {
+              $guideMessage.hide();
+            }, 2000);
+
+            showGaugeCanvas();
+
+            if (
+              window.opener &&
+              typeof window.opener.logFromChild === "function"
+            ) {
+              window.opener.logFromChild(points);
+            } else {
+              console.warn("🚨 부모 창에 logFromChild 함수 없음");
+            }
+          }
+        }
+
+        // ✅ 첫 가이드 메시지 출력
+        const firstMessage = messages[0];
+        $guideMessage.text(firstMessage);
+      });
+
+      $("#saveButton").on("click", function () {
+        // ✅ 캔버스를 이미지 데이터 URL로 변환
+        const dataURL = $("#psaCanvas")[0].toDataURL("image/png");
+
+        // ✅ 이미지 다운로드 링크 생성
+        const link = $("<a>")
+          .attr("href", dataURL)
+          .attr("download", "psa_drawing.png")
+          .appendTo("body");
+
+        link[0].click();
+        link.remove();
+
+        console.log("📥 캔버스 이미지 저장 완료");
+      });
+
+      $("#insertButton").on("click", function () {
+        const canvas = $("#psaCanvas")[0];
+
+        // ✅ base64 문자열 생성
+        const dataURL = canvas.toDataURL("image/png");
+
+        // ✅ base64 → Blob → File 변환
+        const blob = dataURLtoBlob(dataURL);
+        const file = new File([blob], "processed_psa.jpg", {
+          type: "image/jpeg",
+        });
+
+        if (window.opener && !window.opener.closed) {
+          const psaBox = window.opener.document.getElementById("xrayPreview4");
+          const psaInput = window.opener.document.getElementById("psa");
+
+          if (psaBox) {
+            psaBox.innerHTML = "";
+            psaBox.classList.add("file-preview");
+
+            const imgElement = document.createElement("img");
+            imgElement.src = dataURL; // ✅ base64로 이미지 삽입
+            imgElement.alt = "삽입된 PSA 이미지";
+            imgElement.style.width = "100%";
+            imgElement.style.height = "100%";
+            imgElement.style.objectFit = "cover";
+
+            // 삭제 버튼
+            const deleteBtn = document.createElement("button");
+            deleteBtn.innerText = "X";
+            deleteBtn.classList.add("delete-btn");
+            deleteBtn.addEventListener("click", function () {
+              psaBox.innerHTML = "📂 PSA";
+              if (psaInput) psaInput.value = "";
             });
 
-            // ✅ 이미지 비율 유지하며 다시 그리기
-            function drawResizedImage() {
-                if (!img || !canvas || !ctx) return;
+            psaBox.appendChild(imgElement);
+            psaBox.appendChild(deleteBtn);
 
-                const scale = Math.min(window.innerWidth / img.naturalWidth, window.innerHeight / img.naturalHeight);
-                canvas.width = img.naturalWidth * scale;
-                canvas.height = img.naturalHeight * scale;
+            console.log("✅ PSA 이미지 삽입 완료 (base64 방식)");
+            alert("✅ psa 이미지가 삽입되었습니다!");
+            window.close();
+          } else {
+            alert("🚨 부모 창에 'xrayPreview4' 요소를 찾을 수 없습니다!");
+          }
 
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          if (psaInput) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            psaInput.files = dataTransfer.files;
+          }
+        } else {
+          alert("🚨 부모 창이 닫혀 있습니다! 이미지를 삽입할 수 없습니다.");
+        }
+      });
 
-                // 이전에 찍은 좌표와 선을 다시 그릴 수 있다면 여기에 재렌더링 로직 추가 가능
-            }
+      $("#resetButton").on("click", function () {
+        console.log("🔄 다시 시작하기 버튼 클릭됨");
 
-            // ✅ 클릭 이벤트 핸들러
-            function handleCanvasClick(event) {
-                if (!canvas || !ctx || !img) return;
+        // ✅ 부모 창이 존재하는지 확인
+        if (window.opener && !window.opener.closed) {
+          console.log("🚀 부모 창이 존재합니다. PSA 창을 다시 엽니다.");
 
-                if (points.length >= 6) {
-                    guideMessage.hide();
-                    return;
-                }
+          // ✅ 부모 창에서 PSA 선 그리기 버튼을 실행
+          window.opener.$("#drawPSALine").trigger("click");
 
-                const rect = canvas.getBoundingClientRect();
-                const scaleX = canvas.width / img.naturalWidth;
-                const scaleY = canvas.height / img.naturalHeight;
-
-                const realX = parseFloat(((event.clientX - rect.left) / scaleX).toFixed(2));
-                const realY = parseFloat(((event.clientY - rect.top) / scaleY).toFixed(2));
-
-                points.push([realX, realY]);
-                console.log("📍 클릭된 좌표:", realX, realY);
-                console.log("📍 현재 좌표 목록:", points);
-
-                // 빨간 점 찍기
-                ctx.fillStyle = "red";
-                ctx.beginPath();
-                ctx.arc(realX * scaleX, realY * scaleY, 1.5, 0, Math.PI * 2);
-                ctx.fill();
-
-                // 가이드 메시지 업데이트
-                const newMessage = messages[points.length] || "";
-                guideMessage.text(newMessage);
-                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-                speakMessage(newMessage);
-
-                // 선 그리기 처리
-                // 선 그리기 처리
-                if (points.length === 2) {
-                    drawBlackLine(points, scaleX, scaleY, ctx); // ✅ 검정색 선 그리기
-                    drawBlackDashedLine(points, scaleX, scaleY, ctx); // ✅ 검정색 점선 그리기
-                } else if (points.length === 4) {
-                    drawGreenLine(points, scaleX, scaleY, ctx);
-                } else if (points.length === 5) {
-                    drawRedLine(points, scaleX, scaleY, ctx);
-                } else if (points.length === 6) {
-                    const blue_result = drawBlueLine(points, scaleX, scaleY, ctx);
-
-                    if (!blue_result || !blue_result.p_perp) {
-                        console.error("🚨 drawBlueLine()에서 p_perp 반환 실패");
-                        return;
-                    }   
-
-                    const yellow_result = drawYellowCircles(ctx, points, scaleX, scaleY, blue_result.p_perp);
-                    const [cx, cy] = yellow_result.circleCenter;
-
-                    drawArrowFromYellowCircle(0, 0, ctx, cx, cy, scaleX, scaleY);
-
-                    console.log("📌 Guide Zone Distance:", blue_result.D1);
-                    console.log("📌 Buffer Zone Distance:", yellow_result.D2);
-
-                    // ✅ 계기판 UI 업데이트
-                    updateCarDashboard(blue_result, yellow_result);
-
-                    // ✅ 마지막 안내 메시지
-                    const finalMessage = "랜트마크가 모두 표시되었습니다.";
-                    guideMessage.text(finalMessage);
-                    speakMessage(finalMessage);
-
-                    setTimeout(() => {
-                        guideMessage.hide();
-                    }, 2000);
-
-                    showGaugeCanvas();
-
-                    // ✅ 부모 창으로 좌표 데이터 전송
-                    if (window.opener && typeof window.opener.logFromChild === "function") {
-                        window.opener.logFromChild(points);
-                    } else {
-                        console.warn("🚨 부모 창에 logFromChild 함수 없음");
-                    }
-                }
-            }
-        });
-
-        $("#saveButton").on("click", function () {
-            // ✅ 캔버스를 이미지 데이터 URL로 변환
-            const dataURL = $("#psaCanvas")[0].toDataURL("image/png");
-
-            // ✅ 이미지 다운로드 링크 생성
-            const link = $("<a>")
-                .attr("href", dataURL)
-                .attr("download", "psa_drawing.png")
-                .appendTo("body");
-
-            link[0].click();
-            link.remove();
-
-            console.log("📥 캔버스 이미지 저장 완료");
-        });
-
-        $("#insertButton").on("click", function () {
-            // ✅ 캔버스를 PNG 이미지로 변환
-            const canvas = $("#psaCanvas")[0];
-            canvas.toBlob((blob) => {
-                // ✅ Blob 데이터로부터 File 객체 생성
-                const file = new File([blob], "processed_psa.jpg", { type: "image/jpeg" });
-
-                // ✅ 부모 창이 존재하는지 확인
-                if (window.opener && !window.opener.closed) {
-                    // ✅ 부모 창의 PSA 미리보기 박스 (`xrayPreview4`) 가져오기
-                    const psaBox = window.opener.document.getElementById("xrayPreview4");
-                    const psaInput = window.opener.document.getElementById("psa"); // input[type=file]
-
-                    if (psaBox) {
-                        // ✅ 기존 내용 삭제 후 새 이미지 삽입
-                        psaBox.innerHTML = ""; // 기존 내용 제거
-                        const imgElement = document.createElement("img");
-                        imgElement.src = URL.createObjectURL(blob);
-                        imgElement.alt = "삽입된 PSA 이미지";
-                        imgElement.style.width = "100%";
-                        imgElement.style.height = "100%";
-                        imgElement.style.objectFit = "cover";
-
-                        // ✅ 삭제 버튼 추가
-                        const deleteBtn = document.createElement("button");
-                        deleteBtn.innerText = "X";
-                        deleteBtn.classList.add("delete-btn");
-                        deleteBtn.addEventListener("click", function () {
-                            psaBox.innerHTML = "📂 PSA"; // 초기 상태로 되돌리기
-                            if (psaInput) psaInput.value = ""; // 파일도 제거
-                        });
-
-                        // ✅ PSA 박스에 추가
-                        psaBox.appendChild(imgElement);
-                        psaBox.appendChild(deleteBtn);
-
-                        console.log("✅ PSA 이미지가 부모 창의 미리보기 박스(xrayPreview4)에 삽입되었습니다!");
-                        alert("✅ psa 이미지가 삽입되었습니다!");
-                        window.close(); // 자식 창 닫기
-                    } else {
-                        alert("🚨 부모 창에 'xrayPreview4'라는 ID를 가진 요소를 찾을 수 없습니다!");
-                    }
-
-                    // ✅ 파일 입력 필드 (`<input type="file" id="psa">`)에 파일 추가
-                    if (psaInput) {
-                        const dataTransfer = new DataTransfer();
-                        dataTransfer.items.add(file);
-                        psaInput.files = dataTransfer.files; // ✅ input 요소에 파일 추가
-                    }
-                } else {
-                    alert("🚨 부모 창이 닫혀 있습니다! 이미지를 삽입할 수 없습니다.");
-                }
-            }, "image/jpeg");
-        });
-
-        $("#resetButton").on("click", function () {
-            console.log("🔄 다시 시작하기 버튼 클릭됨");
-
-            // ✅ 부모 창이 존재하는지 확인
-            if (window.opener && !window.opener.closed) {
-                console.log("🚀 부모 창이 존재합니다. PSA 창을 다시 엽니다.");
-
-                // ✅ 부모 창에서 PSA 선 그리기 버튼을 실행
-                window.opener.$("#drawPSALine").trigger("click");
-
-                // ✅ 현재 창 닫기 (부모 창에서 창이 열리도록 한 후 닫음)
-                setTimeout(() => {
-                    window.close();
-                }, 100); // 100ms 딜레이 후 닫기 (부모 창 코드 실행 보장)
-            } else {
-                console.error("🚨 부모 창이 존재하지 않거나 닫혀 있습니다. 현재 창을 닫습니다.");
-                window.close();
-            }
-        });
-
-
-
+          // ✅ 현재 창 닫기 (부모 창에서 창이 열리도록 한 후 닫음)
+          setTimeout(() => {
+            window.close();
+          }, 100); // 100ms 딜레이 후 닫기 (부모 창 코드 실행 보장)
+        } else {
+          console.error(
+            "🚨 부모 창이 존재하지 않거나 닫혀 있습니다. 현재 창을 닫습니다."
+          );
+          window.close();
+        }
+      });
     </script>
-
-</body>
+  </body>
 </html>
