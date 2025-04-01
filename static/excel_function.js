@@ -1,3 +1,69 @@
+function setupRightClickDelete(
+  canvas,
+  ctx,
+  img,
+  landmarkCoordinates,
+  messages,
+  $guideMessage,
+  scaleX,
+  scaleY
+) {
+  canvas.addEventListener("contextmenu", function (event) {
+    event.preventDefault(); // 기본 우클릭 메뉴 방지
+
+    const rect = canvas.getBoundingClientRect();
+    const clickX = (event.clientX - rect.left) * scaleX;
+    const clickY = (event.clientY - rect.top) * scaleY;
+
+    const tolerance = 10; // 클릭한 위치 근처 허용 거리
+    let foundKey = null;
+
+    for (const [key, coord] of Object.entries(landmarkCoordinates)) {
+      const dx = coord.x - clickX;
+      const dy = coord.y - clickY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < tolerance) {
+        foundKey = key;
+        break;
+      }
+    }
+
+    if (foundKey) {
+      // ✅ 삭제 여부 확인
+      const confirmDelete = confirm(
+        `❓ '${foundKey}' 좌표를 삭제하시겠습니까?`
+      );
+      if (!confirmDelete) return;
+
+      // ✅ 삭제 진행
+      delete landmarkCoordinates[foundKey];
+      console.log(`🧹 '${foundKey}' 좌표 삭제됨`);
+
+      // ✅ canvas 다시 그리기
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      for (const [key, coord] of Object.entries(landmarkCoordinates)) {
+        ctx.fillStyle = "red";
+        ctx.beginPath();
+        ctx.arc(coord.x / scaleX, coord.y / scaleY, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // ✅ 안내 메시지 업데이트
+      const updatedIndex = Object.keys(landmarkCoordinates).length;
+      const updatedMessage = messages[updatedIndex];
+      if (updatedMessage) {
+        $guideMessage.show().text(updatedMessage);
+        speakMessage(updatedMessage.replace(/\(\d+\)/g, ""));
+      }
+    } else {
+      console.log("❌ 해당 위치에 삭제할 좌표 없음");
+    }
+  });
+}
+
 function calculateAngle(landmarkCoordinates, key1, key2, key3) {
   /**
    * 세 개의 랜드마크 키를 받아 key2를 기준으로 내각을 계산하는 함수

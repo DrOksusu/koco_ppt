@@ -248,7 +248,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // ✅ 새 창 열기
         const newWindow = window.open(
-          "/static/create_excel.html",
+          "/static/create_excel1.html",
           "_blank",
           "width=700,height=700,scrollbars=yes"
         );
@@ -281,48 +281,4 @@ document.addEventListener("DOMContentLoaded", function () {
     setupDropZone(`posturePhotoPreview${i}`, `posturePhoto${i}`);
 });
 
-// $(document).on("dblclick", ".file-preview img", function (e) {
-//   const imageUrl = this.src;
-//   if (!imageUrl) return;
-
-//   console.log("🔥 img 더블클릭 발생!");
-
-//   const popup = window.open(
-//     "",
-//     "_blank",
-//     "width=1000,height=800,resizable=yes,scrollbars=no"
-//   );
-
-//   popup.document.write(`
-//       <!DOCTYPE html>
-//       <html lang="ko">
-//       <head>
-//         <meta charset="UTF-8" />
-//         <title>이미지 확대 보기</title>
-//         <style>
-//           html, body {
-//             margin: 0;
-//             padding: 0;
-//             width: 100%;
-//             height: 100%;
-//             background-color: #000;
-//             overflow: hidden;
-//             display: flex;
-//             justify-content: center;
-//             align-items: center;
-//           }
-//           img {
-//             max-width: none;
-//             max-height: none;
-//             width: 110vw;
-//             height: 110vh;
-//             object-fit: contain;
-//           }
-//         </style>
-//       </head>
-//       <body>
-//         <img src="${imageUrl}" alt="확대 이미지 보기" />
-//       </body>
-//       </html>
-//     `);
-// });
+// landmark_rightclick.js
