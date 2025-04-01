@@ -193,8 +193,8 @@
           img {
             max-width: none;
             max-height: none;
-            width: 110vw;
-            height: 110vh;
+            width: auto;
+            height: auto;
             object-fit: contain;
           }
         </style>
@@ -235,12 +235,16 @@
         function drawResizedImage() {
           if (!img || !canvas || !ctx) return;
 
-          const scale = Math.min(
-            window.innerWidth / img.naturalWidth,
-            window.innerHeight / img.naturalHeight
-          );
-          canvas.width = img.naturalWidth * scale;
-          canvas.height = img.naturalHeight * scale;
+          const fixedWidth = 800;
+          const scale = fixedWidth / img.naturalWidth;
+          const fixedHeight = img.naturalHeight * scale;
+
+          canvas.width = fixedWidth;
+          canvas.height = fixedHeight;
+
+          // 👉 스타일도 명시적으로 동일하게 맞춰줌 (중요!)
+          canvas.style.width = fixedWidth + "px";
+          canvas.style.height = fixedHeight + "px";
 
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         }
@@ -406,6 +410,13 @@
 
       $("#insertButton").on("click", function () {
         const canvas = $("#psaCanvas")[0];
+        const ctx = canvas.getContext("2d");
+
+        // ✅ 캔버스 상단에 PSA 텍스트 그리기
+        ctx.font = "bold 32px sans-serif";
+        ctx.fillStyle = "rgba(255, 0, 0, 0.8)";
+        ctx.textAlign = "left";
+        ctx.fillText("PSA", 10, 40); // (x=10, y=40) 위치에 텍스트 삽입
 
         // ✅ base64 문자열 생성
         const dataURL = canvas.toDataURL("image/png");

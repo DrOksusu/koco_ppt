@@ -718,6 +718,7 @@ function calculateAdditionalAngles(angles, landmarkCoordinates) {
     "Mn.1 root"
   );
   const rawEI = ODI + APDI + (IIA - 125) / 5 - (angles.UL + angles["E-line"]);
+
   const EI = Math.round(rawEI * 10) / 10;
 
   const CFD = Math.round((ODI + APDI - IAPDI - IODI) * 10) / 10;

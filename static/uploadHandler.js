@@ -269,6 +269,9 @@ document.addEventListener("DOMContentLoaded", function () {
   setupDropZone("xrayPreview2", "lateral_ceph");
   setupDropZone("xrayPreview3", "frontal_ceph");
   setupDropZone("xrayPreview4", "psa");
+  setupDropZone("xrayPreview5", "landmarks"); // 📂 Landmarks도 빠져있음
+  setupDropZone("xrayPreview6", "pso"); // 📂 PSO 여기 추가!!
+
   setupDropZone("excelPreview", "excel_data");
 
   for (let i = 1; i <= 8; i++) setupDropZone(`photoPreview${i}`, `photo${i}`);
@@ -278,48 +281,48 @@ document.addEventListener("DOMContentLoaded", function () {
     setupDropZone(`posturePhotoPreview${i}`, `posturePhoto${i}`);
 });
 
-$(document).on("dblclick", ".file-preview img", function (e) {
-  const imageUrl = this.src;
-  if (!imageUrl) return;
+// $(document).on("dblclick", ".file-preview img", function (e) {
+//   const imageUrl = this.src;
+//   if (!imageUrl) return;
 
-  console.log("🔥 img 더블클릭 발생!");
+//   console.log("🔥 img 더블클릭 발생!");
 
-  const popup = window.open(
-    "",
-    "_blank",
-    "width=1000,height=800,resizable=yes,scrollbars=no"
-  );
+//   const popup = window.open(
+//     "",
+//     "_blank",
+//     "width=1000,height=800,resizable=yes,scrollbars=no"
+//   );
 
-  popup.document.write(`
-      <!DOCTYPE html>
-      <html lang="ko">
-      <head>
-        <meta charset="UTF-8" />
-        <title>이미지 확대 보기</title>
-        <style>
-          html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #000;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-          }
-          img {
-            max-width: none;
-            max-height: none;
-            width: 110vw;
-            height: 110vh;
-            object-fit: contain;
-          }
-        </style>
-      </head>
-      <body>
-        <img src="${imageUrl}" alt="확대 이미지 보기" />
-      </body>
-      </html>
-    `);
-});
+//   popup.document.write(`
+//       <!DOCTYPE html>
+//       <html lang="ko">
+//       <head>
+//         <meta charset="UTF-8" />
+//         <title>이미지 확대 보기</title>
+//         <style>
+//           html, body {
+//             margin: 0;
+//             padding: 0;
+//             width: 100%;
+//             height: 100%;
+//             background-color: #000;
+//             overflow: hidden;
+//             display: flex;
+//             justify-content: center;
+//             align-items: center;
+//           }
+//           img {
+//             max-width: none;
+//             max-height: none;
+//             width: 110vw;
+//             height: 110vh;
+//             object-fit: contain;
+//           }
+//         </style>
+//       </head>
+//       <body>
+//         <img src="${imageUrl}" alt="확대 이미지 보기" />
+//       </body>
+//       </html>
+//     `);
+// });
