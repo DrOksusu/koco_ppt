@@ -155,7 +155,7 @@
       let $guideMessage; // 전역 선언
 
       $(document).ready(function () {
-        console.log("🚀 create_excel1.html 로드됨");
+        console.log("🚀 create_excel.html 로드됨");
 
         $guideMessage = $("#guideMessage");
 
@@ -402,6 +402,7 @@
           landmarkCoordinates
         );
         const totalData = { ...angleDictionary, ...additionalAngles };
+        const combinedData = { landmarkCoordinates, totalData };
 
         console.log("📌 angleDictionary 생성 완료:", angleDictionary);
         console.log("📌 additionalAngles 생성 완료:", additionalAngles);
@@ -416,6 +417,7 @@
             window.opener.updateDiagnosisTable(totalData);
 
             setTimeout(() => {
+              window.opener.logFromChild(combinedData);
               alert("✅ 계측값이 부모 창에 업데이트되었습니다!");
             }, 300);
           } else {
