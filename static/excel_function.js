@@ -1,3 +1,12 @@
+function findNextEmptyLandmark() {
+  for (let i = 0; i < messages.length; i++) {
+    if (!landmarkCoordinates.hasOwnProperty(messages[i])) {
+      return i;
+    }
+  }
+  return messages.length; // 전부 입력되었으면 마지막 인덱스
+}
+
 function setupRightClickDelete(
   canvas,
   ctx,
@@ -9,58 +18,68 @@ function setupRightClickDelete(
   scaleY
 ) {
   canvas.addEventListener("contextmenu", function (event) {
-    event.preventDefault(); // 기본 우클릭 메뉴 방지
+    event.preventDefault();
+
+    if (Object.keys(landmarkCoordinates).length === 0) {
+      alert("🚨 삭제할 점이 없습니다.");
+      return;
+    }
 
     const rect = canvas.getBoundingClientRect();
     const clickX = (event.clientX - rect.left) * scaleX;
     const clickY = (event.clientY - rect.top) * scaleY;
 
-    const tolerance = 10; // 클릭한 위치 근처 허용 거리
-    let foundKey = null;
+    // 🔍 클릭 위치 근처의 점 찾기
+    let targetKey = null;
+    let minDistance = Infinity;
 
-    for (const [key, coord] of Object.entries(landmarkCoordinates)) {
+    Object.entries(landmarkCoordinates).forEach(([key, coord]) => {
       const dx = coord.x - clickX;
       const dy = coord.y - clickY;
       const distance = Math.sqrt(dx * dx + dy * dy);
-
-      if (distance < tolerance) {
-        foundKey = key;
-        break;
+      if (distance < 20 && distance < minDistance) {
+        minDistance = distance;
+        targetKey = key;
       }
+    });
+
+    if (!targetKey) {
+      alert("❌ 클릭 근처에 삭제할 점이 없습니다.");
+      return;
     }
 
-    if (foundKey) {
-      // ✅ 삭제 여부 확인
-      const confirmDelete = confirm(
-        `❓ '${foundKey}' 좌표를 삭제하시겠습니까?`
+    // 🔔 삭제 확인
+    const confirmDelete = confirm(`❓ "${targetKey}" 점을 삭제하시겠습니까?`);
+    if (!confirmDelete) return;
+
+    // ✅ 삭제
+    delete landmarkCoordinates[targetKey];
+    console.log(`🗑️ 삭제된 점: ${targetKey}`);
+
+    // ✅ 삭제된 점의 인덱스를 currentLandmarkIndex로 설정
+    const deletedIndex = messages.indexOf(targetKey);
+    if (deletedIndex !== -1) {
+      currentLandmarkIndex = deletedIndex;
+      console.log(
+        `✏️ 다시 입력할 위치: ${messages[currentLandmarkIndex]} (${currentLandmarkIndex})`
       );
-      if (!confirmDelete) return;
-
-      // ✅ 삭제 진행
-      delete landmarkCoordinates[foundKey];
-      console.log(`🧹 '${foundKey}' 좌표 삭제됨`);
-
-      // ✅ canvas 다시 그리기
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      for (const [key, coord] of Object.entries(landmarkCoordinates)) {
-        ctx.fillStyle = "red";
-        ctx.beginPath();
-        ctx.arc(coord.x / scaleX, coord.y / scaleY, 1.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // ✅ 안내 메시지 업데이트
-      const updatedIndex = Object.keys(landmarkCoordinates).length;
-      const updatedMessage = messages[updatedIndex];
-      if (updatedMessage) {
-        $guideMessage.show().text(updatedMessage);
-        speakMessage(updatedMessage.replace(/\(\d+\)/g, ""));
-      }
-    } else {
-      console.log("❌ 해당 위치에 삭제할 좌표 없음");
     }
+
+    // ✅ 이미지 다시 그리기
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    // ✅ 남은 점 다시 표시
+    Object.entries(landmarkCoordinates).forEach(([key, coord]) => {
+      ctx.fillStyle = "red";
+      ctx.beginPath();
+      ctx.arc(coord.x / scaleX, coord.y / scaleY, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // ✅ 가이드 메시지 업데이트
+    $guideMessage.text(messages[currentLandmarkIndex]);
+    speakMessage(messages[currentLandmarkIndex]);
   });
 }
 
