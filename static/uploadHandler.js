@@ -248,7 +248,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // ✅ 새 창 열기
         const newWindow = window.open(
-          "/static/create_excel1.html",
+          "/static/create_excel.html",
           "_blank",
           "width=700,height=700,scrollbars=yes"
         );
