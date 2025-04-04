@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>로그인</title>
+    <style>
+      /* 입력창 스타일은 회원가입과 동일하게 */
+      input[type="email"],
+      input[type="password"] {
+        width: 400px; /* 넓이 */
+        height: 40px; /* 높이 */
+        font-size: 18px; /* 글자 크기 */
+        padding: 8px; /* 안쪽 여백 */
+      }
+
+      button {
+        margin-top: 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+      }
+
+      p {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>로그인</h1>
+    <form id="login-form">
+      <input
+        type="email"
+        name="email"
+        placeholder="이메일"
+        required
+      /><br /><br />
+      <input
+        type="password"
+        name="password"
+        placeholder="비밀번호"
+        required
+      /><br /><br />
+      <button type="submit">로그인</button>
+    </form>
+
+    <!-- 회원가입 페이지로 이동하는 링크 -->
+    <p>아직 계정이 없으신가요? <a href="{{ signup_url }}">회원가입</a></p>
+
+    <script>
+      const form = document.getElementById("login-form");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault(); // 폼의 기본 동작(새로고침) 막기
+
+        const formData = new FormData(form);
+        const data = {
+          email: formData.get("email"),
+          password: formData.get("password"),
+        };
+
+        try {
+          const res = await fetch("http://localhost:3000/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          const result = await res.json();
+          if (res.ok) {
+            alert("로그인 성공!");
+            // 로그인 성공 시, 다른 페이지로 이동할 수도 있음
+            // window.location.href = "/dashboard.html";
+          } else {
+            alert("오류: " + result.error);
+          }
+        } catch (err) {
+          alert("서버 오류 발생: " + err.message);
+        }
+      });
+    </script>
+  </body>
+</html>
