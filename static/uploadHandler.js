@@ -154,6 +154,11 @@ document.addEventListener("DOMContentLoaded", function () {
         handleFilePreview(fileInput, dropZone);
       }
     });
+
+    // ✅✅✅ 수정됨: 파일 input이 직접 변경되었을 때도 미리보기 반영
+    fileInput.addEventListener("change", () => {
+      handleFilePreview(fileInput, dropZone);
+    });
   }
 
   $("#drawPSALine").on("click", function (event) {

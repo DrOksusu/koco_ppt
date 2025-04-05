@@ -44,6 +44,12 @@
 
     <!-- 회원가입 페이지로 이동하는 링크 -->
     <p>아직 계정이 없으신가요? <a href="{{ signup_url }}">회원가입</a></p>
+    <p>
+      <a href="{{ url_for('forgot_password_page') }}">비밀번호를 잊으셨나요?</a>
+    </p>
+
+    <!-- ✅ 홈으로 이동하는 버튼 -->
+    <a class="home-button" href="/">🏠 홈으로</a>
 
     <script>
       const form = document.getElementById("login-form");
@@ -66,8 +72,13 @@
           const result = await res.json();
           if (res.ok) {
             alert("로그인 성공!");
+            console.log("메세지:", result.message);
+            console.log("토큰:", result.token);
+            // 로그인 성공 시, 토큰을 로컬 스토리지에 저장
+            localStorage.setItem("token", result.token);
+
             // 로그인 성공 시, 다른 페이지로 이동할 수도 있음
-            // window.location.href = "/dashboard.html";
+            window.location.href = "/"; // 예: 메인 페이지로 이동
           } else {
             alert("오류: " + result.error);
           }

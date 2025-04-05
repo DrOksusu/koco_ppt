@@ -15,7 +15,19 @@
       <div class="nav-links">
         <p id="user-info"></p>
         <!-- 사용자 정보가 여기에 동적으로 들어감 -->
-        <a href="{{ login_url }}">로그인</a>
+        <a id="auth-link" href="{{ login_url }}">로그인</a>
+
+        <script>
+          // 1️⃣ localStorage에 저장된 토큰 불러오기
+          const token = localStorage.getItem("token");
+
+          // 2️⃣ 토큰이 있으면 마이페이지 링크로 변경
+          if (token) {
+            const link = document.getElementById("auth-link");
+            link.textContent = "마이페이지";
+            link.href = "/mypage";
+          }
+        </script>
         <a
           href="https://www.notion.so/1ee3c6593cf84b75847236e916c5061b"
           target="_blank"

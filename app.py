@@ -27,6 +27,15 @@ def login():
 def signup():
     return render_template('signup.html')
 
+
+@app.route('/forgot-password')
+def forgot_password_page():
+    return render_template('forgot-password.html')
+
+@app.route('/mypage', methods=['GET', 'POST'])
+def mypage():
+    return render_template('mypage.html')
+
       
 
 @app.route('/dash_board', methods=['POST'])

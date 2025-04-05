@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>마이페이지</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+      }
+
+      #logout-btn {
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 16px;
+      }
+
+      .form-box {
+        margin-top: 40px;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        max-width: 500px;
+      }
+
+      input[type="password"],
+      input[type="file"] {
+        display: block;
+        margin: 10px 0;
+        padding: 8px;
+        font-size: 16px;
+        width: 100%;
+      }
+
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>마이페이지</h1>
+    <div id="user-info">로딩 중...</div>
+
+    <!-- ✅ 비밀번호 변경 폼 -->
+    <div class="form-box">
+      <h3>비밀번호 수정</h3>
+      <form id="password-form">
+        <input
+          type="password"
+          name="currentPassword"
+          placeholder="현재 비밀번호"
+          required
+        />
+        <input
+          type="password"
+          name="newPassword"
+          placeholder="새 비밀번호"
+          required
+        />
+        <button type="submit">비밀번호 변경</button>
+      </form>
+    </div>
+
+    <!-- ✅ 프로필 이미지 업로드 폼 -->
+    <div class="form-box">
+      <h3>프로필 이미지 업로드</h3>
+      <form id="logo-form" enctype="multipart/form-data">
+        <input type="file" name="logo" accept="image/*" required />
+        <button type="submit">이미지 업로드</button>
+      </form>
+    </div>
+
+    <button id="logout-btn">로그아웃</button>
+
+    <script>
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        alert("로그인이 필요합니다.");
+        window.location.href = "/login.html";
+      } else {
+        // 1️⃣ 사용자 정보 가져오기
+        fetch("http://localhost:3000/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error("인증 실패");
+            return res.json();
+          })
+          .then((data) => {
+            const user = data.user;
+            document.getElementById("user-info").innerHTML = `
+              <p><strong>이메일:</strong> ${user.email}</p>
+              <p><strong>사용자 ID:</strong> ${user.id}</p>
+              <p><strong>프로필 이미지:</strong> ${user.logo_file || "없음"}</p>
+            `;
+          })
+          .catch((err) => {
+            alert("로그인 정보가 유효하지 않습니다. 다시 로그인해주세요.");
+            localStorage.removeItem("token");
+            window.location.href = "/login.html";
+          });
+      }
+
+      // 2️⃣ 비밀번호 수정 처리
+      const pwForm = document.getElementById("password-form");
+      pwForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(pwForm);
+        const data = {
+          currentPassword: formData.get("currentPassword"),
+          newPassword: formData.get("newPassword"),
+        };
+
+        try {
+          const res = await fetch("http://localhost:3000/update-password", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(data),
+          });
+
+          const result = await res.json();
+          if (res.ok) {
+            alert("비밀번호가 성공적으로 변경되었습니다.");
+            pwForm.reset();
+          } else {
+            alert("오류: " + result.error);
+          }
+        } catch (err) {
+          alert("서버 오류: " + err.message);
+        }
+      });
+
+      // 3️⃣ 프로필 이미지 업로드
+      const logoForm = document.getElementById("logo-form");
+      logoForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(logoForm);
+
+        try {
+          const res = await fetch("http://localhost:3000/upload-logo", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+          });
+
+          const result = await res.json();
+          if (res.ok) {
+            alert("프로필 이미지 업로드 성공!");
+            location.reload(); // 새로고침해서 최신 이미지 정보 표시
+          } else {
+            alert("오류: " + result.error);
+          }
+        } catch (err) {
+          alert("서버 오류: " + err.message);
+        }
+      });
+
+      // 로그아웃
+      document.getElementById("logout-btn").addEventListener("click", () => {
+        localStorage.removeItem("token");
+        alert("로그아웃 되었습니다.");
+        window.location.href = "/";
+      });
+    </script>
+  </body>
+</html>
