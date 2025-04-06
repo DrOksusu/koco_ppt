@@ -217,6 +217,18 @@
           if (message.type === "PSA_IMAGE" && message.data) {
             console.log("📨 이미지 수신 완료");
 
+            // 💡 부모로부터 받은 좌표 확인
+            const coordinates =
+              window.opener && window.opener.landmarkCoordinates
+                ? window.opener.landmarkCoordinates
+                : null;
+
+            if (coordinates && Object.keys(coordinates).length > 0) {
+              console.log("✅ 좌표 있음 → 보조 이미지 교체");
+              document.getElementById("psa_landmark_image").src =
+                "/static/psa_diagram_2.png"; // ✅ 이미지 경로 교체
+            }
+
             img = new Image();
             img.onload = function () {
               canvas = document.getElementById("psaCanvas");

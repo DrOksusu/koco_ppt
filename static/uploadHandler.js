@@ -14,6 +14,34 @@ function dataURLtoBlob(dataURL) {
   return new Blob([u8arr], { type: mime });
 }
 
+window.addEventListener("DOMContentLoaded", async () => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    try {
+      const res = await fetch("http://localhost:3000/verify-token", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`, // ✅ 헤더에 토큰 포함
+        },
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        console.log("✅ 자동 로그인 성공:", result.user);
+        // 여기서 사용자 정보를 화면에 띄우거나, 메인 페이지로 이동 가능
+      } else {
+        console.log("❌ 토큰 만료 또는 무효, 다시 로그인 필요");
+        localStorage.removeItem("token"); // 잘못된 토큰 제거
+      }
+    } catch (err) {
+      console.error("자동 로그인 요청 실패:", err);
+    }
+  } else {
+    console.log("🔑 저장된 토큰 없음. 로그인 필요.");
+  }
+});
+
 document.querySelectorAll(".file-preview").forEach((preview) => {
   const bg = preview.style.backgroundImage;
   preview.style.backgroundImage = "none"; // 배경 제거
