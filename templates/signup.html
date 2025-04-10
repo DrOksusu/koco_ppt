@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>회원가입</title>
+    <script src="{{ url_for('static', filename='js/mypage.js') }}"></script>
     <style>
       input[type="email"],
       input[type="password"],
@@ -114,7 +115,7 @@
         const data = { email, password };
 
         try {
-          const res = await fetch("http://localhost:3000/signup", {
+          const res = await fetch(`${BASE_URL}/signup`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
@@ -123,6 +124,9 @@
           const result = await res.json();
           if (res.ok) {
             alert("회원가입 성공!");
+            console.log("메세지:", result.message);
+            console.log("토큰:", result.token);
+            localStorage.setItem("token", result.token);
             window.location.href = "/";
           } else {
             alert("오류: " + result.error);

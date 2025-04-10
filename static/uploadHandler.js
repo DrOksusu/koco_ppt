@@ -18,7 +18,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("token");
   if (token) {
     try {
-      const res = await fetch("http://localhost:3000/verify-token", {
+      const res = await fetch("http://54.180.188.8:8080/verify-token", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`, // ✅ 헤더에 토큰 포함

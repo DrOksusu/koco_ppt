@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <title>마이페이지</title>
+    <!-- ✅ JS 파일 연결 (Flask에서는 url_for을 사용!) -->
+    <script src="{{ url_for('static', filename='js/mypage.js') }}"></script>
     <style>
       body {
         font-family: sans-serif;
@@ -79,10 +81,10 @@
 
       if (!token) {
         alert("로그인이 필요합니다.");
-        window.location.href = "/login.html";
+        window.location.href = "/login";
       } else {
         // 1️⃣ 사용자 정보 가져오기
-        fetch("http://localhost:3000/me", {
+        fetch(`${BASE_URL}/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -102,7 +104,7 @@
           .catch((err) => {
             alert("로그인 정보가 유효하지 않습니다. 다시 로그인해주세요.");
             localStorage.removeItem("token");
-            window.location.href = "/login.html";
+            window.location.href = "/login";
           });
       }
 
@@ -117,7 +119,7 @@
         };
 
         try {
-          const res = await fetch("http://localhost:3000/update-password", {
+          const res = await fetch(`${BASE_URL}/update-password`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
