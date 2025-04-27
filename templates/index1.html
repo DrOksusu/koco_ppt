@@ -82,6 +82,7 @@
               </button>
               <button id="drawPSALine" class="btn-submit">PSA 완성</button>
               <button id="drawPSOLine" class="btn-submit">PSO 완성</button>
+              <button id="frontalCeph" class="btn-submit">Frontal 분석</button>                
             </div>
           </div>
 
@@ -120,6 +121,16 @@
           >
             📂 PSO
           </div>
+          
+          <!-- ✅ Frontal Ax. (추가됨) -->
+          <div
+          class="file-preview"
+          id="xrayPreview7"
+          style="background-image: url('/static/sample_frontal.jpg')"
+          >
+          📂 Frontal Ax.
+          </div>
+
         </div>
 
         <!-- ✅ 파일 업로드 input 들 -->
@@ -147,6 +158,9 @@
         />
         <input type="file" id="psa" name="psa" accept="image/*" hidden />
         <input type="file" id="pso" name="pso" accept="image/*" hidden />
+        <!-- ✅ 프리뷰와 연결된 input box (아래쪽 input 영역에도 추가) -->
+        <input type="file" id="frontal_ax" name="frontal_ax" accept="image/*" hidden />
+
       </div>
 
       <!-- 구외포토 입력 (8개의 Drop Zone) -->

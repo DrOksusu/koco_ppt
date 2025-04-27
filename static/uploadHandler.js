@@ -257,6 +257,44 @@ document.addEventListener("DOMContentLoaded", function () {
     reader.readAsDataURL(file); // base64로 읽기
   });
 
+    // frontalCeph 버튼 클릭 시 처리
+    $("#frontalCeph").on("click", function (event) {
+      event.preventDefault(); // 기본 동작 방지
+
+      const fileInput = $("#frontal_ceph")[0];
+
+      // ✅ 파일 없을 경우 경고창
+      if (!fileInput.files.length) {
+        alert("⚠️ frontal_ceph에 업로드된 이미지가 없습니다!");
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+
+      // ✅ base64로 이미지 읽기
+      reader.onload = function (e) {
+        const imageData = e.target.result;
+
+        // ✅ 새 창 열기
+        const newWindow = window.open(
+          "/static/frontal_ceph.html", // 👉 이 HTML 파일이 서버에 있어야 해!
+          "_blank",
+          "width=800,height=700,scrollbars=yes"
+        );
+
+        // ✅ 새 창 로드된 후 이미지 전송
+        newWindow.onload = function () {
+          console.log("✅ frontal_ceph 창 로드됨!");
+          newWindow.postMessage({ type: "FRONTAL_CEPH_IMAGE", data: imageData }, "*");
+          console.log("✅ 이미지 데이터를 frontal_ceph.html로 전송 완료!");
+        };
+      };
+
+      reader.readAsDataURL(file); // ✅ base64로 읽기 시작
+    });
+
+
   $(document).ready(function () {
     $("#excel-create-btn").on("click", function (event) {
       event.preventDefault();
