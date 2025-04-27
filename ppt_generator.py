@@ -36,7 +36,7 @@ def create_ppt(request):
     """ PPT 생성하는 메인 함수 """
     print("request.method:", request.method, flush=True, file=sys.stderr)
     print("request.files.keys():", list(request.files.keys()), flush=True, file=sys.stderr)
-    print("request.form.keys():", list(request.form.keys()), flush=True, file=sys.stderr)
+   
 
     if request.method != 'POST':
         return jsonify({"error": "Only POST requests are allowed."}), 405
@@ -46,11 +46,11 @@ def create_ppt(request):
     print("용주야 사랑해",flush=True, file=sys.stderr)        
 
     # 파일 저장
-    pano = request.files['pano']
-    lateral_ceph_image = request.files['lateral_ceph']
-    frontal_ceph_image = request.files['frontal_ceph']
-    psa_name = request.files['psa']
-    id_photo = request.files['photo4']
+    # pano = request.files['pano']
+    # lateral_ceph_image = request.files['lateral_ceph']
+    # frontal_ceph_image = request.files['frontal_ceph']
+    # psa_name = request.files['psa']
+    # id_photo = request.files['photo4']
 
     # 파일 저장 (None이 되지 않도록 기본 이미지 적용)
     pano_path = save_uploaded_file(request.files.get('pano'), 'pano.jpg', default_img="./static/default_image.jpg")
@@ -60,7 +60,8 @@ def create_ppt(request):
     frontal_ax_path = save_uploaded_file(request.files.get('frontal_ax'), 'frontal_ax.jpg', default_img="./static/default_image.jpg")  # ✅ Frontal Ax (11번째 슬라이드)
     id_photo_path = save_uploaded_file(request.files.get('photo4'), 'id_photo.jpg', default_img="./static/oral_default.jpg")
     pso_path = save_uploaded_file(request.files.get('pso'), 'pso.jpg', default_img="./static/default_image.jpg")  # ✅ PSO (10번째 슬라이드)
-
+    print("frontal_ceph_path:",frontal_ceph_path)
+    print("frontal_ax_path:",frontal_ax_path)
     
     excel_file = request.files['excel_data']
     print("excel_file:",excel_file, flush=True, file=sys.stderr)
@@ -922,97 +923,55 @@ def create_ninth_slide(prs, default_img):
 
     print("✅ 9번째 슬라이드 이미지 배치 완료!", flush=True, file=sys.stderr)
 
-def create_tenth_slide(prs, default_img):
-     # PSO 이미지 업로드 확인
-     pso_file = request.files.get('pso')  # Flask에서 request로 직접 가져옴
+def create_tenth_slide(prs, pso_path):
+    """ 10번째 슬라이드에 PSO 이미지를 추가하는 함수 """
 
-     if pso_file and pso_file.filename:
-        # 파일 저장 후 경로 설정
-        pso_path = save_uploaded_file(pso_file, 'pso.jpg')
+    # 10번째 슬라이드 가져오기
+    temp_slide_9 = prs.slides[9]  # 인덱스 9 = 10번째 슬라이드
+    shape_s_9 = temp_slide_9.shapes
 
-        # 파일 유효성 검사 (파일이 존재하고 크기가 0보다 커야 함)
-        if not os.path.exists(pso_path) or os.path.getsize(pso_path) == 0:
-            print(f"🚨 PSA 이미지가 없거나 손상됨: {pso_path}, 기본 이미지 사용")
-            pso_path = default_img  # 기본 이미지로 변경
-        else:
-            try:
-                # 이미지 유효성 검사
-                with Image.open(pso_path) as img:
-                    img.verify()
-                print(f"✅ 유효한 PSA 이미지 확인: {pso_path}")
-            except Exception as e:
-                print(f"🚨 유효하지 않은 PSA 이미지 파일: {pso_path}, 기본 이미지 사용")
-                pso_path = default_img  # 기본 이미지로 변경
-     else:
-        print(f"🚨 PSO 이미지가 업로드되지 않음, 기본 이미지 사용")
-        pso_path = default_img  # 기본 이미지로 변경
+    # 이미지 열기
+    img_pso = Image.open(pso_path)
 
-    
+    # 슬라이드 크기 (인치 단위)
+    slide_width = 10
+    slide_height = 19.05 / 2.54  # cm → inch 변환
 
-     # 10번째 슬라이드 가져오기
-     temp_slide_9 = prs.slides[9]  # 슬라이드 인덱스는 0부터 시작하므로 5번째는 인덱스 4
-     shape_s_9 = temp_slide_9.shapes
-
-     # 이미지 열기
-     img_pso = Image.open(pso_path)
-
-     # 슬라이드 크기 (인치 단위)
-     slide_width = 10
-     slide_height = 19.05 / 2.54  # cm를 inch로 변환
-
-     # 이미지 비율에 따라 크기 조정
-     if img_pso.size[1] / img_pso.size[0] < slide_height / slide_width:
+    # 이미지 비율에 따라 크기 조정
+    if img_pso.size[1] / img_pso.size[0] < slide_height / slide_width:
         w = slide_width
         width = Inches(w)
         h = w * img_pso.size[1] / img_pso.size[0]
         height = Inches(h)
         left = Inches(0)
-        top = Inches((slide_height - h) / 2)  # 중앙 정렬
-     else:
+        top = Inches((slide_height - h) / 2)
+    else:
         h = slide_height
         height = Inches(h)
         w = h * img_pso.size[0] / img_pso.size[1]
         width = Inches(w)
-        left = Inches((slide_width - w) / 2)  # 중앙 정렬
+        left = Inches((slide_width - w) / 2)
         top = Inches(0)
 
-     # 이미지 추가
-     shape_s_9.add_picture(pso_path, left, top, width, height)
+    # 이미지 추가
+    shape_s_9.add_picture(pso_path, left, top, width, height)
 
-     print("✅ 10번째 슬라이드에 PSA 이미지 추가 완료!")
+    print("✅ 10번째 슬라이드에 PSO 이미지 추가 완료!")
 
-def create_eleventh_slide(prs, default_img):
-    " Frontal ax. 이미지를 11번째 슬라이드에 추가하는 함수."
-    # Frontal ax 이미지 업로드 확인
-    frontal_ax_file = request.files.get('frontal_ax')  # Flask에서 request로 직접 가져옴
-    if frontal_ax_file and frontal_ax_file.filename:
-        # 파일 저장 후 경로 설정
-        frontal_ax_path = save_uploaded_file(frontal_ax_file, 'frontal_ax.jpg')
+def create_eleventh_slide(prs, frontal_ax_path):
+    """ 11번째 슬라이드에 Frontal Ax 이미지를 추가하는 함수 """
 
-        # 파일 유효성 검사 (파일이 존재하고 크기가 0보다 커야 함)
-        if not os.path.exists(frontal_ax_path) or os.path.getsize(frontal_ax_path) == 0:
-            print(f"🚨 Frontal ax 이미지가 없거나 손상됨: {frontal_ax_path}, 기본 이미지 사용")
-            frontal_ax_path = default_img  # 기본 이미지로 변경
-        else:
-            try:
-                # 이미지 유효성 검사
-                with Image.open(frontal_ax_path) as img:
-                    img.verify()
-                print(f"✅ 유효한 Frontal ax 이미지 확인: {frontal_ax_path}")
-            except Exception as e:
-                print(f"🚨 유효하지 않은 Frontal ax 이미지 파일: {frontal_ax_path}, 기본 이미지 사용")
-                frontal_ax_path = default_img  # 기본 이미지로 변경
-    else:
-        print(f"🚨 Frontal ax 이미지가 업로드되지 않음, 기본 이미지 사용")
-        frontal_ax_path = default_img  # 기본 이미지로 변경
     # 11번째 슬라이드 가져오기
-    temp_slide_10 = prs.slides[10]  # 슬라이드 인덱스는 0부터 시작하므로 11번째는 인덱스 10
+    temp_slide_10 = prs.slides[10]  # 인덱스 10 = 11번째 슬라이드
     shape_s_10 = temp_slide_10.shapes
+
     # 이미지 열기
     img_frontal_ax = Image.open(frontal_ax_path)
+
     # 슬라이드 크기 (인치 단위)
     slide_width = 10
-    slide_height = 19.05 / 2.54  # cm를 inch로 변환
+    slide_height = 19.05 / 2.54  # cm → inch 변환
+
     # 이미지 비율에 따라 크기 조정
     if img_frontal_ax.size[1] / img_frontal_ax.size[0] < slide_height / slide_width:
         w = slide_width
@@ -1020,16 +979,16 @@ def create_eleventh_slide(prs, default_img):
         h = w * img_frontal_ax.size[1] / img_frontal_ax.size[0]
         height = Inches(h)
         left = Inches(0)
-        top = Inches((slide_height - h) / 2)  # 중앙 정렬
+        top = Inches((slide_height - h) / 2)
     else:
         h = slide_height
         height = Inches(h)
         w = h * img_frontal_ax.size[0] / img_frontal_ax.size[1]
         width = Inches(w)
-        left = Inches((slide_width - w) / 2)  # 중앙 정렬
+        left = Inches((slide_width - w) / 2)
         top = Inches(0)
+
     # 이미지 추가
     shape_s_10.add_picture(frontal_ax_path, left, top, width, height)
-    print("✅ 11번째 슬라이드에 Frontal ax 이미지 추가 완료!")
 
-
+    print("✅ 11번째 슬라이드에 Frontal Ax 이미지 추가 완료!")

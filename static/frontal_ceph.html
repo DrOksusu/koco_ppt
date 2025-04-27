@@ -211,24 +211,18 @@
         const canvas = $("#frontalCanvas")[0];
         const ctx = canvas.getContext("2d");
       
-        // ✅ 텍스트 삽입 (좌측 상단)
         ctx.font = "bold 32px sans-serif";
         ctx.fillStyle = "rgba(255, 0, 0, 0.8)";
         ctx.textAlign = "left";
         ctx.fillText("FRONTAL", 10, 40);
       
-        // ✅ 캔버스 → base64 변환
         const dataURL = canvas.toDataURL("image/png");
-      
-        // ✅ base64 → Blob → File
         const blob = dataURLtoBlob(dataURL);
-        const file = new File([blob], "processed_frontal.jpg", {
-          type: "image/jpeg",
-        });
+        const file = new File([blob], "processed_frontal.jpg", { type: "image/jpeg" });
       
         if (window.opener && !window.opener.closed) {
-          const preview = window.opener.document.getElementById("xrayPreview7");
-          const input = window.opener.document.getElementById("frontal_ceph");
+          const preview = window.opener.document.getElementById("xrayPreview7"); // ✅ 여긴 같고
+          const input = window.opener.document.getElementById("frontal_ax"); // ✅ 요걸 변경!
       
           if (preview) {
             preview.innerHTML = "";
@@ -239,21 +233,21 @@
             img.alt = "삽입된 Frontal 이미지";
             img.style.width = "100%";
             img.style.height = "100%";
-            img.style.objectFit = "cover"; // ✅ PSA와 동일하게 처리
+            img.style.objectFit = "cover";
       
             const deleteBtn = document.createElement("button");
             deleteBtn.innerText = "X";
             deleteBtn.classList.add("delete-btn");
             deleteBtn.addEventListener("click", function () {
-              preview.innerHTML = "📂 Frontal Ceph";
+              preview.innerHTML = "📂 Frontal Ax.";
               if (input) input.value = "";
             });
       
             preview.appendChild(img);
             preview.appendChild(deleteBtn);
       
-            console.log("✅ Frontal 이미지 삽입 완료 (base64 방식)");
-            alert("✅ frontal 이미지가 삽입되었습니다!");
+            console.log("✅ Frontal Ax 이미지 삽입 완료 (base64 방식)");
+            alert("✅ frontal ax 이미지가 삽입되었습니다!");
             window.close();
           } else {
             alert("🚨 부모 창에 'xrayPreview7' 요소를 찾을 수 없습니다!");
@@ -268,6 +262,7 @@
           alert("🚨 부모 창이 닫혀 있습니다! 이미지를 삽입할 수 없습니다.");
         }
       });
+      
       
       $("#resetButton").on("click", function () {
         if (window.opener && !window.opener.closed) {
