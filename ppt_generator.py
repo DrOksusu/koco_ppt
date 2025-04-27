@@ -54,13 +54,12 @@ def create_ppt(request):
 
     # 파일 저장 (None이 되지 않도록 기본 이미지 적용)
     pano_path = save_uploaded_file(request.files.get('pano'), 'pano.jpg', default_img="./static/default_image.jpg")
-    print("pano_path:",pano_path, flush=True, file=sys.stderr)
     lateral_ceph_path = save_uploaded_file(request.files.get('lateral_ceph'), 'lateral_ceph.jpg', default_img="./static/default_image.jpg")
     frontal_ceph_path = save_uploaded_file(request.files.get('frontal_ceph'), 'frontal_ceph.jpg', default_img="./static/default_image.jpg")
-    psa_name_path = save_uploaded_file(request.files.get('psa'), 'psa_name.jpg', default_img="./static/default_image.jpg")
+    psa_path = save_uploaded_file(request.files.get('psa'), 'psa.jpg', default_img="./static/default_image.jpg")  # ✅ PSA (2번째 슬라이드)
+    frontal_ax_path = save_uploaded_file(request.files.get('frontal_ax'), 'frontal_ax.jpg', default_img="./static/default_image.jpg")  # ✅ Frontal Ax (11번째 슬라이드)
     id_photo_path = save_uploaded_file(request.files.get('photo4'), 'id_photo.jpg', default_img="./static/oral_default.jpg")
-    print("id_photo_path:",id_photo_path, flush=True, file=sys.stderr)
-    print("psa_name_path:",psa_name_path, flush=True, file=sys.stderr)
+    pso_path = save_uploaded_file(request.files.get('pso'), 'pso.jpg', default_img="./static/default_image.jpg")  # ✅ PSO (10번째 슬라이드)
 
     
     excel_file = request.files['excel_data']
@@ -137,7 +136,7 @@ def create_ppt(request):
     
     #### 두 번째 슬라이드 만들기 (PSA 파일이 있을 경우만)
     print("두번째 슬라이드 시작",flush=True, file=sys.stderr)
-    create_second_slide(prs, HGI, VGI, psa_name_path)       
+    create_second_slide(prs, HGI, VGI, psa_path)       
 
 
     ####3번째 슬라이드 만들기(구외사진)
@@ -147,13 +146,13 @@ def create_ppt(request):
     create_fourth_slide(prs, oral_default_img="./static/oral_default.jpg")
 
     #### 5번째 슬라이드 만들기 (Pano 이미지)
-    create_fifth_slide(prs, default_img="./static/default_image.jpg")
+    create_fifth_slide(prs, pano_path)
 
     ####6번째 슬라이드 만들기 (Lateral Ceph)
-    create_sixth_slide(prs, default_img="./static/default_image.jpg")
+    create_sixth_slide(prs, lateral_ceph_path)
     
     ####7번째 슬라이드 만들기 (Frontal Ceph)
-    create_seventh_slide(prs, default_img="./static/default_image.jpg")
+    create_seventh_slide(prs, frontal_ceph_path)
 
     ####8번째 슬라이드 만들기 (자세사진)
     create_eighth_slide(prs, default_img="./static/posture_default.jpg")
@@ -162,10 +161,10 @@ def create_ppt(request):
     create_ninth_slide(prs, default_img="./static/posture_default.jpg")
 
     ###10번째 슬라이드 만들기 (PSO 결과)
-    create_tenth_slide(prs, default_img="./static/default_image.jpg")
+    create_tenth_slide(prs, pso_path)
 
     ###11번째 슬라이드 만들기 (Frontal Ax. 결과)
-    create_eleventh_slide(prs, default_img="./static/default_image.jpg")
+    create_eleventh_slide(prs, frontal_ax_path)
 
 
 
@@ -1032,5 +1031,5 @@ def create_eleventh_slide(prs, default_img):
     # 이미지 추가
     shape_s_10.add_picture(frontal_ax_path, left, top, width, height)
     print("✅ 11번째 슬라이드에 Frontal ax 이미지 추가 완료!")
-    
+
 
