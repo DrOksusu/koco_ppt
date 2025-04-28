@@ -258,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
     // frontalCeph 버튼 클릭 시 처리
-    $("#frontalCeph").on("click", function (event) {
+    $("#drawFrontalLine").on("click", function (event) {
       event.preventDefault(); // 기본 동작 방지
 
       const fileInput = $("#frontal_ceph")[0];
