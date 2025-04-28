@@ -260,9 +260,18 @@
 
             console.log("모든 선을 다 그렸습니다!");
 
-
-            const p12 = drawRedDashedLineP12toP11(p3, p4, p10, p11, scaleX, scaleY, ctx);
-            const finalAngle = Number(calculateAngleBetweenLines(p10, p12, p11, p12)).toFixed(1);            
+            const p12 = drawRedDashedLineP12toP11(
+              p3,
+              p4,
+              p10,
+              p11,
+              scaleX,
+              scaleY,
+              ctx
+            );
+            const finalAngle = Number(
+              calculateAngleBetweenLines(p10, p12, p11, p12)
+            ).toFixed(1);
             console.log("✅ 마지막 큰 각도:", finalAngle, "도");
             drawAngleAtBottom(ctx, canvas, finalAngle); // 슬라이드 하단에 표시
           }

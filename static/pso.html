@@ -263,6 +263,14 @@
               ? window.opener.landmarkCoordinates
               : null;
 
+          // ✅ "Mn.1 cr" 이나 "Mn.6 distal"은 예외처리해서 자동 찍기 건너뛰기
+          if (landmarkName === "Mn.1 cr" || landmarkName === "Mn.6 distal") {
+            const message = landmarkName || "";
+            $guideMessage.text(message);
+            speakMessage(message);
+            return; // 바로 return해서 자동 찍기를 막는다
+          }
+
           if (coordinates && coordinates[landmarkName]) {
             const coord = coordinates[landmarkName];
             const scaleX = canvas.width / img.naturalWidth;
