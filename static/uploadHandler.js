@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const newWindow = window.open(
         "/static/psa.html",
         "_blank",
-        "width=700,height=700,scrollbars=yes"
+        "width=700,height=600,scrollbars=yes"
       );
 
       // ✅ 새 창이 완전히 열린 후에 postMessage 전달
@@ -243,7 +243,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const newWindow = window.open(
         "/static/pso.html",
         "_blank",
-        "width=700,height=700,scrollbars=yes"
+        "width=800,height=700,scrollbars=yes"
       );
 
       // ✅ 새 창이 완전히 열린 후에 postMessage 전달
@@ -280,7 +280,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const newWindow = window.open(
           "/static/frontal_ceph.html", // 👉 이 HTML 파일이 서버에 있어야 해!
           "_blank",
-          "width=800,height=700,scrollbars=yes"
+          "width=800,height=900,scrollbars=yes"
         );
 
         // ✅ 새 창 로드된 후 이미지 전송

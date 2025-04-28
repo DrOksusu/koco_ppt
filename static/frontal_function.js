@@ -110,6 +110,7 @@ window.drawBlueLineBetweenPoints = function (p1, p2, scaleX, scaleY, ctx) {
   function drawRedDashedLineP12toP11(p3, p4, p10, p11, scaleX, scaleY, ctx) {
     // 1️⃣ p12 계산 (p3, p4에 대한 p10의 수직 발)
     const [x12, y12] = getPerpendicularFoot(p3, p4, p10);
+    const p12 = [x12, y12];
   
     // 2️⃣ p11은 입력으로 받아옴
     const x11 = p11[0];
@@ -133,36 +134,41 @@ window.drawBlueLineBetweenPoints = function (p1, p2, scaleX, scaleY, ctx) {
     ctx.stroke();
   
     ctx.setLineDash([]); // 점선 초기화
+
+    //완성된 p12 좌표 반환
+    return p12;
   }
   
-  function calculateAngleBetweenLines(p3, p4, p10, p11) {
-    // 1️⃣ 초록색 선의 방향 벡터 (p3-p4에 수직이고 p10을 지나는 직선)
-    const [x12, y12] = getPerpendicularFoot(p3, p4, p10);
-  
-    // 초록색 선 벡터 (p12 → p10)
-    const green_dx = p10[0] - x12;
-    const green_dy = p10[1] - y12;
-  
-    // 빨간색 선 벡터 (p12 → p11)
-    const red_dx = p11[0] - x12;
-    const red_dy = p11[1] - y12;
-  
-    // 2️⃣ 벡터 내적
-    const dotProduct = green_dx * red_dx + green_dy * red_dy;
-  
-    // 3️⃣ 벡터 길이 (norm)
-    const greenLength = Math.sqrt(green_dx * green_dx + green_dy * green_dy);
-    const redLength = Math.sqrt(red_dx * red_dx + red_dy * red_dy);
-  
-    // 4️⃣ 코사인 값
-    const cosTheta = dotProduct / (greenLength * redLength);
-  
-    // 5️⃣ 각도 (라디안 → 디그리 변환)
-    const angleRad = Math.acos(cosTheta);
-    const angleDeg = angleRad * (180 / Math.PI);
-  
-    return angleDeg.toFixed(2); // 소수점 둘째자리까지 반환
-  }
+ 
+
+ // ✅ 두 선 사이의 각도 계산 함수
+function calculateAngleBetweenLines(p1Start, p1End, p2Start, p2End) {
+    // 첫 번째 선 벡터 계산 (끝점 - 시작점)
+    const v1x = p1End[0] - p1Start[0];
+    const v1y = p1End[1] - p1Start[1];
+
+    // 두 번째 선 벡터 계산
+    const v2x = p2End[0] - p2Start[0];
+    const v2y = p2End[1] - p2Start[1];
+
+    // 벡터의 내적 구하기
+    const dotProduct = v1x * v2x + v1y * v2y;
+
+    // 각 벡터의 길이 구하기
+    const magV1 = Math.sqrt(v1x * v1x + v1y * v1y);
+    const magV2 = Math.sqrt(v2x * v2x + v2y * v2y);
+
+    // 코사인 세타 = 내적 / (각 벡터 크기)
+    const cosTheta = dotProduct / (magV1 * magV2);
+
+    // acos로 각도를 구한 다음 라디안을 도로 변환
+    const angleRadians = Math.acos(Math.min(Math.max(cosTheta, -1), 1)); // 오차 방지
+    const angleDegrees = angleRadians * (180 / Math.PI);
+
+    return angleDegrees;  // 👉 숫자(Number)로 반환! toFixed는 나중에
+}
+
+
   
   function drawAngleAtBottom(ctx, canvas, angle) {
     const angleText = `ZA - Menton angle: ${angle}°`;

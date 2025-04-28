@@ -1,300 +1,388 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <title>Frontal Ceph 선 그리기</title>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="/static/frontal_function.js"></script>
-  <script src="/static/psa_function.js"></script>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Frontal Ceph 선 그리기</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/static/frontal_function.js"></script>
+    <script src="/static/psa_function.js"></script>
 
-  <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      width: 100vw;
-      margin: 0;
-      background-color: #f0f0f0;
-      overflow: hidden;
-    }
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+        background-color: #f0f0f0;
+        overflow: hidden;
+      }
 
-    #canvas-container {
-      position: relative;
-      width: 100%;
-      height: 100%;
-    }
+      #canvas-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
 
-    .guide-message {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 5px 10px;
-      font-size: 14px;
-      border-radius: 5px;
-      z-index: 1000;
-    }
+      .guide-message {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 5px 10px;
+        font-size: 14px;
+        border-radius: 5px;
+        z-index: 1000;
+      }
 
-    #button-container {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      display: flex;
-      gap: 10px;
-      z-index: 1000;
-    }
+      #button-container {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        display: flex;
+        gap: 10px;
+        z-index: 1000;
+      }
 
-    #button-container button {
-      padding: 8px 16px;
-      font-size: 14px;
-    }
+      #button-container button {
+        padding: 8px 16px;
+        font-size: 14px;
+      }
 
-    #saveButton, #insertButton, #resetButton {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      font-size: 16px;
-      cursor: pointer;
-    }
+      #saveButton,
+      #insertButton,
+      #resetButton {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+      }
 
-    #frontal_landmark_image {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 25vw;
-      z-index: 500;
-      border: 2px solid black;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-  <div id="canvas-container">
-    <div id="guideMessage" class="guide-message">Z-point Rt.</div>
-    <canvas id="frontalCanvas"></canvas>
-  </div>
+      #frontal_landmark_image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 25vw;
+        z-index: 500;
+        border: 2px solid black;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-container">
+      <div id="guideMessage" class="guide-message">Z-point Rt.</div>
+      <canvas id="frontalCanvas"></canvas>
+    </div>
 
-  <div id="button-container">
-    <button id="saveButton">이미지 저장</button>
-    <button id="insertButton">이미지 삽입</button>
-    <button id="resetButton">처음부터 다시하기</button>
-  </div>
+    <div id="button-container">
+      <button id="saveButton">이미지 저장</button>
+      <button id="insertButton">이미지 삽입</button>
+      <button id="resetButton">처음부터 다시하기</button>
+    </div>
 
-  <img id="frontal_landmark_image" src="/static/frontal_diagram.png" alt="Frontal Diagram" />
+    <img
+      id="frontal_landmark_image"
+      src="/static/frontal_diagram.png"
+      alt="Frontal Diagram"
+    />
 
-  <script>
-    let canvas, ctx, img;
-    let points = [];
+    <script>
+      let canvas, ctx, img;
+      let points = [];
 
-    const messages = ["Z-point Rt.", "Z-point Lt.", "Zygion Rt.", "Zygion Lt.", "Jugal Rt.", "Jugal Lt.", "Antegonial notch Rt.", "Antegonial notch Lt.", "Crista galli", "ANS", "Menton"];
-    const $guideMessage = $("#guideMessage");
+      const messages = [
+        "Z-point Rt.",
+        "Z-point Lt.",
+        "Zygion Rt.",
+        "Zygion Lt.",
+        "Jugal Rt.",
+        "Jugal Lt.",
+        "Antegonial notch Rt.",
+        "Antegonial notch Lt.",
+        "Crista galli",
+        "ANS",
+        "Menton",
+      ];
+      const $guideMessage = $("#guideMessage");
 
-    $(document).ready(function () {
-      // 이미지 수신
-      window.addEventListener("message", function (event) {
-        const message = event.data;
-        if (message.type === "FRONTAL_CEPH_IMAGE" && message.data) {
-          img = new Image();
-          img.onload = function () {
-            canvas = document.getElementById("frontalCanvas");
-            ctx = canvas.getContext("2d");
+      $(document).ready(function () {
+        // 이미지 수신
+        window.addEventListener("message", function (event) {
+          const message = event.data;
+          if (message.type === "FRONTAL_CEPH_IMAGE" && message.data) {
+            img = new Image();
+            img.onload = function () {
+              canvas = document.getElementById("frontalCanvas");
+              ctx = canvas.getContext("2d");
 
-            const scale = 800 / img.naturalWidth;
-            canvas.width = 800;
-            canvas.height = img.naturalHeight * scale;
+              const scale = 800 / img.naturalWidth;
+              canvas.width = 800;
+              canvas.height = img.naturalHeight * scale;
 
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            canvas.addEventListener("click", handleCanvasClick);
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              canvas.addEventListener("click", handleCanvasClick);
 
               // ✅ 페이지가 로드되자마자 첫 메시지를 음성으로 안내
-            const firstMessage = messages[0];
-            $guideMessage.text(firstMessage);     // 혹시나 화면에 표시 보장
-            speakMessage(firstMessage);           // ✅ 음성 안내 추가
-          };
-          img.src = message.data;
-        }
-       
-      });
-
-      function handleCanvasClick(event) {
-        if (points.length >= messages.length) return;
-
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / img.naturalWidth;
-        const scaleY = canvas.height / img.naturalHeight;
-
-        const x = ((event.clientX - rect.left) / scaleX).toFixed(2);
-        const y = ((event.clientY - rect.top) / scaleY).toFixed(2);
-
-        ctx.fillStyle = "red";
-        ctx.beginPath();
-        ctx.arc(x * scaleX, y * scaleY, 2, 0, Math.PI * 2);
-        ctx.fill();
-
-        points.push({ name: messages[points.length], x, y });
-
-        // ✅ 특정 짝수 인덱스 도달 시 선을 그림
-        const drawLineOnPairs = [
-        [0, 1], // 1~2번째 점
-        [2, 3], // 3~4번째 점
-        [4, 5], // 5~6번째 점
-        [6, 7], // 7~8번째 점
-        ];
-
-        drawLineOnPairs.forEach(([startIdx, endIdx]) => {
-        if (points.length === endIdx + 1) {
-            const p1 = [parseFloat(points[startIdx].x), parseFloat(points[startIdx].y)];
-            const p2 = [parseFloat(points[endIdx].x), parseFloat(points[endIdx].y)];
-            drawBlueLineBetweenPoints(p1, p2, scaleX, scaleY, ctx);
-        }
+              const firstMessage = messages[0];
+              $guideMessage.text(firstMessage); // 혹시나 화면에 표시 보장
+              speakMessage(firstMessage); // ✅ 음성 안내 추가
+            };
+            img.src = message.data;
+          }
         });
 
-        // 예를 들어 points 배열이 존재할 때
-        if (points.length >= 9) {
+        // ✅ [초등학생도 이해할 수 있게] 클릭했을 때 실행되는 함수야!
+        function handleCanvasClick(event) {
+          // 1. 만약 필요한 점을 다 찍었다면 (11개 다 찍었다면) 더 이상 아무것도 하지 않고 끝내자
+          if (points.length >= messages.length) return;
+
+          // 2. 클릭한 곳의 정확한 좌표를 계산해
+          const rect = canvas.getBoundingClientRect();
+          const scaleX = canvas.width / img.naturalWidth;
+          const scaleY = canvas.height / img.naturalHeight;
+
+          // 3. 클릭한 곳의 x, y 좌표를 계산하고 소수점 2자리까지만 남겨
+          const x = ((event.clientX - rect.left) / scaleX).toFixed(2);
+          const y = ((event.clientY - rect.top) / scaleY).toFixed(2);
+
+          // 4. 클릭한 곳에 빨간 점을 그리자!
+          ctx.fillStyle = "red";
+          ctx.beginPath();
+          ctx.arc(x * scaleX, y * scaleY, 2, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 5. 클릭한 위치를 points라는 리스트에 저장하자
+          points.push({ name: messages[points.length], x, y });
+
+          // 6. 점이 두 개 찍힐 때마다 파란 선을 그려보자!
+          const drawLineOnPairs = [
+            [0, 1], // 첫 번째와 두 번째 점
+            [2, 3], // 세 번째와 네 번째 점
+            [4, 5], // 다섯 번째와 여섯 번째 점
+            [6, 7], // 일곱 번째와 여덟 번째 점
+          ];
+
+          drawLineOnPairs.forEach(([startIdx, endIdx]) => {
+            if (points.length === endIdx + 1) {
+              const p1 = [
+                parseFloat(points[startIdx].x),
+                parseFloat(points[startIdx].y),
+              ];
+              const p2 = [
+                parseFloat(points[endIdx].x),
+                parseFloat(points[endIdx].y),
+              ];
+              drawBlueLineBetweenPoints(p1, p2, scaleX, scaleY, ctx);
+            }
+          });
+
+          // 7. 만약 8개 점을 다 찍었으면 (4개의 선을 완성했으면)
+          if (points.length == 8) {
+            // 선의 점들을 준비해
+            const p0 = [parseFloat(points[0].x), parseFloat(points[0].y)];
+            const p1 = [parseFloat(points[1].x), parseFloat(points[1].y)];
+            const p2 = [parseFloat(points[2].x), parseFloat(points[2].y)];
+            const p3 = [parseFloat(points[3].x), parseFloat(points[3].y)];
+            const p4 = [parseFloat(points[4].x), parseFloat(points[4].y)];
+            const p5 = [parseFloat(points[5].x), parseFloat(points[5].y)];
+            const p6 = [parseFloat(points[6].x), parseFloat(points[6].y)];
+            const p7 = [parseFloat(points[7].x), parseFloat(points[7].y)];
+
+            // 두 번째 선을 기준으로 다른 선들과 각도를 비교해
+            const angle1 = parseFloat(
+              calculateAngleBetweenLines(p2, p3, p0, p1)
+            );
+            const angle2 = parseFloat(
+              calculateAngleBetweenLines(p2, p3, p4, p5)
+            );
+            const angle3 = parseFloat(
+              calculateAngleBetweenLines(p2, p3, p6, p7)
+            );
+
+            console.log("✅ 2번째 선과 1번째 선 사이 각도:", angle1, "도");
+            console.log("✅ 2번째 선과 3번째 선 사이 각도:", angle2, "도");
+            console.log("✅ 2번째 선과 4번째 선 사이 각도:", angle3, "도");
+
+            // 8. 각도를 선 근처에 파란 글씨로 써주자
+            ctx.font = "bold 16px Arial";
+            ctx.fillStyle = "blue";
+
+            // 첫 번째 선 근처에 angle1 쓰기
+            ctx.fillText(
+              `${angle1.toFixed(1)}°`,
+              p1[0] * scaleX + 10,
+              p1[1] * scaleY - 10
+            );
+            // 세 번째 선 근처에 angle2 쓰기
+            ctx.fillText(
+              `${angle2.toFixed(1)}°`,
+              p5[0] * scaleX + 10,
+              p5[1] * scaleY - 10
+            );
+            // 네 번째 선 근처에 angle3 쓰기
+            ctx.fillText(
+              `${angle3.toFixed(1)}°`,
+              p7[0] * scaleX + 10,
+              p7[1] * scaleY - 10
+            );
+          }
+
+          // 9. 아홉 번째 점을 찍으면 수직 점선을 그려!
+          if (points.length == 9) {
             const p3 = [parseFloat(points[2].x), parseFloat(points[2].y)];
             const p4 = [parseFloat(points[3].x), parseFloat(points[3].y)];
             const p9 = [parseFloat(points[8].x), parseFloat(points[8].y)];
-            
             drawPerpendicularDashedLine(p3, p4, p9, scaleX, scaleY, ctx);
-        }
+          }
 
-        if (points.length >= 10) {
+          // 10. 열 번째 점을 찍으면 녹색 연장선을 그려!
+          if (points.length == 10) {
             const p3 = [parseFloat(points[2].x), parseFloat(points[2].y)];
             const p4 = [parseFloat(points[3].x), parseFloat(points[3].y)];
             const p9 = [parseFloat(points[9].x), parseFloat(points[9].y)];
-          
             drawExtendedGreenLine(p3, p4, p9, scaleX, scaleY, ctx);
           }
 
-        if (points.length >= 11) {
+          // 11. 열한 번째 점을 찍으면 빨간 점선을 그리고 마지막 각도를 표시해!
+          if (points.length >= 11) {
             const p3 = [parseFloat(points[2].x), parseFloat(points[2].y)];
             const p4 = [parseFloat(points[3].x), parseFloat(points[3].y)];
             const p10 = [parseFloat(points[9].x), parseFloat(points[9].y)];
             const p11 = [parseFloat(points[10].x), parseFloat(points[10].y)];
-            
+
             drawRedDashedLineP12toP11(p3, p4, p10, p11, scaleX, scaleY, ctx);
-            console.log("모든 선을 다 그렸습니다")
-            const angle = calculateAngleBetweenLines(p3, p4, p10, p11);
-            console.log("✅ ZA center_Menton 과 ZA-plane vertical ANS 사이의 각도는", angle, "도 입니다.");
-            drawAngleAtBottom(ctx, canvas, angle); // 하단 중앙에 표시
 
-            }
-            
-                
-        
-  
+            console.log("모든 선을 다 그렸습니다!");
 
-        // ✅ 여기에 음성 안내 추가
-        if (points.length < messages.length) {
+
+            const p12 = drawRedDashedLineP12toP11(p3, p4, p10, p11, scaleX, scaleY, ctx);
+            const finalAngle = Number(calculateAngleBetweenLines(p10, p12, p11, p12)).toFixed(1);            
+            console.log("✅ 마지막 큰 각도:", finalAngle, "도");
+            drawAngleAtBottom(ctx, canvas, finalAngle); // 슬라이드 하단에 표시
+          }
+
+          // 12. 다음 찍을 점 이름을 알려주자! (다 찍었으면 완료 메시지!)
+          if (points.length < messages.length) {
             const nextMessage = messages[points.length];
             $guideMessage.text(nextMessage);
-            speakMessage(nextMessage); // ⬅️ 여기가 핵심
-        } else {
+            speakMessage(nextMessage);
+          } else {
             const finalMessage = "✅ 프론탈 랜드마크 완료";
             $guideMessage.text(finalMessage);
-            speakMessage(finalMessage); // ⬅️ 여기도
-        }
+            speakMessage(finalMessage);
+          }
         }
 
-      $("#saveButton").on("click", function () {
-        const url = $("#frontalCanvas")[0].toDataURL("image/png");
-        const link = $("<a>").attr("href", url).attr("download", "frontal_ceph.png").appendTo("body");
-        link[0].click();
-        link.remove();
-      });
+        $("#saveButton").on("click", function () {
+          const url = $("#frontalCanvas")[0].toDataURL("image/png");
+          const link = $("<a>")
+            .attr("href", url)
+            .attr("download", "frontal_ceph.png")
+            .appendTo("body");
+          link[0].click();
+          link.remove();
+        });
 
-      $("#insertButton").on("click", function () {
-        const canvas = $("#frontalCanvas")[0];
-        const ctx = canvas.getContext("2d");
-      
-        ctx.font = "bold 32px sans-serif";
-        ctx.fillStyle = "rgba(255, 0, 0, 0.8)";
-        ctx.textAlign = "left";
-        ctx.fillText("FRONTAL", 10, 40);
-      
-        const dataURL = canvas.toDataURL("image/png");
-        const blob = dataURLtoBlob(dataURL);
-        const file = new File([blob], "processed_frontal.jpg", { type: "image/jpeg" });
-      
-        if (window.opener && !window.opener.closed) {
-          const preview = window.opener.document.getElementById("xrayPreview7"); // ✅ 여긴 같고
-          const input = window.opener.document.getElementById("frontal_ax"); // ✅ 요걸 변경!
-      
-          if (preview) {
-            preview.innerHTML = "";
-            preview.classList.add("file-preview");
-      
-            const img = document.createElement("img");
-            img.src = dataURL;
-            img.alt = "삽입된 Frontal 이미지";
-            img.style.width = "100%";
-            img.style.height = "100%";
-            img.style.objectFit = "cover";
-      
-            const deleteBtn = document.createElement("button");
-            deleteBtn.innerText = "X";
-            deleteBtn.classList.add("delete-btn");
-            deleteBtn.addEventListener("click", function () {
-              preview.innerHTML = "📂 Frontal Ax.";
-              if (input) input.value = "";
-            });
-      
-            preview.appendChild(img);
-            preview.appendChild(deleteBtn);
-      
-            console.log("✅ Frontal Ax 이미지 삽입 완료 (base64 방식)");
-            alert("✅ frontal ax 이미지가 삽입되었습니다!");
-            window.close();
+        $("#insertButton").on("click", function () {
+          const canvas = $("#frontalCanvas")[0];
+          const ctx = canvas.getContext("2d");
+
+          ctx.font = "bold 32px sans-serif";
+          ctx.fillStyle = "rgba(255, 0, 0, 0.8)";
+          ctx.textAlign = "left";
+          ctx.fillText("FRONTAL", 10, 40);
+
+          const dataURL = canvas.toDataURL("image/png");
+          const blob = dataURLtoBlob(dataURL);
+          const file = new File([blob], "processed_frontal.jpg", {
+            type: "image/jpeg",
+          });
+
+          if (window.opener && !window.opener.closed) {
+            const preview =
+              window.opener.document.getElementById("xrayPreview7"); // ✅ 여긴 같고
+            const input = window.opener.document.getElementById("frontal_ax"); // ✅ 요걸 변경!
+
+            if (preview) {
+              preview.innerHTML = "";
+              preview.classList.add("file-preview");
+
+              const img = document.createElement("img");
+              img.src = dataURL;
+              img.alt = "삽입된 Frontal 이미지";
+              img.style.width = "100%";
+              img.style.height = "100%";
+              img.style.objectFit = "cover";
+
+              const deleteBtn = document.createElement("button");
+              deleteBtn.innerText = "X";
+              deleteBtn.classList.add("delete-btn");
+              deleteBtn.addEventListener("click", function () {
+                preview.innerHTML = "📂 Frontal Ax.";
+                if (input) input.value = "";
+              });
+
+              preview.appendChild(img);
+              preview.appendChild(deleteBtn);
+
+              console.log("✅ Frontal Ax 이미지 삽입 완료 (base64 방식)");
+              alert("✅ frontal ax 이미지가 삽입되었습니다!");
+              window.close();
+            } else {
+              alert("🚨 부모 창에 'xrayPreview7' 요소를 찾을 수 없습니다!");
+            }
+
+            if (input) {
+              const dataTransfer = new DataTransfer();
+              dataTransfer.items.add(file);
+              input.files = dataTransfer.files;
+            }
           } else {
-            alert("🚨 부모 창에 'xrayPreview7' 요소를 찾을 수 없습니다!");
+            alert("🚨 부모 창이 닫혀 있습니다! 이미지를 삽입할 수 없습니다.");
           }
-      
-          if (input) {
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            input.files = dataTransfer.files;
+        });
+
+        $("#resetButton").on("click", function () {
+          if (window.opener && !window.opener.closed) {
+            window.opener.$("#drawFrontalLine").trigger("click");
+            setTimeout(() => window.close(), 100);
+          } else {
+            window.close();
           }
-        } else {
-          alert("🚨 부모 창이 닫혀 있습니다! 이미지를 삽입할 수 없습니다.");
-        }
-      });
-      
-      
-      $("#resetButton").on("click", function () {
-        if (window.opener && !window.opener.closed) {
-          window.opener.$("#drawFrontalLine").trigger("click");
-          setTimeout(() => window.close(), 100);
-        } else {
-          window.close();
-        }
-      });
+        });
 
-      function dataURLtoBlob(dataURL) {
-        const byteString = atob(dataURL.split(",")[1]);
-        const mimeString = dataURL.split(",")[0].split(":")[1].split(";")[0];
-        const ab = new ArrayBuffer(byteString.length);
-        const ia = new Uint8Array(ab);
-        for (let i = 0; i < byteString.length; i++) {
-          ia[i] = byteString.charCodeAt(i);
-        }
-        return new Blob([ab], { type: mimeString });
-      }
-
-      // ✅ [추가 기능] 랜드마크 이미지 더블클릭 시 팝업 확대
-      $("#frontal_landmark_image").on("dblclick", function () {
-        const imageUrl = $(this).attr("src");
-        const popup = window.open("", "_blank", "width=1000,height=800,resizable=yes");
-
-        if (!popup || popup.closed || typeof popup.closed === "undefined") {
-          alert("팝업이 차단되었습니다. 팝업 허용 설정을 확인해주세요.");
-          return;
+        function dataURLtoBlob(dataURL) {
+          const byteString = atob(dataURL.split(",")[1]);
+          const mimeString = dataURL.split(",")[0].split(":")[1].split(";")[0];
+          const ab = new ArrayBuffer(byteString.length);
+          const ia = new Uint8Array(ab);
+          for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+          }
+          return new Blob([ab], { type: mimeString });
         }
 
-        popup.document.write(`
+        // ✅ [추가 기능] 랜드마크 이미지 더블클릭 시 팝업 확대
+        $("#frontal_landmark_image").on("dblclick", function () {
+          const imageUrl = $(this).attr("src");
+          const popup = window.open(
+            "",
+            "_blank",
+            "width=1000,height=800,resizable=yes"
+          );
+
+          if (!popup || popup.closed || typeof popup.closed === "undefined") {
+            alert("팝업이 차단되었습니다. 팝업 허용 설정을 확인해주세요.");
+            return;
+          }
+
+          popup.document.write(`
           <!DOCTYPE html>
           <html lang="ko">
           <head>
@@ -332,8 +420,8 @@
           </body>
           </html>
         `);
+        });
       });
-    });
-  </script>
-</body>
+    </script>
+  </body>
 </html>
