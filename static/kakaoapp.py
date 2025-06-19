@@ -1,19 +1,17 @@
-from flask import Flask, request, jsonify, send_file, render_template, url_for, redirect, session
-from flask_cors import CORS
-from ppt_generator import create_ppt
-from green_line import draw_psa_line
 import os
-from config import UPLOAD_FOLDER, RESULT_FOLDER
-from werkzeug.utils import secure_filename
-import logging
-from flask import request
 import requests
+from flask import Flask, redirect, request, session, url_for, jsonify, render_template
 import json
 
+# Flask 애플리케이션 초기화
+app = Flask(__name__)
+
+# 세션에서 사용할 secret key 설정 (환경변수에서 읽거나 기본값 사용)
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'your_secret_key')
 
 # 🔑 카카오 API 관련 상수들 (환경변수 또는 하드코딩된 기본값)
 KAKAO_CLIENT_ID = os.environ.get('KAKAO_CLIENT_ID', 'ccb9d48d7702c55ca74794e105af647b') #naturem-clinic api
-KAKAO_REDIRECT_URI = os.environ.get('KAKAO_REDIRECT_URI', 'https://koco.me/kakao')
+KAKAO_REDIRECT_URI = os.environ.get('KAKAO_REDIRECT_URI', 'http://localhost:9000/kakao')
 KAKAO_AUTH_URL = 'https://kauth.kakao.com/oauth/authorize'
 KAKAO_TOKEN_URL = 'https://kauth.kakao.com/oauth/token'
 KAKAO_USER_URL = 'https://kapi.kakao.com/v2/user/me'
@@ -21,34 +19,26 @@ KAKAO_FRIENDS_URL = 'https://kapi.kakao.com/v1/api/talk/friends'
 KAKAO_SEND_URL = 'https://kapi.kakao.com/v1/api/talk/friends/message/default/send'
 
 
-app = Flask(__name__)
-app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'koco')  # 세션에 사용할 비밀 키 설정
-
-
-
+# 🔸 홈 화면
 @app.route('/')
 def home():
-    user = session.get('user')  # 세션에서 사용자 정보 가져오기
-
+    user = session.get('user')  # 세션에 저장된 사용자 정보 가져오기
     if user:
-        # 로그인된 사용자라면 사용자 정보도 템플릿에 전달
-        return render_template(
-            'index1.html',
-            user=user,
-            login_url=url_for('login')
-        )
+        # 로그인 되어 있으면 사용자 정보와 친구목록 보기 링크 표시
+        html = f"""
+        <h1>카카오 로그인 성공</h1>
+        <p>이름: {user.get('properties', {}).get('nickname')}</p>
+        <p>이메일: {user.get('kakao_account', {}).get('email')}</p>    
+        <p><a href="/friends">친구 목록</a></p>
+        <a href="/logout">로그아웃</a>
+        """
+        return html
     else:
-        # 로그인되지 않은 경우는 로그인 URL만 전달
-        return render_template(
-            'index1.html',
-            user=None,
-            login_url=url_for('login')
-        )
+        # 로그인 안 되어 있으면 로그인 링크 표시
+        return '<a href="/login">카카오 로그인</a>'
 
-@app.route('/payment')
-def payment():
-    return render_template('payment.html')
 
+# 🔸 카카오 로그인 요청
 @app.route('/login')
 def login():
     # 카카오 인증 URL로 리디렉트, scope에 친구 및 메시지 권한 포함
@@ -59,6 +49,7 @@ def login():
         f"&scope=friends%20talk_message"
     )
     return redirect(kakao_auth_url)
+
 
 # 🔸 카카오 인증 후 리디렉트되는 콜백 처리
 @app.route('/kakao')
@@ -199,40 +190,6 @@ def render_friends_with_error(error):
     return render_template('friends.html', friends=friends_list, error=error)
 
 
-
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    return render_template('signup.html')
-
-
-@app.route('/forgot-password')
-def forgot_password_page():
-    return render_template('forgot-password.html')
-
-@app.route('/mypage', methods=['GET', 'POST'])
-def mypage():
-    return render_template('mypage.html')
-
-      
-
-@app.route('/dash_board', methods=['POST'])
-def generate_ppt():
-    try:
-        result = create_ppt(request)
-        return result
-    except Exception as e:
-        return jsonify({"error": str(e)})   
-
-
-
-
-@app.before_request
-def log_request():
-    logging.info(f"📌 요청 수신: {request.method} {request.path}")
-
-@app.route("/download/pdf")
-def download_pdf():
-    return send_file("/app/output_ppt.pdf", as_attachment=True)
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=9500, debug=True)
+# # 🔸 앱 실행 (개발 서버 실행)
+# if __name__ == '__main__':
+#     app.run(host="0.0.0.0", port=9000, debug=True)

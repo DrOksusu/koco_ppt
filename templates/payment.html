@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="utf-8">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.min.js"
+      integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://js.bootpay.co.kr/bootpay-5.1.2.min.js"
+      type="application/javascript"
+    ></script>
+    <script src="/static/pay.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h3>부트페이 결제 테스트</h3>
+
+          <input
+            class="method-radio"
+            type="radio"
+            name="method"
+            value="토스"
+            checked
+          />토스
+          <input
+            class="method-radio"
+            type="radio"
+            name="method"
+            value="카드"
+          />카드
+
+          <button id="pay-button" class="btn btn-primary">결제하기</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

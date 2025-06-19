@@ -13,10 +13,18 @@
     <div class="header">
       <h1>순응교합 연구회 자동진단 프로그램</h1>
       <div class="nav-links">
-        <p id="user-info"></p>
-        <!-- 사용자 정보가 여기에 동적으로 들어감 -->
-        <a id="auth-link" href="{{ login_url }}">로그인</a>
+        <p id="user-info">
+          {% if user %} 👋 안녕하세요,
+          <strong>{{ user['properties']['nickname'] }}</strong> 님!<br />
+          📧 이메일: {{ user['kakao_account']['email'] }} {% endif %}
+        </p>
 
+        <!-- 로그인/로그아웃 링크 -->
+        {% if user %}
+        <a id="auth-link" href="{{ url_for('logout') }}">로그아웃</a>
+        {% else %}
+        <a id="auth-link" href="{{ login_url }}">카톡 로그인</a>
+        {% endif %}
         <script>
           // 1️⃣ localStorage에 저장된 토큰 불러오기
           const token = localStorage.getItem("token");
@@ -566,8 +574,15 @@
           Object.fromEntries(formData.entries())
         );
 
+        const hostname = location.hostname;
+
+        const BASE_URL =
+          hostname === "localhost" || hostname === "127.0.0.1"
+            ? "http://localhost:9500"
+            : "https://koco.me";
+
         try {
-          const response = await fetch("https://koco.me/dash_board", {
+          const response = await fetch(`${BASE_URL}/dash_board`, {
             method: "POST",
             body: formData,
           });
