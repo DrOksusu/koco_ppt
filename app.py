@@ -101,10 +101,17 @@ def oauth():
 # 🔸 로그아웃
 @app.route('/logout')
 def logout():
-    # 세션에서 사용자 정보 제거
     session.pop('user', None)
     session.pop('access_token', None)
-    return redirect(url_for('home'))
+
+    # 카카오 로그아웃도 같이 요청
+    kakao_logout_url = (
+        f"https://kauth.kakao.com/oauth/logout"
+        f"?client_id={KAKAO_CLIENT_ID}"
+        f"&logout_redirect_uri=https://koco.me"
+    )
+    return redirect(kakao_logout_url)
+
 
 
 # 🔸 친구 목록 보기
