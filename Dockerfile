@@ -9,15 +9,15 @@ RUN apt-get update && apt-get upgrade -y
 
 RUN apt-get install -y --no-install-recommends \
     libreoffice-common \
-    libreoffice \    
-    libgl1-mesa-glx \
+    libreoffice \
+    libgl1 \
     libgl1-mesa-dev \
     libglu1-mesa-dev \
     libglib2.0-dev \
     libsm6 \
     libxext6 \
     libxrender1 \
-    libatlas-base-dev 
+    libopenblas-dev 
 
 RUN rm -rf /var/lib/apt/lists/*
 
