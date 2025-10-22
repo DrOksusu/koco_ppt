@@ -241,5 +241,21 @@ def log_request():
 def download_pdf():
     return send_file("/app/output_ppt.pdf", as_attachment=True)
 
+@app.route('/health', methods=['GET'])
+def health_check():
+    """시스템 상태 확인용 Health Check 엔드포인트"""
+    return jsonify({
+        "status": "ok",
+        "message": "KOCO PPT Generator is running",
+        "service": "koco-backend",
+        "port": 9500,
+        "endpoints": {
+            "home": "GET /",
+            "ppt_generation": "POST /dash_board",
+            "pdf_download": "GET /download/pdf",
+            "health": "GET /health"
+        }
+    }), 200
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=9500, debug=True)
