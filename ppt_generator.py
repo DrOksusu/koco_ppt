@@ -62,8 +62,8 @@ def create_ppt(request):
     pso_path = save_uploaded_file(request.files.get('pso'), 'pso.jpg', default_img="./static/default_image.jpg")  # ✅ PSO (10번째 슬라이드)
     print("frontal_ceph_path:",frontal_ceph_path)
     print("frontal_ax_path:",frontal_ax_path)
-    
-    excel_file = request.files['excel_data']
+
+    excel_file = request.files.get('excel_data')
     print("excel_file:",excel_file, flush=True, file=sys.stderr)
     ceph_dict_raw = request.form.get('totalData')
     # ceph_add_raw= request.form.get('excel_add')
