@@ -349,10 +349,11 @@ def create_first_slide(prs, ceph, id_photo_path, df_raw=None, param_name=None, p
             TextFrame(shape_s[k], font_size=Pt(13), font_bold=True, ft_color=False)
 
     except Exception as e:
-        print("🚨 오류 발생: 코드 실행을 건너뜁니다.", flush=True)
-        print(traceback.format_exc(), flush=True)
+        print("🚨 오류 발생: 코드 실행을 건너뜁니다.", flush=True, file=sys.stderr)
+        print(traceback.format_exc(), flush=True, file=sys.stderr)
+        # 에러가 발생해도 기본값으로 계속 진행
+        HGI, VGI, IAPDI, APDL, IODI, VDL, CFD = 0, 0, 0, 0, 0, 0, 0
 
-    
     # ✅ 기본값 설정
     DEFAULT_NAME = "순응교합"
     DEFAULT_AGE = "20"
@@ -440,10 +441,13 @@ def create_first_slide(prs, ceph, id_photo_path, df_raw=None, param_name=None, p
 
         # ✅ 텍스트 업데이트 (오류 발생 시 건너뜀)
         try:
+            print(f"📝 shape_s[4] 업데이트 시도: name={name}, gender={gender}, age={age}, birth={birth}", flush=True, file=sys.stderr)
             shape_s[4].text = f"{gender} {name} {age} {birth}\n {soft_profile}.{bony_profile}.{denture_profile}.C1-{nbt}({skeletal_nbt})-RM(Rt)-Fx:Ex-Fx/1-Type IV"
             TextFrame(shape_s[4])
-        except (KeyError, IndexError):
-            print(f"🚨 shape_s[4]에서 오류 발생: 텍스트 업데이트 건너뜀.", flush=True)
+            print(f"✅ shape_s[4] 업데이트 완료!", flush=True, file=sys.stderr)
+        except Exception as e:
+            print(f"🚨 shape_s[4]에서 오류 발생: {e}", flush=True, file=sys.stderr)
+            print(traceback.format_exc(), flush=True, file=sys.stderr)
 
         # ✅ 이미지 처리 (오류 발생 시 건너뜀)
         try:
