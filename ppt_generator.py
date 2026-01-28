@@ -132,6 +132,10 @@ def create_ppt(request):
             print("🚨 JSON 변환 오류: ceph_dict가 올바른 JSON 형식이 아닙니다.", flush=True, file=sys.stderr)
             ceph = None  # 변환 실패 시 None 설정
             df_raw, df, excel_file_path = None, None, None
+        except Exception as e:
+            print(f"🚨 create_first_slide 실행 중 오류 발생: {e}", flush=True, file=sys.stderr)
+            print(traceback.format_exc(), flush=True, file=sys.stderr)
+            HGI, VGI = None, None
         
     # ✅ 엑셀 파일도 없고 ceph_dict도 없는 경우
     else:
