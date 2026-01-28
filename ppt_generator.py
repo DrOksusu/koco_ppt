@@ -92,8 +92,16 @@ def create_ppt(request):
 
     file_type = request.form.get('file_type', 'pdf') #기본값은 pdf
 
+    # ✅ 새로운 파라미터: 이름, 생년월일, 클리닉 이름, 클리닉 로고
+    param_name = request.form.get('name', None)  # 이름 (없으면 None)
+    param_birth = request.form.get('birth', None)  # 생년월일 (없으면 None)
+    clinic_name = request.form.get('clinic_name', None)  # 클리닉 이름 (없으면 None)
+    clinic_logo_path = save_uploaded_file(request.files.get('clinic_logo'), 'clinic_logo.png', default_img=None)  # 클리닉 로고 (없으면 None)
+
+    print(f"param_name: {param_name}, param_birth: {param_birth}, clinic_name: {clinic_name}, clinic_logo_path: {clinic_logo_path}", flush=True, file=sys.stderr)
+
     print("file_type:",file_type, flush=True, file=sys.stderr)
-    
+
     # 현재 디렉터리에서 파일 경로를 생성
     ppt_template_path = os.path.join(os.getcwd(), 'koco_frame.pptx')
 
@@ -107,10 +115,10 @@ def create_ppt(request):
         df = df_raw.iloc[7:]  # 7번째 행 이후의 데이터 사용
         df = df.copy()  # 원본 보호
         df['Unnamed: 0'] = df['Unnamed: 0'].str.rstrip()  # 공백 제거
-        ceph ={}        
+        ceph ={}
         ceph = {key: value for key, value in zip(df['Unnamed: 0'], df['Unnamed: 3'])}
-        print("📌 엑셀 데이터:", ceph, flush=True, file=sys.stderr)        
-        HGI, VGI = create_first_slide(prs, ceph, id_photo_path, df_raw)
+        print("📌 엑셀 데이터:", ceph, flush=True, file=sys.stderr)
+        HGI, VGI = create_first_slide(prs, ceph, id_photo_path, df_raw, param_name, param_birth, clinic_name, clinic_logo_path)
         print("HGI:",HGI, flush=True, file=sys.stderr)
 
     # ✅ 엑셀 파일이 없지만 ceph_dict가 존재하는 경우
@@ -118,7 +126,7 @@ def create_ppt(request):
         try:
             # ceph = json.loads(ceph_dict)  # JSON 문자열을 딕셔너리로 변환
             print("📌 ceph_dict에서 변환된 ceph:", ceph, flush=True, file=sys.stderr)
-            HGI, VGI = create_first_slide(prs, ceph, id_photo_path, None)
+            HGI, VGI = create_first_slide(prs, ceph, id_photo_path, None, param_name, param_birth, clinic_name, clinic_logo_path)
             print("HGI:",HGI, flush=True, file=sys.stderr)
         except json.JSONDecodeError:
             print("🚨 JSON 변환 오류: ceph_dict가 올바른 JSON 형식이 아닙니다.", flush=True, file=sys.stderr)
@@ -202,7 +210,7 @@ def create_ppt(request):
     return send_file(output_pptx, as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation')
 
 
-def create_first_slide(prs, ceph, id_photo_path, df_raw = None):   # 2️⃣ Ceph 데이터 정리 및 딕셔너리 생성
+def create_first_slide(prs, ceph, id_photo_path, df_raw=None, param_name=None, param_birth=None, clinic_name=None, clinic_logo_path=None):   # 2️⃣ Ceph 데이터 정리 및 딕셔너리 생성
     
       
       
@@ -347,22 +355,41 @@ def create_first_slide(prs, ceph, id_photo_path, df_raw = None):   # 2️⃣ Cep
     DEFAULT_BIRTH = (datetime.today() - timedelta(days=20*365)).strftime("%Y-%m-%d")  # 오늘 날짜에서 20년 전
     DEFAULT_GENDER = random.choice(["Male", "Female"])  # Male 또는 Female 중 랜덤 선택
 
-    # ✅ df_raw가 None이 아닐 경우, 기존 데이터 사용
-    if df_raw is not None:
+    # ✅ 파라미터로 전달된 값 우선 사용, 없으면 df_raw에서 추출, 그것도 없으면 기본값
+    if param_name:
+        name = param_name
+    elif df_raw is not None:
         try:
             name = df_raw.iloc[3, 1] if not pd.isna(df_raw.iloc[3, 1]) else DEFAULT_NAME
-            age = df_raw.iloc[3, 3] if not pd.isna(df_raw.iloc[3, 3]) else DEFAULT_AGE
+        except Exception:
+            name = DEFAULT_NAME
+    else:
+        name = DEFAULT_NAME
+
+    if param_birth:
+        birth = param_birth
+    elif df_raw is not None:
+        try:
             birth = df_raw.iloc[2, 3] if not pd.isna(df_raw.iloc[2, 3]) else DEFAULT_BIRTH
+        except Exception:
+            birth = DEFAULT_BIRTH
+    else:
+        birth = DEFAULT_BIRTH
+
+    # ✅ age와 gender는 df_raw에서만 추출 (파라미터 없음)
+    if df_raw is not None:
+        try:
+            age = df_raw.iloc[3, 3] if not pd.isna(df_raw.iloc[3, 3]) else DEFAULT_AGE
             gender = f'({df_raw.iloc[4, 1][0]})' if not pd.isna(df_raw.iloc[4, 1]) else DEFAULT_GENDER
         except Exception as e:
             print(f"🚨 데이터 추출 중 오류 발생: {e}")
-            name, age, birth, gender = DEFAULT_NAME, DEFAULT_AGE, DEFAULT_BIRTH, DEFAULT_GENDER
+            age, gender = DEFAULT_AGE, DEFAULT_GENDER
     else:
-        # ✅ df_raw가 None이면 기본값 사용
-        name, age, birth, gender = DEFAULT_NAME, DEFAULT_AGE, DEFAULT_BIRTH, DEFAULT_GENDER
+        age, gender = DEFAULT_AGE, DEFAULT_GENDER
 
     # ✅ 최종 값 출력 (디버깅 용도)
     print(f"📌 이름: {name}, 나이: {age}, 생년월일: {birth}, 성별: {gender}")
+    print(f"📌 클리닉 이름: {clinic_name}, 클리닉 로고: {clinic_logo_path}")
 
     
 
@@ -429,6 +456,44 @@ def create_first_slide(prs, ceph, id_photo_path, df_raw = None):   # 2️⃣ Cep
                 temp_slide.shapes.add_picture(id_photo_path, left, top, width, height)
         except Exception:
             print(f"🚨 ID 사진을 추가하는 중 오류 발생: {id_photo_path}를 찾을 수 없음.", flush=True)
+
+        # ✅ 클리닉 로고 추가 (있을 경우에만)
+        if clinic_logo_path and os.path.exists(clinic_logo_path):
+            try:
+                with Image.open(clinic_logo_path) as logo_img:
+                    logo_width, logo_height = logo_img.size
+                    # 로고 높이를 0.5인치로 고정, 너비는 비율 유지
+                    logo_h = 0.5
+                    logo_w = logo_h * logo_width / logo_height
+
+                    logo_left = Inches(0.3)  # 왼쪽 상단에 배치
+                    logo_top = Inches(0.2)
+                    temp_slide.shapes.add_picture(clinic_logo_path, logo_left, logo_top, Inches(logo_w), Inches(logo_h))
+                    print(f"✅ 클리닉 로고 추가 완료: {clinic_logo_path}", flush=True)
+            except Exception as e:
+                print(f"🚨 클리닉 로고 추가 중 오류 발생: {e}", flush=True)
+
+        # ✅ 클리닉 이름 추가 (있을 경우에만)
+        if clinic_name:
+            try:
+                from pptx.util import Pt, Inches
+                # 텍스트 박스 추가 (로고 옆 또는 로고가 없으면 왼쪽 상단)
+                clinic_left = Inches(0.3)
+                clinic_top = Inches(0.75) if (clinic_logo_path and os.path.exists(clinic_logo_path)) else Inches(0.2)
+                clinic_width = Inches(2.0)
+                clinic_height = Inches(0.4)
+
+                textbox = temp_slide.shapes.add_textbox(clinic_left, clinic_top, clinic_width, clinic_height)
+                tf = textbox.text_frame
+                tf.text = clinic_name
+                for paragraph in tf.paragraphs:
+                    paragraph.font.name = '맑은 고딕'
+                    paragraph.font.size = Pt(12)
+                    paragraph.font.bold = True
+                    paragraph.font.color.rgb = RGBColor(68, 84, 116)
+                print(f"✅ 클리닉 이름 추가 완료: {clinic_name}", flush=True)
+            except Exception as e:
+                print(f"🚨 클리닉 이름 추가 중 오류 발생: {e}", flush=True)
 
         # ✅ HGI, VGI 값을 반환
         print(f"HGI: {HGI}, VGI: {VGI}")
