@@ -484,7 +484,6 @@ def create_first_slide(prs, ceph, id_photo_path, df_raw=None, param_name=None, p
         # ✅ 클리닉 이름 추가 (있을 경우에만)
         if clinic_name:
             try:
-                from pptx.util import Pt, Inches
                 # 텍스트 박스 추가 (로고 옆 또는 로고가 없으면 왼쪽 상단)
                 clinic_left = Inches(0.3)
                 clinic_top = Inches(0.75) if (clinic_logo_path and os.path.exists(clinic_logo_path)) else Inches(0.2)
