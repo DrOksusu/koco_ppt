@@ -19,6 +19,131 @@ import random
 import traceback
 
 
+# ✅ 표지 슬라이드 오프셋 (템플릿에 표지가 추가되면 1, 없으면 0)
+COVER_OFFSET = 1
+
+
+def create_cover_slide(prs, patient_name=None, clinic_name=None, clinic_logo_path=None):
+    """
+    표지 슬라이드(인덱스 0)에 클리닉 로고, 클리닉 이름, 환자 이름, 교정진단 텍스트를 추가하는 함수.
+
+    :param prs: 프레젠테이션 객체
+    :param patient_name: 환자 이름
+    :param clinic_name: 클리닉 이름
+    :param clinic_logo_path: 클리닉 로고 파일 경로
+    """
+    print("📄 표지 슬라이드 생성 시작...", flush=True, file=sys.stderr)
+
+    # 표지 슬라이드 (인덱스 0)
+    cover_slide = prs.slides[0]
+
+    # 슬라이드 크기
+    slide_width = 10  # 인치
+    slide_height = prs.slide_height.inches
+
+    # ✅ 클리닉 로고 추가 (상단 중앙)
+    logo_bottom = 1.5  # 로고 아래 위치 (인치)
+    if clinic_logo_path and os.path.exists(clinic_logo_path):
+        try:
+            with Image.open(clinic_logo_path) as logo_img:
+                logo_width_px, logo_height_px = logo_img.size
+                # 로고 높이를 1.2인치로 고정, 너비는 비율 유지
+                logo_h = 1.2
+                logo_w = logo_h * logo_width_px / logo_height_px
+
+                logo_left = Inches((slide_width - logo_w) / 2)  # 중앙 정렬
+                logo_top = Inches(1.0)
+                logo_bottom = 1.0 + logo_h + 0.3  # 로고 아래 여백
+
+                cover_slide.shapes.add_picture(clinic_logo_path, logo_left, logo_top, Inches(logo_w), Inches(logo_h))
+                print(f"✅ 표지 클리닉 로고 추가 완료", flush=True, file=sys.stderr)
+        except Exception as e:
+            print(f"🚨 표지 클리닉 로고 추가 중 오류: {e}", flush=True, file=sys.stderr)
+
+    # ✅ 클리닉 이름 추가
+    if clinic_name:
+        try:
+            clinic_text_top = Inches(logo_bottom)
+            clinic_text_width = Inches(8)
+            clinic_text_height = Inches(0.6)
+            clinic_text_left = Inches((slide_width - 8) / 2)  # 중앙 정렬
+
+            textbox = cover_slide.shapes.add_textbox(clinic_text_left, clinic_text_top, clinic_text_width, clinic_text_height)
+            tf = textbox.text_frame
+            tf.text = clinic_name
+            for paragraph in tf.paragraphs:
+                paragraph.font.name = '맑은 고딕'
+                paragraph.font.size = Pt(24)
+                paragraph.font.bold = True
+                paragraph.font.color.rgb = RGBColor(68, 84, 116)
+                paragraph.alignment = PP_ALIGN.CENTER
+            print(f"✅ 표지 클리닉 이름 추가 완료: {clinic_name}", flush=True, file=sys.stderr)
+        except Exception as e:
+            print(f"🚨 표지 클리닉 이름 추가 중 오류: {e}", flush=True, file=sys.stderr)
+
+    # ✅ "교정진단" 텍스트 추가 (중앙)
+    try:
+        title_top = Inches(slide_height / 2 - 0.5)
+        title_width = Inches(8)
+        title_height = Inches(1.0)
+        title_left = Inches((slide_width - 8) / 2)
+
+        textbox = cover_slide.shapes.add_textbox(title_left, title_top, title_width, title_height)
+        tf = textbox.text_frame
+        tf.text = "교정진단"
+        for paragraph in tf.paragraphs:
+            paragraph.font.name = '맑은 고딕'
+            paragraph.font.size = Pt(44)
+            paragraph.font.bold = True
+            paragraph.font.color.rgb = RGBColor(68, 84, 116)
+            paragraph.alignment = PP_ALIGN.CENTER
+        print(f"✅ 표지 '교정진단' 텍스트 추가 완료", flush=True, file=sys.stderr)
+    except Exception as e:
+        print(f"🚨 표지 '교정진단' 텍스트 추가 중 오류: {e}", flush=True, file=sys.stderr)
+
+    # ✅ 환자 이름 추가 (교정진단 아래)
+    if patient_name:
+        try:
+            patient_top = Inches(slide_height / 2 + 0.8)
+            patient_width = Inches(8)
+            patient_height = Inches(0.8)
+            patient_left = Inches((slide_width - 8) / 2)
+
+            textbox = cover_slide.shapes.add_textbox(patient_left, patient_top, patient_width, patient_height)
+            tf = textbox.text_frame
+            tf.text = patient_name
+            for paragraph in tf.paragraphs:
+                paragraph.font.name = '맑은 고딕'
+                paragraph.font.size = Pt(32)
+                paragraph.font.bold = False
+                paragraph.font.color.rgb = RGBColor(100, 100, 100)
+                paragraph.alignment = PP_ALIGN.CENTER
+            print(f"✅ 표지 환자 이름 추가 완료: {patient_name}", flush=True, file=sys.stderr)
+        except Exception as e:
+            print(f"🚨 표지 환자 이름 추가 중 오류: {e}", flush=True, file=sys.stderr)
+
+    # ✅ 날짜 추가 (하단)
+    try:
+        date_str = datetime.today().strftime("%Y년 %m월 %d일")
+        date_top = Inches(slide_height - 1.5)
+        date_width = Inches(8)
+        date_height = Inches(0.5)
+        date_left = Inches((slide_width - 8) / 2)
+
+        textbox = cover_slide.shapes.add_textbox(date_left, date_top, date_width, date_height)
+        tf = textbox.text_frame
+        tf.text = date_str
+        for paragraph in tf.paragraphs:
+            paragraph.font.name = '맑은 고딕'
+            paragraph.font.size = Pt(16)
+            paragraph.font.bold = False
+            paragraph.font.color.rgb = RGBColor(150, 150, 150)
+            paragraph.alignment = PP_ALIGN.CENTER
+        print(f"✅ 표지 날짜 추가 완료: {date_str}", flush=True, file=sys.stderr)
+    except Exception as e:
+        print(f"🚨 표지 날짜 추가 중 오류: {e}", flush=True, file=sys.stderr)
+
+    print("📄 표지 슬라이드 생성 완료!", flush=True, file=sys.stderr)
 
 
 # 텍스트 프레임 양식 설정 함수
@@ -107,6 +232,10 @@ def create_ppt(request):
 
     # PPT 템플릿 로드
     prs = Presentation(ppt_template_path)
+
+    # ✅ 표지 슬라이드 생성 (맨 앞 슬라이드)
+    if COVER_OFFSET > 0:
+        create_cover_slide(prs, patient_name=param_name, clinic_name=clinic_name, clinic_logo_path=clinic_logo_path)
 
     # 엑셀 파일이 비어있는지 확인
     if excel_file and excel_file.filename != '': 
@@ -250,7 +379,7 @@ def create_first_slide(prs, ceph, id_photo_path, df_raw=None, param_name=None, p
 
     # 3️⃣ PPT 불러오기
     
-    temp_slide = prs.slides[0]  # 첫 번째 슬라이드 선택
+    temp_slide = prs.slides[0 + COVER_OFFSET]  # Ceph 데이터 슬라이드 (표지 다음)
     shape_s = temp_slide.shapes  # 슬라이드 내 모든 객체 가져오기
 
     # 4️⃣ 테이블 선택 (shape_s[7]에 테이블이 있다고 가정)
@@ -548,7 +677,7 @@ def create_second_slide(prs, HGI, VGI, default_img):
     
 
      # 2번째 슬라이드 가져오기
-     temp_slide_1 = prs.slides[1]  # 슬라이드 인덱스는 0부터 시작하므로 5번째는 인덱스 4
+     temp_slide_1 = prs.slides[1 + COVER_OFFSET]  # PSA 슬라이드
      shape_s_1 = temp_slide_1.shapes
 
      # 이미지 열기
@@ -605,7 +734,7 @@ def create_third_slide(prs, default_img):
     print(f"🔍 최종 photo_paths: {photo_paths}")  # 디버깅용 출력
     # 제발^^
     # 3번째 슬라이드 가져오기
-    temp_slide_2 = prs.slides[2]
+    temp_slide_2 = prs.slides[2 + COVER_OFFSET]  # 구외사진 슬라이드
     shape_s_2 = temp_slide_2.shapes
 
     # 이미지 배치 설정 (2행 x 4열)
@@ -658,7 +787,7 @@ def create_fourth_slide(prs, oral_default_img):
 
 
     # 4번째 슬라이드 가져오기
-    temp_slide_3 = prs.slides[3]
+    temp_slide_3 = prs.slides[3 + COVER_OFFSET]  # 구내사진 슬라이드
     shape_s_3 = temp_slide_3.shapes
 
     # 이미지 크기 및 위치 설정
@@ -727,7 +856,7 @@ def create_fifth_slide(prs, default_img):
         pano_path = default_img  # 기본 이미지로 변경
 
     # 5번째 슬라이드 가져오기
-    temp_slide_4 = prs.slides[4]  # 슬라이드 인덱스는 0부터 시작하므로 5번째는 인덱스 4
+    temp_slide_4 = prs.slides[4 + COVER_OFFSET]  # Pano 슬라이드
     shape_s_4 = temp_slide_4.shapes
 
     # 이미지 열기
@@ -793,7 +922,7 @@ def create_sixth_slide(prs, default_img):
         lateral_ceph_path = default_img  # 기본 이미지로 변경
 
     # 6번째 슬라이드 가져오기
-    temp_slide_5 = prs.slides[5]  # 슬라이드 인덱스는 0부터 시작하므로 6번째는 인덱스 5
+    temp_slide_5 = prs.slides[5 + COVER_OFFSET]  # Lateral Ceph 슬라이드
     shape_s_5 = temp_slide_5.shapes
 
    # 이미지 열기
@@ -860,7 +989,7 @@ def create_seventh_slide(prs, default_img):
         frontal_ceph_path = default_img  # 기본 이미지로 변경
 
     # 7번째 슬라이드 가져오기
-    temp_slide_6 = prs.slides[6]  # 슬라이드 인덱스는 0부터 시작하므로 7번째는 인덱스 6
+    temp_slide_6 = prs.slides[6 + COVER_OFFSET]  # Frontal Ceph 슬라이드
     shape_s_6 = temp_slide_6.shapes
 
     # 이미지 열기
@@ -910,7 +1039,7 @@ def create_eighth_slide(prs, default_img):
         photo_paths.append(saved_path)
 
     # 8번째 슬라이드 가져오기
-    slide = prs.slides[7]
+    slide = prs.slides[7 + COVER_OFFSET]  # 자세사진 1 슬라이드
     shape_s_7 = slide.shapes
 
     # ✅ 기본 세팅
@@ -964,7 +1093,7 @@ def create_ninth_slide(prs, default_img):
         photo_paths.append(saved_path)
 
     # ✅ 9번째 슬라이드 가져오기 (슬라이드는 0-based index → 인덱스 8)
-    slide = prs.slides[8]
+    slide = prs.slides[8 + COVER_OFFSET]  # 자세사진 2 슬라이드
     shape_s_8 = slide.shapes
 
     # ✅ 고정된 이미지 가로 너비 및 마진 설정
@@ -999,7 +1128,7 @@ def create_tenth_slide(prs, pso_path):
     """ 10번째 슬라이드에 PSO 이미지를 추가하는 함수 """
 
     # 10번째 슬라이드 가져오기
-    temp_slide_9 = prs.slides[9]  # 인덱스 9 = 10번째 슬라이드
+    temp_slide_9 = prs.slides[9 + COVER_OFFSET]  # PSO 슬라이드
     shape_s_9 = temp_slide_9.shapes
 
     # 이미지 열기
@@ -1034,7 +1163,7 @@ def create_eleventh_slide(prs, frontal_ax_path):
     """ 11번째 슬라이드에 Frontal Ax 이미지를 추가하는 함수 """
 
     # 11번째 슬라이드 가져오기
-    temp_slide_10 = prs.slides[10]  # 인덱스 10 = 11번째 슬라이드
+    temp_slide_10 = prs.slides[10 + COVER_OFFSET]  # Frontal Ax 슬라이드
     shape_s_10 = temp_slide_10.shapes
 
     # 이미지 열기
