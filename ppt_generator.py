@@ -23,12 +23,13 @@ import traceback
 COVER_OFFSET = 1
 
 
-def create_cover_slide(prs, patient_name=None, clinic_name=None, clinic_logo_path=None):
+def create_cover_slide(prs, patient_name=None, patient_birth=None, clinic_name=None, clinic_logo_path=None):
     """
-    표지 슬라이드(인덱스 0)에 클리닉 로고, 클리닉 이름, 환자 이름, 교정진단 텍스트를 추가하는 함수.
+    표지 슬라이드(인덱스 0)에 클리닉 로고, 클리닉 이름, 환자 정보, 교정진단 텍스트를 추가하는 함수.
 
     :param prs: 프레젠테이션 객체
     :param patient_name: 환자 이름
+    :param patient_birth: 환자 생년월일
     :param clinic_name: 클리닉 이름
     :param clinic_logo_path: 클리닉 로고 파일 경로
     """
@@ -101,26 +102,41 @@ def create_cover_slide(prs, patient_name=None, clinic_name=None, clinic_logo_pat
     except Exception as e:
         print(f"🚨 표지 '교정진단' 텍스트 추가 중 오류: {e}", flush=True, file=sys.stderr)
 
-    # ✅ 환자 이름 추가 (교정진단 아래)
-    if patient_name:
+    # ✅ 환자 정보 추가 (교정진단 아래, 라벨-값 형식)
+    if patient_name or patient_birth:
         try:
-            patient_top = Inches(slide_height / 2 + 0.8)
-            patient_width = Inches(8)
-            patient_height = Inches(0.8)
-            patient_left = Inches((slide_width - 8) / 2)
+            info_top = Inches(slide_height / 2 + 1.0)
+            info_width = Inches(6)
+            info_height = Inches(1.5)
+            info_left = Inches((slide_width - 6) / 2)  # 중앙 정렬
 
-            textbox = cover_slide.shapes.add_textbox(patient_left, patient_top, patient_width, patient_height)
+            textbox = cover_slide.shapes.add_textbox(info_left, info_top, info_width, info_height)
             tf = textbox.text_frame
-            tf.text = patient_name
-            for paragraph in tf.paragraphs:
-                paragraph.font.name = '맑은 고딕'
-                paragraph.font.size = Pt(32)
-                paragraph.font.bold = False
-                paragraph.font.color.rgb = RGBColor(100, 100, 100)
-                paragraph.alignment = PP_ALIGN.CENTER
-            print(f"✅ 표지 환자 이름 추가 완료: {patient_name}", flush=True, file=sys.stderr)
+            tf.word_wrap = True
+
+            # 환자명 라인
+            if patient_name:
+                p1 = tf.paragraphs[0]
+                p1.text = f"환자명:  {patient_name}"
+                p1.font.name = '맑은 고딕'
+                p1.font.size = Pt(22)
+                p1.font.bold = False
+                p1.font.color.rgb = RGBColor(80, 80, 80)
+                p1.alignment = PP_ALIGN.CENTER
+
+            # 생년월일 라인
+            if patient_birth:
+                p2 = tf.add_paragraph()
+                p2.text = f"생년월일:  {patient_birth}"
+                p2.font.name = '맑은 고딕'
+                p2.font.size = Pt(22)
+                p2.font.bold = False
+                p2.font.color.rgb = RGBColor(80, 80, 80)
+                p2.alignment = PP_ALIGN.CENTER
+
+            print(f"✅ 표지 환자 정보 추가 완료: {patient_name}, {patient_birth}", flush=True, file=sys.stderr)
         except Exception as e:
-            print(f"🚨 표지 환자 이름 추가 중 오류: {e}", flush=True, file=sys.stderr)
+            print(f"🚨 표지 환자 정보 추가 중 오류: {e}", flush=True, file=sys.stderr)
 
     # ✅ 날짜 추가 (하단)
     try:
@@ -235,7 +251,7 @@ def create_ppt(request):
 
     # ✅ 표지 슬라이드 생성 (맨 앞 슬라이드)
     if COVER_OFFSET > 0:
-        create_cover_slide(prs, patient_name=param_name, clinic_name=clinic_name, clinic_logo_path=clinic_logo_path)
+        create_cover_slide(prs, patient_name=param_name, patient_birth=param_birth, clinic_name=clinic_name, clinic_logo_path=clinic_logo_path)
 
     # 엑셀 파일이 비어있는지 확인
     if excel_file and excel_file.filename != '': 
