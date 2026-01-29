@@ -82,10 +82,19 @@ def save_uploaded_file(uploaded_file, filename, default_img=None):
             except Exception as exif_error:
                 print(f"⚠️ EXIF 정보 없음 또는 처리 실패: {exif_error}")
 
-            # ✅ JPEG 저장 호환성을 위한 모드 변환
+            # ✅ JPEG 저장 호환성을 위한 모드 변환 (투명 배경 → 흰색 배경)
             if img.mode in ("RGBA", "P"):
-                img = img.convert("RGB")
-                print("🎨 RGBA 또는 P 모드 → RGB로 변환됨")
+                # 흰색 배경 이미지 생성
+                background = Image.new("RGB", img.size, (255, 255, 255))
+                if img.mode == "RGBA":
+                    # 알파 채널을 마스크로 사용하여 합성
+                    background.paste(img, mask=img.split()[3])
+                else:
+                    # P 모드는 RGBA로 변환 후 합성
+                    img_rgba = img.convert("RGBA")
+                    background.paste(img_rgba, mask=img_rgba.split()[3])
+                img = background
+                print("🎨 RGBA 또는 P 모드 → RGB로 변환됨 (흰색 배경)")
             
             
             # ✅ 이미지 저장
