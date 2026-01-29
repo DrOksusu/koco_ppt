@@ -14,7 +14,7 @@ from PIL import Image
 import cv2
 import numpy as np
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import random
 import traceback
 
@@ -138,9 +138,10 @@ def create_cover_slide(prs, patient_name=None, patient_birth=None, clinic_name=N
         except Exception as e:
             print(f"🚨 표지 환자 정보 추가 중 오류: {e}", flush=True, file=sys.stderr)
 
-    # ✅ 날짜 추가 (하단)
+    # ✅ 날짜 추가 (하단, 한국 시간 KST)
     try:
-        date_str = datetime.today().strftime("%Y년 %m월 %d일")
+        KST = timezone(timedelta(hours=9))
+        date_str = datetime.now(KST).strftime("%Y년 %m월 %d일")
         date_top = Inches(slide_height - 1.5)
         date_width = Inches(8)
         date_height = Inches(0.5)
