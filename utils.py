@@ -178,7 +178,15 @@ def convert_ppt_to_pdf(input_ppt, output_pdf):
             base_name = os.path.splitext(os.path.basename(input_ppt))[0]  # 파일명 추출
             converted_pdf = os.path.join(output_dir, f"{base_name}.pdf")
 
-            command = ["libreoffice", "--headless", "--convert-to", "pdf", "--outdir", output_dir, input_ppt]
+            command = [
+                "libreoffice",
+                "--headless",
+                "--nofirststartwizard",
+                "-env:UserInstallation=file:///tmp/libreoffice_profile",
+                "--convert-to", "pdf",
+                "--outdir", output_dir,
+                input_ppt
+            ]
             print(f"🔄 LibreOffice 실행: {' '.join(command)}", flush=True)
 
             # LibreOffice 실행 (30초 타임아웃 추가)
