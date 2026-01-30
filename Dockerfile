@@ -5,11 +5,12 @@ FROM python:3.9
 WORKDIR /app
 
 # 3️⃣ 필수 시스템 패키지 설치 (의존성 문제 해결)
-RUN apt-get update && apt-get upgrade -y 
+RUN apt-get update && apt-get upgrade -y
 
 RUN apt-get install -y --no-install-recommends \
     libreoffice-common \
     libreoffice \
+    libreoffice-impress \
     libgl1 \
     libgl1-mesa-dev \
     libglu1-mesa-dev \
@@ -17,7 +18,19 @@ RUN apt-get install -y --no-install-recommends \
     libsm6 \
     libxext6 \
     libxrender1 \
-    libopenblas-dev 
+    libopenblas-dev \
+    # 한글 폰트 설치
+    fonts-nanum \
+    fonts-nanum-extra \
+    # LibreOffice 추가 패키지
+    libreoffice-java-common \
+    default-jre
+
+# 폰트 캐시 갱신
+RUN fc-cache -fv
+
+# LibreOffice 프로필 디렉토리 생성
+RUN mkdir -p /tmp/libreoffice_profile && chmod 777 /tmp/libreoffice_profile
 
 RUN rm -rf /var/lib/apt/lists/*
 
@@ -32,6 +45,8 @@ COPY . .
 # 6️⃣ 환경 변수 설정 (Flask 실행을 위한 설정)
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
+ENV HOME=/tmp
+ENV SAL_USE_VCLPLUGIN=svp
 
 # 7️⃣ Flask 서버 실행
 CMD ["python", "app.py"]
