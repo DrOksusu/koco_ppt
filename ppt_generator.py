@@ -335,13 +335,21 @@ def create_ppt(request):
     
     
     if file_type == 'pdf':
-        print("PDF 변환 시작까지는 되는 듯",flush=True, file=sys.stderr)
+        print("PDF 변환 시작", flush=True, file=sys.stderr)
         output_pdf = 'output_ppt.pdf'
-        convert_ppt_to_pdf(output_pptx, output_pdf)  # PDF 변환 로직 (구현 필요)
-         # ✅ 파일이 존재하는지 확인
+
+        # ✅ 기존 PDF 파일 삭제 (이전 파일 반환 방지)
+        if os.path.exists(output_pdf):
+            os.remove(output_pdf)
+            print(f"🗑️ 기존 PDF 파일 삭제: {output_pdf}", flush=True, file=sys.stderr)
+
+        # PDF 변환 실행
+        convert_ppt_to_pdf(output_pptx, output_pdf)
+
+        # ✅ 파일이 존재하는지 확인 (변환 성공 여부)
         if not os.path.exists(output_pdf):
-            print(f"🚨 파일이 존재하지 않습니다: {output_pdf}", flush=True)
-            return "파일이 존재하지 않습니다", 404
+            print(f"🚨 PDF 변환 실패: {output_pdf} 파일이 생성되지 않음", flush=True, file=sys.stderr)
+            return jsonify({"error": "PDF 변환에 실패했습니다. PPTX 파일로 다시 시도해주세요."}), 500
 
         # ✅ 파일 크기 확인
         file_size = os.path.getsize(output_pdf)
@@ -353,8 +361,6 @@ def create_ppt(request):
 
         print(f"✅ PDF 응답 반환 성공: {output_pdf}", flush=True)
         return response
-
-        #return send_file(output_pdf, as_attachment=True, mimetype='application/pdf')
 
     # PPTX 파일 전송
     return send_file(output_pptx, as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation')
