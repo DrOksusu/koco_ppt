@@ -1,38 +1,21 @@
-# 1️⃣ Python 3.9 기반 이미지 사용
-FROM python:3.9
+# 1️⃣ Debian Bullseye 기반 이미지 사용 (LibreOffice 7.x 안정 버전)
+FROM debian:bullseye-slim
 
 # 2️⃣ 작업 디렉토리 설정
 WORKDIR /app
 
-# 3️⃣ 필수 시스템 패키지 설치 (의존성 문제 해결)
-RUN apt-get update && apt-get upgrade -y
-
-RUN apt-get install -y --no-install-recommends \
-    libreoffice-common \
-    libreoffice \
-    libreoffice-impress \
-    libgl1 \
-    libgl1-mesa-dev \
-    libglu1-mesa-dev \
-    libglib2.0-dev \
-    libsm6 \
-    libxext6 \
-    libxrender1 \
-    libopenblas-dev \
-    # 한글 폰트 설치
-    fonts-nanum \
-    fonts-nanum-extra \
-    # LibreOffice 추가 패키지
-    libreoffice-java-common \
-    default-jre
-
-# 폰트 캐시 갱신
-RUN fc-cache -fv
-
-# LibreOffice 프로필 디렉토리 생성
-RUN mkdir -p /tmp/libreoffice_profile && chmod 777 /tmp/libreoffice_profile
-
-RUN rm -rf /var/lib/apt/lists/*
+# 3️⃣ apt 재시도 설정 + Python 및 필수 시스템 패키지 설치
+RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends --fix-missing \
+    python3 python3-pip python3-dev python3-tk \
+    libreoffice-impress libreoffice-writer fonts-nanum \
+    libgl1 libsm6 libxext6 libxrender1 libopenblas-dev \
+    && fc-cache -fv \
+    && mkdir -p /tmp/libreoffice_profile \
+    && chmod 777 /tmp/libreoffice_profile \
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -s /usr/bin/python3 /usr/bin/python
 
 # 4️⃣ requirements.txt 복사 및 pip 업그레이드
 COPY requirements.txt . 
